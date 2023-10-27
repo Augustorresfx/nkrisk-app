@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        p {
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Notificación de vencimiento de pólizas</h1>
+        <p>Estimado/a,</p>
+        <p>A continuación, se detallan las pólizas que están próximas a expirar:</p>
+
+        <table>
+            <tr>
+                <th>Póliza</th>
+                <th>Fecha de vencimiento</th>
+            </tr>
+            {% for object in objects_to_remind %}
+            <tr>
+                <td>{{ object.poliza }}</td>
+                <td>{{ object.fecha_vencimiento|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        
+    </div>
+</body>
+</html>

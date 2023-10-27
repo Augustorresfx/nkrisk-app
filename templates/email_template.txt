@@ -1,0 +1,10 @@
+Notificación de vencimiento de pólizas
+
+Estimado/a,
+
+Las siguientes pólizas están próximas a expirar:
+
+{% for object in objects_to_remind %}
+- {{ object.poliza }} - Fecha de vencimiento: {{ object.fecha_vencimiento|date:"d/m/Y" }}
+{% endfor %}
+

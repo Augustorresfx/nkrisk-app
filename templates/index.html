@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container col-xxl-12 py-5">
+  <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+    <div class="col-10 col-sm-8 col-lg-6 pt-5 mt-5">
+      <img src="{% static "images/hero.jpg" %}" class="d-block mx-lg-auto img-fluid rounded-4" alt="Nkrisk app" loading="lazy">
+    </div>
+    <div class="col-lg-6 mt-sm-2 pt-sm-2 mt-md-4 pt-md-4 mt-lg-5 pt-lg-5">
+      <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Nkrisk web app</h1>
+      <p class="lead">Ingrese con sus credenciales para ver el contenido.</p>
+      <div class=" d-md-flex justify-content-md-start">
+        <a href="/login/" type="button" class="btn btn-primary btn-lg px-4 me-md-2">Iniciar sesión</a>
+
+        
+    </div>
+  </div>
+</div>
+{% endblock %}

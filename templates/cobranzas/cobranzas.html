@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load app_extras %}
+
+
+{% load static %}
+{% block content %}
+  <section class="mb-4">
+  <div class="container-fluid h-custom">
+      
+      
+      
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Cobranzas</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Dropdown button
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#">Action</a></li>
+              <li><a class="dropdown-item" href="#">Another action</a></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            </ul>
+          </div>
+           
+        </div>
+      </div>
+         
+            <div class="table-responsive mb-2">
+            
+                <table class="table table-striped bg-white rounded shadow-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Asegurador</th>
+                        <th scope="col">Riesgo</th>
+                        <th scope="col">Productor</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Póliza</th>
+                        <th scope="col">Fecha de vencimiento</th>
+                        <th scope="col">Moneda</th>
+                        <th scope="col">Importe</th>
+                        <th scope="col">Saldo</th>
+                        <th scope="col">Forma de pago</th>
+                        <th scope="col">Factura</th>
+      
+                        <th scope="col">Editar</th>
+                        <th scope="col">Eliminar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      
+                      {% for product in pages %}
+                      
+                      <tr>
+                          <td>{{ product.asegurador }}</td>
+                          <td>{{ product.riesgo }}</td>
+                          <td>{{ product.productor }}</td>
+                          <td>{{ product.cliente }}</td>
+                          <td>{{ product.poliza }}</td>
+                          <td>{{ product.fecha_vencimiento|date:"d/m/Y"  }}</td>
+                          <td>{{ product.moneda }}</td>
+                          <td>{{ product.importe }}</td>
+                          <td>{{ product.saldo }}</td>
+                          <td>{{ product.forma_pago }}</td>
+                          <td>{{ product.factura }}</td>
+
+      
+      
+                          <td>
+                            <a class="w-10 btn btn-sm btn-primary" href="#">
+                              <span data-feather="edit"></span>
+                              Editar
+                            </a>
+                          </td>
+                          <td>
+                            <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="#">
+                              Eliminar
+                            </button>
+                       
+                          
+                          </td>
+                        </tr>
+                     
+                  
+                      {% endfor %}
+                    </tbody>
+                </table>
+            </div>  
+            <div class="app-table">
+            <div class="table-output">
+      <tbody id="table-body" class="table-body"> </tbody></div>
+          </div>
+        </div>
+      <div class="mx-2">
+              <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-end">
+      
+      
+                  {% if pages.has_previous %}
+                    <li class="page-item">
+                      <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="{% my_url pages.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
+                    </li>
+      
+                      {% endif %}
+            
+            
+                      <li class="page-item">
+                        
+                      <a class="page-link" href="{% my_url pages.number 'page' request.GET.urlencode %}">{{ pages.number }}</a>
+                    
+                     
+                      </li>
+                      <li class="page-item">
+                        
+                        <a class="page-link" href="{% my_url pages.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages.paginator.num_pages }}</a>
+                      
+                       
+                        </li>
+                  
+                
+             
+                  {% if pages.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="{% my_url pages.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
+                   </li>
+                   <li class="page-item">
+                  <a class="page-link" href="{% my_url pages.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+                </li>
+                  {% endif %}
+                </ul>
+                </nav>
+         
+        </div>
+        </div>
+      </div>
+    </div>
+      
+
+  </section>
+  <script src="{% static 'js/fileInput.js' %}"></script>
+{% endblock %}
