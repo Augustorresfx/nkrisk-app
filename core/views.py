@@ -107,6 +107,8 @@ class CobranzasView(View):
         if "delete_data" in request.POST:
             Cobranza.objects.all().delete()  # Elimina todos los registros de Cobranza
             return redirect('cobranzas')
+        
+        
         selected_month = int(request.POST.get('month'))
         selected_year = int(request.POST.get('year'))
         file1 = request.FILES.get('file1')
@@ -131,9 +133,10 @@ class CobranzasView(View):
         # Procesa cualquier lote restante (menos de 100 filas)
         if data:
             self.process_data(data, selected_month, selected_year)
+        
         context = {
             
-        }
+        } 
 
         return render(request, 'cobranzas/cobranzas.html', context)
     
