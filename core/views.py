@@ -22,7 +22,7 @@ class HomeView(View):
         context = {
             
         }
-        return render(request, 'index.html', context)
+        return redirect('login')
     
 
 @method_decorator(login_required, name='dispatch')
@@ -78,7 +78,21 @@ class DashboardView(View):
 @method_decorator(login_required, name='dispatch')
 class CobranzasView(View):
     def get(self, request, *args, **kwargs):
-        cobranzas = Cobranza.objects.all().order_by('-fecha_vencimiento')  # Obtener todas las instancias de Cobranza
+         # Obtén el mes seleccionado desde la URL
+        selected_month = request.GET.get("month")
+        
+        # Obtiene el primer día del mes seleccionado
+        if selected_month:
+            selected_month = int(selected_month)
+            start_date = datetime(datetime.now().year, selected_month, 1)
+            end_date = datetime(datetime.now().year, selected_month + 1, 1) if selected_month < 12 else datetime(datetime.now().year + 1, 1, 1)
+            
+            # Filtra las cobranzas para el mes seleccionado
+            cobranzas = Cobranza.objects.filter(fecha_vencimiento__gte=start_date, fecha_vencimiento__lt=end_date).order_by('-fecha_vencimiento')
+        else:
+            # Si no se selecciona un mes, muestra todas las cobranzas
+            cobranzas = Cobranza.objects.all().order_by('-fecha_vencimiento')
+        
         cobranzas_paginadas = Paginator(cobranzas, 30)
         page_number = request.GET.get("page")
         filter_pages = cobranzas_paginadas.get_page(page_number)
@@ -102,21 +116,24 @@ class CobranzasView(View):
             fecha_vencimiento = fecha_vencimiento.replace("/", "-")
             
             fecha_vencimiento = datetime.strptime(fecha_vencimiento, "%d-%m-%Y").strftime("%Y-%m-%d")
-            Cobranza.objects.create(
-                asegurador=asegurador,
-                riesgo=riesgo,
-                productor=productor,
-                cliente=cliente,
-                poliza=poliza,
-                endoso=endoso,
-                cuota=cuota,
-                fecha_vencimiento=fecha_vencimiento,
-                moneda=moneda,
-                importe=importe,
-                saldo=saldo,
-                forma_pago=forma_pago,
-                factura=factura
-            )
+            # Verifica si la fecha de vencimiento es de este año antes de crear el objeto Cobranza
+            if datetime.strptime(fecha_vencimiento, "%Y-%m-%d").year == datetime.now().year:
+                Cobranza.objects.create(
+                    asegurador=asegurador,
+                    riesgo=riesgo,
+                    productor=productor,
+                    cliente=cliente,
+                    poliza=poliza,
+                    endoso=endoso,
+                    cuota=cuota,
+                    fecha_vencimiento=fecha_vencimiento,
+                    moneda=moneda,
+                    importe=importe,
+                    saldo=saldo,
+                    forma_pago=forma_pago,
+                    factura=factura
+                )
+
         
         context = {
             
@@ -132,6 +149,8 @@ class SignOutView(View):
 
 class SignInView(View):
     def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('cobranzas')
         return render(request, 'login.html', {
             'form': AuthenticationForm()
         })
@@ -144,7 +163,7 @@ class SignInView(View):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('dashboard')
+                return redirect('cobranzas')
         
         return render(request, 'login.html', {
             'form': form,
