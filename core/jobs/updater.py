@@ -11,7 +11,7 @@ def notificar_cobranzas():
     scheduler = BackgroundScheduler(job_defaults=job_defaults)
 
         # Programar la tarea para que se ejecute todos los días a las 10:00 AM
-    scheduler.add_job(expiracion_cobranzas, 'interval', minutes=5)
+    scheduler.add_job(expiracion_cobranzas, 'interval', days=1)
 
         # Iniciar el planificador en segundo plano
     scheduler.start()
