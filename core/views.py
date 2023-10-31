@@ -124,7 +124,7 @@ class CobranzasView(View):
                 data.append(row)  # Agrega la fila a la lista
 
                 # Procesa las filas de 100 en 100
-                if len(data) == 100:
+                if len(data) == 5:
                     self.process_data(data, selected_month, selected_year)
                     data = []  # Reinicia la lista para el siguiente lote
 
