@@ -105,7 +105,8 @@ class CobranzasView(View):
         if "delete_data" in request.POST:
             Cobranza.objects.all().delete()  # Elimina todos los registros de Cobranza
             return redirect('cobranzas')
-
+        selected_month = int(request.POST.get('month'))
+        selected_year = int(request.POST.get('year'))
         file1 = request.FILES.get('file1')
         workbook = openpyxl.load_workbook(file1)
         sheet = workbook.active
@@ -114,10 +115,10 @@ class CobranzasView(View):
         for row in sheet.iter_rows(min_row=4, values_only=True):
             asegurador, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
             fecha_vencimiento = fecha_vencimiento.replace("/", "-")
+            fecha_vencimiento = fecha_vencimiento.replace("/", "-")
+            fecha_vencimiento = datetime.strptime(fecha_vencimiento, "%d-%m-%Y")
             
-            fecha_vencimiento = datetime.strptime(fecha_vencimiento, "%d-%m-%Y").strftime("%Y-%m-%d")
-            # Verifica si la fecha de vencimiento es de este año antes de crear el objeto Cobranza
-            if datetime.strptime(fecha_vencimiento, "%Y-%m-%d").year == datetime.now().year:
+            if fecha_vencimiento.month == selected_month and fecha_vencimiento.year == selected_year:
                 Cobranza.objects.create(
                     asegurador=asegurador,
                     riesgo=riesgo,
