@@ -101,6 +101,8 @@ class CobranzasView(View):
             'pages': filter_pages
         }
         return render(request, 'cobranzas/cobranzas.html', context)
+    
+    
     def post(self, request, *args, **kwargs):
         if "delete_data" in request.POST:
             Cobranza.objects.all().delete()  # Elimina todos los registros de Cobranza
@@ -111,11 +113,35 @@ class CobranzasView(View):
         workbook = openpyxl.load_workbook(file1)
         sheet = workbook.active
 
-        # Itera a través de las filas del archivo Excel y guarda los datos en la base de datos
+        data = []  # Lista para almacenar las filas
         for row in sheet.iter_rows(min_row=4, values_only=True):
             asegurador, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
             fecha_vencimiento = fecha_vencimiento.replace("/", "-")
+            fecha_vencimiento = datetime.strptime(fecha_vencimiento, "%d-%m-%Y")
+
+            # Verifica si la fecha de vencimiento está en el mes y año seleccionados por el usuario
+            if fecha_vencimiento.month == selected_month and fecha_vencimiento.year == selected_year:
+                data.append(row)  # Agrega la fila a la lista
+
+                # Procesa las filas de 100 en 100
+                if len(data) == 100:
+                    self.process_data(data, selected_month, selected_year)
+                    data = []  # Reinicia la lista para el siguiente lote
+
+        # Procesa cualquier lote restante (menos de 100 filas)
+        if data:
+            self.process_data(data, selected_month, selected_year)
+        context = {
+            
+        }
+
+        return render(request, 'cobranzas/cobranzas.html', context)
+    
+    def process_data(self, data, selected_month, selected_year):
+        for row in data:
+            asegurador, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
             fecha_vencimiento = fecha_vencimiento.replace("/", "-")
+            
             fecha_vencimiento = datetime.strptime(fecha_vencimiento, "%d-%m-%Y")
             
             if fecha_vencimiento.month == selected_month and fecha_vencimiento.year == selected_year:
@@ -135,12 +161,6 @@ class CobranzasView(View):
                     factura=factura
                 )
 
-        
-        context = {
-            
-        }
-
-        return render(request, 'cobranzas/cobranzas.html', context)
 
 
 class SignOutView(View):
