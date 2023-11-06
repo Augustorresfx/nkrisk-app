@@ -7,46 +7,73 @@
   <section class="mb-4">
   <div class="container-fluid h-custom">
       <div class="mt-5 pt-5">
+     
+        <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Agregar flota
+  </button>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Agregar flota</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
         <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label for="formFile" class="form-label">Excel a importar</label>
-            <input name="file1" class="form-control" type="file" id="formFile">
-          </div>
-          <label for="month">Seleccionar mes a cargar:</label>
-          <select class="form-select" name="month" id="month">
-            <option value="1">Enero</option>
-            <option value="2">Febrero</option>
-            <option value="3">Marzo </option>
-            <option value="4">Abril</option>
-            <option value="5">Mayo</option>
-            <option value="6">Junio</option>
-            <option value="7">Julio</option>
-            <option value="8">Agosto</option>
-            <option value="9">Septiembre</option>
-            <option value="10">Octubre</option>
-            <option value="11">Noviembre</option>
-            <option value="12">Diciembre</option>
-
-            <!-- Agrega el resto de los meses -->
-          </select>
-        
-          <label for="year">Seleccionar año a cargar:</label>
-          <select class="form-select" name="year" id="year">
-            <option value="2023">2023</option>
-            <option value="2024">2024</option>
-            <!-- Agrega el rango de años que necesites -->
-          </select>
-          <button class="btn btn-primary mt-3" type="submit">Importar datos</button>
-      </form>
-      <form method="POST" action="{% url 'vencimientos' %}">
-        {% csrf_token %}
-        <button type="submit" name="delete_data" class="btn btn-danger">Eliminar datos</button>
-      </form>
+            {% csrf_token %}
+        <div class="modal-body">
+            
+                <div class="mb-3">
+                  <label for="nombre" class="form-label">Nombre completo del cliente: </label>
+                  <input name="nombre" type="text" class="form-control" placeholder="Nombre completo" aria-label="Nombre completo" aria-describedby="basic-addon1">
+                </div>
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Cuit del cliente: </label>
+                    <input name="cuit" type="text" class="form-control" placeholder="Cuit" aria-label="Cuit" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="nombre" class="form-label">Nacionalidad: </label>
+                    <input name="nacionalidad" type="text" class="form-control" placeholder="Nacionalidad" aria-label="Nacionalidad" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="nombre" class="form-label">Provincia: </label>
+                    <input name="provincia" type="text" class="form-control" placeholder="Provincia" aria-label="Provincia" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="nombre" class="form-label">Localidad: </label>
+                    <input name="localidad" type="text" class="form-control" placeholder="Localidad" aria-label="Localidad" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="nombre" class="form-label">Dirección: </label>
+                    <input name="direccion" type="text" class="form-control" placeholder="Dirección" aria-label="Dirección" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="nombre" class="form-label">Teléfono: </label>
+                    <input name="telefono" type="text" class="form-control" placeholder="Teléfono" aria-label="Teléfono" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="nombre" class="form-label">E-mail: </label>
+                    <input name="email" type="email" class="form-control" placeholder="E-mail" aria-label="E-mail" aria-describedby="basic-addon1">
+                  </div>
+               
+                
+            
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
       </div>
+    </div>
+  </div>
+        
+     
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Cobranzas</h1>
+        <h1 class="h2">Flotas</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="dropdown">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -76,42 +103,40 @@
                 <table class="table table-striped bg-white rounded shadow-sm">
                     <thead>
                       <tr>
-                        <th scope="col">Asegurador</th>
-                        <th scope="col">Riesgo</th>
-                        <th scope="col">Productor</th>
-                        <th scope="col">Cliente</th>
-                        <th scope="col">Póliza</th>
-                        <th scope="col">Fecha de vencimiento</th>
-                        <th scope="col">Moneda</th>
-                        <th scope="col">Importe</th>
-                        <th scope="col">Saldo</th>
-                        <th scope="col">Forma de pago</th>
-                        <th scope="col">Factura</th>
+                        <th scope="col">Nombre cliente</th>
+                        <th scope="col">Cuit</th>
+                        <th scope="col">Nacionalidad</th>
+                        <th scope="col">Provincia</th>
+                        <th scope="col">Localidad</th>
+                        <th scope="col">Fecha de creación</th>
+                        <th scope="col">Dirección</th>
+                        <th scope="col">Teléfono</th>
+                        <th scope="col">Email</th>
+
       
                         <th scope="col">Editar</th>
                         <th scope="col">Eliminar</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {% for vencimiento in pages %}
+                      {% for flota in pages %}
                       
                       <tr>
-                          <td>{{ vencimiento.asegurador }}</td>
-                          <td>{{ vencimiento.riesgo }}</td>
-                          <td>{{ vencimiento.productor }}</td>
-                          <td>{{ vencimiento.cliente }}</td>
-                          <td>{{ vencimiento.poliza }}</td>
-                          <td>{{ vencimiento.fecha_vencimiento|date:"d/m/Y"  }}</td>
-                          <td>{{ vencimiento.moneda }}</td>
-                          <td>{{ vencimiento.importe }}</td>
-                          <td>{{ vencimiento.saldo }}</td>
-                          <td>{{ vencimiento.forma_pago }}</td>
-                          <td>{{ vencimiento.factura }}</td>
+                          <td>{{ flota.nombre_cliente }}</td>
+                          <td>{{ flota.cuit }}</td>
+                          <td>{{ flota.nacionalidad }}</td>
+                          <td>{{ flota.provincia }}</td>
+                          <td>{{ flota.localidad }}</td>
+                          <td>{{ flota.created|date:"d/m/Y"  }}</td>
+                          <td>{{ flota.direccion }}</td>
+                          <td>{{ flota.telefono }}</td>
+                          <td>{{ flota.email }}</td>
+
 
       
       
                           <td>
-                            <a class="w-10 btn btn-sm btn-primary" href="#">
+                            <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_flota' flota.id %}">
                               <span data-feather="edit"></span>
                               Editar
                             </a>

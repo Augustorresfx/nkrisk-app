@@ -6,20 +6,65 @@
 {% block content %}
   <section class="mb-4">
   <div class="container-fluid h-custom">
-      
-      
-      
+      <div class="mt-5 pt-5">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="formFile" class="form-label">Excel a importar</label>
+            <input name="file1" class="form-control" type="file" id="formFile">
+          </div>
+          <label for="month">Seleccionar mes a cargar:</label>
+          <select class="form-select" name="month" id="month">
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo </option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+
+            <!-- Agrega el resto de los meses -->
+          </select>
+        
+          <label for="year">Seleccionar año a cargar:</label>
+          <select class="form-select" name="year" id="year">
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <!-- Agrega el rango de años que necesites -->
+          </select>
+          <button class="btn btn-primary mt-3" type="submit">Importar datos</button>
+      </form>
+      <form method="POST" action="{% url 'vencimientos' %}">
+        {% csrf_token %}
+        <button type="submit" name="delete_data" class="btn btn-danger">Eliminar datos</button>
+      </form>
+      </div>
+
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard</h1>
+        <h1 class="h2">Vencimientos</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Dropdown button
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Seleccionar mes
             </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            <ul class="dropdown-menu" aria-labelledby="monthDropdown">
+              <li><a class="dropdown-item" href="?month=1">Enero</a></li>
+              <li><a class="dropdown-item" href="?month=2">Febrero</a></li>
+              <li><a class="dropdown-item" href="?month=3">Marzo</a></li>
+              <li><a class="dropdown-item" href="?month=4">Abril</a></li>
+              <li><a class="dropdown-item" href="?month=5">Mayo</a></li>
+              <li><a class="dropdown-item" href="?month=6">Junio</a></li>
+              <li><a class="dropdown-item" href="?month=7">Julio</a></li>
+              <li><a class="dropdown-item" href="?month=8">Agosto</a></li>
+              <li><a class="dropdown-item" href="?month=9">Septiembre</a></li>
+              <li><a class="dropdown-item" href="?month=10">Octubre</a></li>
+              <li><a class="dropdown-item" href="?month=11">Noviembre</a></li>
+              <li><a class="dropdown-item" href="?month=12">Diciembre</a></li>
             </ul>
           </div>
            
@@ -48,21 +93,20 @@
                       </tr>
                     </thead>
                     <tbody>
-                      
-                      {% for product in pages %}
+                      {% for vencimiento in pages %}
                       
                       <tr>
-                          <td>{{ product.asegurador }}</td>
-                          <td>{{ product.riesgo }}</td>
-                          <td>{{ product.productor }}</td>
-                          <td>{{ product.cliente }}</td>
-                          <td>{{ product.poliza }}</td>
-                          <td>{{ product.fecha_vencimiento|date:"d/m/Y"  }}</td>
-                          <td>{{ product.moneda }}</td>
-                          <td>{{ product.importe }}</td>
-                          <td>{{ product.saldo }}</td>
-                          <td>{{ product.forma_pago }}</td>
-                          <td>{{ product.factura }}</td>
+                          <td>{{ vencimiento.asegurador }}</td>
+                          <td>{{ vencimiento.riesgo }}</td>
+                          <td>{{ vencimiento.productor }}</td>
+                          <td>{{ vencimiento.cliente }}</td>
+                          <td>{{ vencimiento.poliza }}</td>
+                          <td>{{ vencimiento.fecha_vencimiento|date:"d/m/Y"  }}</td>
+                          <td>{{ vencimiento.moneda }}</td>
+                          <td>{{ vencimiento.importe }}</td>
+                          <td>{{ vencimiento.saldo }}</td>
+                          <td>{{ vencimiento.forma_pago }}</td>
+                          <td>{{ vencimiento.factura }}</td>
 
       
       

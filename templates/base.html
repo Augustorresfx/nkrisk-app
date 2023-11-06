@@ -12,13 +12,22 @@
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <!--Bootstrap-->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        
+        
+        <!--Google Fonts & Icons-->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
         <link rel="stylesheet"  href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
         <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Lilita+One&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+        
+        <!--Data Tables-->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
+        
 
     </head>
     <body>
@@ -49,6 +58,26 @@
               <ul class="navbar-nav ms-auto">   
   
               {% if user.is_authenticated %}
+
+              <li class="border-top my-3"></li>
+
+              <li>
+                <a href="/flotas/" class="nav-link active d-flex align-items-center">
+                  <span class="material-icons-outlined">
+                    directions_car
+                    </span>
+                  <span class="mx-2">Flotas</span>
+                </a>
+              </li>
+              <li class="border-top my-3"></li>
+              <li>
+                <a href="/vencimientos/" class="nav-link active d-flex align-items-center">
+                  <span class="material-icons-outlined">
+                    calendar_month
+                    </span>
+                  <span class="mx-2">Vencimientos</span>
+                </a>
+              </li>
               <li>
                 <a href="/cobranzas/" class="nav-link active d-flex align-items-center">
                   <span class="material-icons-outlined">
@@ -57,14 +86,27 @@
                   <span class="mx-2">Cobranzas</span>
                 </a>
               </li>
-              <li>
-                <a href="/logout/" class="nav-link active d-flex align-items-center">
-                  <span class="material-icons-outlined">
-                    logout
-                    </span>
-                  <span class="mx-2">Cerrar sesión</span>
+              <li class="border-top my-3"></li>
+              <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  <img src="{% static "images/perfil.png" %}" alt="Usuario" width="32" height="32" class="rounded-circle me-2">
+                  <strong> {{ user.username }} </strong>
                 </a>
-              </li>
+                <ul class="dropdown-menu text-small shadow" style="">
+                  {% comment %} <li><a class="dropdown-item" href="#">New project...</a></li>
+                  <li><a class="dropdown-item" href="#">Settings</a></li>
+                  <li><a class="dropdown-item" href="#">Profile</a></li>
+                  <li><hr class="dropdown-divider"></li> {% endcomment %}
+                  <li>
+                    <a class="d-flex align-items-center dropdown-item" href="/logout/">
+                      <span class="material-icons-outlined me-2">
+                        logout
+                      </span>
+                        Cerrar sesión
+                    </a>
+                  </li>
+                </ul>
+              </div>
               {% else %}
               <li>
                 <a href="/login/" class="nav-link active d-flex align-items-center">
@@ -95,10 +137,12 @@
       
           <ul class="nav col-md-4 justify-content-end">
             {% if user.is_authenticated %}
-            <li class="nav-item"><a href="/cobranzas/" class="nav-link px-2 text-body-secondary">Cobranzas</a></li>
-            <li class="nav-item"><a href="/logout/" class="nav-link px-2 text-body-secondary">Cerrar sesión</a></li>
+              <li class="nav-item"><a href="/flotas/" class="nav-link px-2 text-body-secondary">Flotas</a></li>
+              <li class="nav-item"><a href="/vencimientos/" class="nav-link px-2 text-body-secondary">Vencimientos</a></li>
+              <li class="nav-item"><a href="/cobranzas/" class="nav-link px-2 text-body-secondary">Cobranzas</a></li>
+              <li class="nav-item"><a href="/logout/" class="nav-link px-2 text-body-secondary">Cerrar sesión</a></li>
             {% else %}
-            <li class="nav-item"><a href="/login/" class="nav-link px-2 text-body-secondary">Iniciar sesión</a></li>
+              <li class="nav-item"><a href="/login/" class="nav-link px-2 text-body-secondary">Iniciar sesión</a></li>
             {% endif %}
             
           </ul>
@@ -119,12 +163,20 @@
             '<script src="/docs/4.4/static/js/vendor/jquery.slim.min.js"><\/script>'
           );
       </script>
+      <!--Bootstrap-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-       
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+        
+        <!--Data Tables-->
+        <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+        
+        <!--Custom JS-->
         <script src="{% static 'js/colorMode.js' %}"></script>
+        
+        <script src="{% static 'js/dataTables.js' %}"></script>
         {% endblock %}
       </body>
 </html>
