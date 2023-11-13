@@ -40,7 +40,7 @@ class DashboardView(View):
         context = {
             
         }
-        return render(request, 'index.html', context)
+        return render(request, 'dashboard.html', context)
     def post(self, request, *args, **kwargs):
         if "calcular_excel" in request.POST:
             file1 = request.FILES.get('file1')
@@ -155,6 +155,7 @@ class DashboardView(View):
             response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
 
             return response
+        return redirect('dashboard')
         # if 'descargar_excel' in request.POST:
         #     # Nombre del archivo que quieres descargar
         #     file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
