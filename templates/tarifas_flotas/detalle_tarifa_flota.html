@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load app_extras %}
+
+
+{% load static %}
+{% block content %}
+    
+    <main class="mt-5 pt-3">
+        <div class="row">
+            <div class="col-md-4 offset-md-4 mt-5">
+                <form method="POST" class="card card-body ">
+                    <h1 class="text-center">
+                        Editar tarifa de flotas
+                    </h1>
+
+                    {{error}}
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="title">Título:</label>
+                        <input type="text" name="titulo" id="title" value="{{tarifa.titulo}}"
+                        class="form-control" placeholder="Título">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="zona">Zona:</label>
+                        <input type="text" name="zona" id="zona" value="{{tarifa.zona}}"
+                        class="form-control" placeholder="Zona">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tipo_vehiculo">Tipo de vehículo:</label>
+                        <input type="text" name="tipo_vehiculo" id="tipo_vehiculo" value="{{tarifa.tipo_vehiculo}}"
+                        class="form-control" placeholder="Tipo de vehículo">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="antiguedad">Antiguedad:</label>
+                        <input type="text" name="antiguedad" id="antiguedad" value="{{tarifa.antiguedad}}"
+                        class="form-control" placeholder="Antiguedad">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tipo_cobertura">Tipo de cobertura:</label>
+                        <input type="text" name="tipo_cobertura" id="tipo_cobertura" value="{{tarifa.tipo_cobertura}}"
+                        class="form-control" placeholder="Tipo de cobertura">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tasa">Tasa c/CAA:</label>
+                        <input type="number" step="0.01" min="0" name="tasa" id="tasa" value="{{tasa_formatted}}"
+                        class="form-control" placeholder="Tasa c/CAA">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="prima_rc_anual">Prima RC anual:</label>
+                        <input type="number" step="0.01" min="0" name="prima_rc_anual" id="prima_rc_anual" value="{{prima_formatted}}"
+                        class="form-control" placeholder="Prima RC anual">
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary">
+                        Editar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+{% endblock %}

@@ -7,11 +7,9 @@
   <section class="mb-4">
   <div class="container-fluid h-custom">
       <div class="mt-5 pt-5">
-     
-        <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Agregar vehículo
-  </button>
+        <h1 class="h2">Flota: {{flota.id}}</h1>
+    
+
   
   <!-- Modal -->
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -70,7 +68,10 @@
      
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Flota: {{flota.id}}</h1>
+                <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+          Agregar vehículo
+        </button>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="dropdown">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -103,10 +104,16 @@
                         <th scope="col">Código info auto</th>
                         <th scope="col">Marca</th>
                         <th scope="col">Modelo</th>
+                        <th scope="col">Tipo vehículo</th>
                         <th scope="col">Patente</th>
                         <th scope="col">Anio</th>
                         <th scope="col">0km</th>
-                        <th scope="col">Valor</th>
+                        <th scope="col">Zona</th>
+                        <th scope="col">Fecha de operación</th>
+                        <th scope="col">Fecha de vigencia</th>
+                        <th scope="col">Operación</th>
+                        <th scope="col">Cobertura</th>
+                        <th scope="col">Suma asegurada</th>
                         <th scope="col">Prima</th>
 
 

@@ -27,7 +27,25 @@
         
         <!--Data Tables-->
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
+        <style>
+          /* Estilo por defecto sin reproducción */
+          #gif {
+              pointer-events: none; /* Evita que el hover afecte a los elementos debajo */
+          }
         
+        
+          #gif:hover {
+              pointer-events: auto; /* Permite que el hover afecte a la imagen */
+              animation: playGif 1s steps(1) infinite;
+          }
+        
+        
+          @keyframes playGif {
+              to {
+                  background-position: -300px; /* Ajusta esto según el ancho de tu gif 
+              }
+          }
+        </style>
 
     </head>
     <body>
@@ -59,6 +77,14 @@
   
               {% if user.is_authenticated %}
 
+              <li>
+                <a href="/dashboard/" class="nav-link active d-flex align-items-center">
+                  <span class="material-icons-outlined">
+                    dashboard
+                    </span>
+                  <span class="mx-2">Dashboard</span>
+                </a>
+              </li>
               <li class="border-top my-3"></li>
 
               <li>
@@ -67,6 +93,14 @@
                     directions_car
                     </span>
                   <span class="mx-2">Flotas</span>
+                </a>
+              </li>
+              <li>
+                <a href="/tarifas_flotas/" class="nav-link active d-flex align-items-center">
+                  <span class="material-icons-outlined">
+                    percent
+                    </span>
+                  <span class="mx-2">Tarifas de flotas</span>
                 </a>
               </li>
               <li class="border-top my-3"></li>
@@ -137,12 +171,15 @@
       
           <ul class="nav col-md-4 justify-content-end">
             {% if user.is_authenticated %}
-              <li class="nav-item"><a href="/flotas/" class="nav-link px-2 text-body-secondary">Flotas</a></li>
-              <li class="nav-item"><a href="/vencimientos/" class="nav-link px-2 text-body-secondary">Vencimientos</a></li>
-              <li class="nav-item"><a href="/cobranzas/" class="nav-link px-2 text-body-secondary">Cobranzas</a></li>
-              <li class="nav-item"><a href="/logout/" class="nav-link px-2 text-body-secondary">Cerrar sesión</a></li>
+            
+              <li class="nav-item border-end"><a href="/dashboard/" class="nav-link px-2 text-body-secondary">Dashboard</a></li>
+              <li class="nav-item border-end"><a href="/flotas/" class="nav-link px-2 text-body-secondary">Flotas</a></li>
+              <li class="nav-item border-end"><a href="/tarifas_flotas/" class="nav-link px-2 text-body-secondary">Tarifas de flotas</a></li>
+              <li class="nav-item border-end"><a href="/vencimientos/" class="nav-link px-2 text-body-secondary">Vencimientos</a></li>
+              <li class="nav-item border-end"><a href="/cobranzas/" class="nav-link px-2 text-body-secondary">Cobranzas</a></li>
+              <li class="nav-item border-end"><a href="/logout/" class="nav-link px-2 text-body-secondary">Cerrar sesión</a></li>
             {% else %}
-              <li class="nav-item"><a href="/login/" class="nav-link px-2 text-body-secondary">Iniciar sesión</a></li>
+              <li class="nav-item border-end"><a href="/login/" class="nav-link px-2 text-body-secondary">Iniciar sesión</a></li>
             {% endif %}
             
           </ul>
@@ -169,6 +206,8 @@
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
+        <!--Sweet Alert-->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
         
         <!--Data Tables-->
         <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
