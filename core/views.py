@@ -32,15 +32,15 @@ class HomeView(View):
             
         }
         return redirect('login')
-    
+
 # Dashboard
 @method_decorator(login_required, name='dispatch')
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
         context = {
-            
+                
         }
-        return render(request, 'dashboard.html', context)
+        return render(request, 'index.html', context)
     def post(self, request, *args, **kwargs):
         if "calcular_excel" in request.POST:
             file1 = request.FILES.get('file1')
@@ -155,17 +155,10 @@ class DashboardView(View):
             response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
 
             return response
+                
+        
         return redirect('dashboard')
-        # if 'descargar_excel' in request.POST:
-        #     # Nombre del archivo que quieres descargar
-        #     file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
-
-
-        #     # Abre el archivo y lee su contenido
-        #     with open(file_path, 'rb') as file:
-        #         response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        #         response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
-        #         return response
+        
         
 
 # Flotas
