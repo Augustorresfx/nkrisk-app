@@ -12,6 +12,10 @@ from django.core.paginator import Paginator
 from io import BytesIO
 from decimal import Decimal
 from django.core.files.base import ContentFile
+from django.templatetags.static import static
+import os
+from django.conf import settings
+
 # Importe de formularios
 from .forms import VehiculoForm
 
@@ -151,6 +155,15 @@ class DashboardView(View):
             response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
 
             return response
+        elif "descargar_excel" in request.POST:
+            # Ruta al archivo modelo en la carpeta static
+            modelo_path = os.path.join(settings.BASE_DIR, 'static/excel/modelo_ejemplo.xlsx')
+
+            # Abre y lee el archivo modelo
+            with open(modelo_path, 'rb') as file:
+                response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
+                return response
         
 
 # Flotas
