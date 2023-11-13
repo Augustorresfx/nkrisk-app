@@ -273,15 +273,15 @@ class DetalleFlotaView(View):
             file1 = request.FILES.get('file1')
             workbook = openpyxl.load_workbook(file1)
             sheet = workbook.active
-            for row_number, (marca, modelo, tipo_vehiculo, patente, anio, okm, zona, fecha_operacion, fecha_vigencia, operacion, cobertura, suma_asegurada, _, _) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+            for row_number, (marca, modelo, tipo_vehiculo, patente, anio, okm, importado, zona, fecha_operacion, fecha_vigencia, operacion, cobertura, suma_asegurada, _, _, _, _) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
 
                 # marca, modelo, tipo_vehiculo, patente, anio, okm, zona, fecha_operacion, fecha_vigencia, operacion, cobertura, suma_asegurada, _, _ = row
                 # Realizar cálculos según las fórmulas proporcionadas
-                print(tipo_vehiculo, anio, zona, cobertura)
+
                 anio_vehiculo = anio
                 anio_actual = datetime.now().year
                 antiguedad_vehiculo = anio_actual - anio_vehiculo
-                print(antiguedad_vehiculo)
+
                 if antiguedad_vehiculo > 10:
                     tarifa = TarifaFlota.objects.get(
                         tipo_vehiculo = tipo_vehiculo,
@@ -304,7 +304,7 @@ class DetalleFlotaView(View):
                         tipo_cobertura__contains = cobertura,
                     )
 
-                print(tarifa.tasa)
+
                 tasa = tarifa.tasa  # Obtener la tasa desde la base de datos según la zona, tipo de vehículo, antigüedad y tipo de cobertura
                 prima_rc_anual = tarifa.prima_rc_anual  # Obtener la prima_rc_anual desde la base de datos
 
@@ -312,14 +312,67 @@ class DetalleFlotaView(View):
 
                 # Calcular los días de vigencia
                 dias_vigencia = (fecha_vigencia - fecha_operacion).days
-                print(dias_vigencia)
+
                 prima_vigente = prima_anual * dias_vigencia / 365
                 prima_vigente_redondeada = round(prima_vigente, 2)
-                print(prima_vigente_redondeada)
-                # Actualizar los valores en las columnas existentes
-                sheet.cell(row=row_number, column=sheet.max_column - 1, value=prima_anual)  # Actualizar la columna de Prima Anual
-                sheet.cell(row=row_number, column=sheet.max_column, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
-            # Guardar la hoja de cálculo actualizada
+
+                derecho_emision = 2400
+                recargo_administrativo = Decimal('10.5')
+                recargo_financiero = Decimal('5.68')
+                cobertura_nacional = 75000
+                cobertura_importado = 112500
+                
+                # Si operación es ALTA agregar el valor positivo, si es BAJA el valor pasa a ser negativo
+                if(operacion == "ALTA"):
+                    if(importado == "NO"):
+                        premio_anual = prima_anual + cobertura_nacional + derecho_emision + ((prima_anual * recargo_financiero) / 100)
+                        premio_vigente = prima_vigente + cobertura_nacional + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
+                        # Redondear valores
+                        premio_anual_redondeado = round(premio_anual, 2)
+                        premio_vigente_redondeado = round(premio_vigente, 2)
+                        # Actualizar los valores en las columnas existentes
+                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_anual)  # Actualizar la columna de Prima Anual
+                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
+                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
+                        sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
+                    else:
+                        premio_anual = prima_anual + cobertura_importado + derecho_emision + ((prima_anual * recargo_financiero) / 100)
+                        premio_vigente = prima_vigente + cobertura_importado + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
+                        # Redondear valores
+                        premio_anual_redondeado = round(premio_anual, 2)
+                        premio_vigente_redondeado = round(premio_vigente, 2)
+                        # Actualizar los valores en las columnas existentes
+                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_anual)  # Actualizar la columna de Prima Anual
+                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
+                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
+                        sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
+                           
+                else:
+                    if(importado == "NO"):
+                        premio_anual = prima_anual + cobertura_nacional + derecho_emision + ((prima_anual * recargo_financiero) / 100)
+                        premio_vigente = prima_vigente + cobertura_nacional + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
+                        # Redondear valores
+                        premio_anual_redondeado = round(premio_anual, 2)
+                        premio_vigente_redondeado = round(premio_vigente, 2)
+                        # Actualizar los valores en las columnas existentes
+                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=-prima_anual)  # Actualizar la columna de Prima Anual
+                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=-prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
+                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=-premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
+                        sheet.cell(row=row_number, column=sheet.max_column, value=-premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
+                    else:
+                        premio_anual = prima_anual + cobertura_importado + derecho_emision + ((prima_anual * recargo_financiero) / 100)
+                        premio_vigente = prima_vigente + cobertura_importado + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
+                        # Redondear valores
+                        premio_anual_redondeado = round(premio_anual, 2)
+                        premio_vigente_redondeado = round(premio_vigente, 2)
+                        # Actualizar los valores en las columnas existentes
+                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=-prima_anual)  # Actualizar la columna de Prima Anual
+                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=-prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
+                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=-premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
+                        sheet.cell(row=row_number, column=sheet.max_column, value=-premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
+                        
+                
+                # Guardar la hoja de cálculo actualizada
             output = BytesIO()
             workbook.save(output)
             output.seek(0)
