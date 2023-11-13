@@ -42,6 +42,15 @@ class DashboardView(View):
         }
         return render(request, 'index.html', context)
         
+    
+# Inicio
+@method_decorator(login_required, name='dispatch')    
+class InicioView(View):
+    def get(self, request, *args, **kwargs):
+        context = {
+            
+        }
+        return redirect('login')
 
 # Flotas
 @method_decorator(login_required, name='dispatch')
