@@ -86,7 +86,7 @@ class InicioView(View):
                 dias_vigencia = (fecha_vigencia - fecha_operacion).days
 
                 prima_vigente = prima_anual * dias_vigencia / 365
-                prima_vigente_redondeada = round(prima_vigente, 2)
+                
 
                 derecho_emision = 2400
                 recargo_financiero = Decimal('5.68')
@@ -108,7 +108,7 @@ class InicioView(View):
                 # Redondear valores
                 premio_anual_redondeado = round(premio_anual, 2)
                 premio_vigente_redondeado = round(premio_vigente, 2)
-
+                prima_vigente_redondeada = round(prima_vigente, 2)
                 # Actualizar los valores en las columnas existentes
                 sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_anual)  # Actualizar la columna de Prima Anual
                 sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
