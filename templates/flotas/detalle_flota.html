@@ -9,7 +9,17 @@
       <div class="mt-5 pt-5">
         <h1 class="h2">Flota: {{flota.id}}</h1>
     
-
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="formFile" class="form-label">Excel de flota: </label>
+            <input name="file1" class="form-control" type="file" id="formFile">
+          </div>
+          
+          </select>
+          <button name="calcular_excel" class="btn btn-primary" type="submit">Calcular</button>
+          {% comment %} <button type="submit" name="descargar_excel" class="btn btn-secondary">Descargar modelo</button> {% endcomment %}
+      </form>
   
   <!-- Modal -->
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
