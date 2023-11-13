@@ -33,16 +33,6 @@ class HomeView(View):
         }
         return redirect('login')
 
-# Dashboard
-@method_decorator(login_required, name='dispatch')
-class DashboardView(View):
-    def get(self, request, *args, **kwargs):
-        context = {
-                
-        }
-        return render(request, 'index.html', context)
-        
-    
 # Inicio
 @method_decorator(login_required, name='dispatch')    
 class InicioView(View):
@@ -50,7 +40,7 @@ class InicioView(View):
         context = {
             
         }
-        return redirect('login')
+        return render(request, 'dashboard.html', context)
 
 # Flotas
 @method_decorator(login_required, name='dispatch')
