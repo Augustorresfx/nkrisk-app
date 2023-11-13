@@ -157,7 +157,8 @@ class DashboardView(View):
             return response
         if 'descargar_excel' in request.POST:
             # Nombre del archivo que quieres descargar
-            file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel/modelo_ejemplo.xlsx')
+            file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
+
 
             # Abre el archivo y lee su contenido
             with open(file_path, 'rb') as file:
