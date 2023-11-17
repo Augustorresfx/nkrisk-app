@@ -6,6 +6,16 @@
   <h1 class=" my-5"> 
     Funciones 
   </h1>
+  {% if errores %}
+                <div class="alert alert-danger mt-3">
+                  
+                  <ul>
+                    {% for error in errores %}
+                      <li>{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+  {% endif %}
   <div class="row row-cols-1 row-cols-md-2 g-4">
     <div class="col">
       <div class="card mb-3 " style="max-width: 540px;">

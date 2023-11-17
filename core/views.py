@@ -42,6 +42,10 @@ class InicioView(View):
         }
         return render(request, 'dashboard.html', context)
     def post(self, request, *args, **kwargs):
+        lista_errores = []
+        context = {
+            'errores': lista_errores
+        }
         if 'descargar_excel' in request.POST:
             # Nombre del archivo que quieres descargar
             file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
@@ -57,11 +61,14 @@ class InicioView(View):
             workbook = openpyxl.load_workbook(file1)
             sheet = workbook.active
             for row_number, (marca, modelo, tipo_vehiculo, patente, anio, okm, importado, zona, fecha_operacion, fecha_vigencia, operacion, cobertura, suma_asegurada, _, _, _, _) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
-
+                row_values = sheet.cell(row=row_number, column=1).value
+                if row_values is None:
+                    # Salir del bucle si la fila está vacía
+                    break
                 anio_vehiculo = anio
                 anio_actual = datetime.now().year
                 antiguedad_vehiculo = anio_actual - anio_vehiculo
-
+                
                 # Mapeo de antigüedad a categoría
                 if antiguedad_vehiculo > 10:
                     antiguedad_categoria = "MÁS DE 10"
@@ -69,14 +76,18 @@ class InicioView(View):
                     antiguedad_categoria = "6 A 10"
                 else:
                     antiguedad_categoria = "5"
-
-                tarifa = TarifaFlota.objects.get(
-                    tipo_vehiculo=tipo_vehiculo,
-                    antiguedad=antiguedad_categoria,
-                    zona__icontains=zona,
-                    tipo_cobertura__contains=cobertura,
-                )
-
+                
+                try:    
+                    tarifa = TarifaFlota.objects.get(
+                        tipo_vehiculo=tipo_vehiculo,
+                        antiguedad=antiguedad_categoria,
+                        zona__icontains=zona,
+                        tipo_cobertura__contains=cobertura,
+                    )
+                except: 
+                    error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {zona}, {cobertura}"
+                    print(error_message)
+                    lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
                 tasa = tarifa.tasa
                 prima_rc_anual = tarifa.prima_rc_anual
 
@@ -126,7 +137,7 @@ class InicioView(View):
             response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
 
             return response
-        return render(request, 'dashboard.html')
+        return render(request, 'dashboard.html', context)
 
 # Flotas
 @method_decorator(login_required, name='dispatch')
