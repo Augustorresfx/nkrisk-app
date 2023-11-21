@@ -438,9 +438,9 @@ class DetalleFlotaView(View):
             tipo_movimiento = request.POST.get('tipo_movimiento')
             # Mapeo de tipos a cadenas
             tipo_mapping = {
-                1: 'Combinado',
-                2: 'Alta',
-                3: 'Baja',
+                "1": 'Combinado',
+                "2": 'Alta',
+                "3": 'Baja',
             }
             # Obtener la instancia de la Flota por su id
             flota = Flota.objects.get(pk=flota_id)
@@ -449,6 +449,7 @@ class DetalleFlotaView(View):
             cliente = flota.cliente
             # Obtener el valor correspondiente o 'No especificado' si el tipo no está en el diccionario
             tipo_string = tipo_mapping.get(tipo_movimiento, 'No especificado')
+            print(tipo_movimiento)
             nuevo_movimiento = Movimiento(
                 created = created,
                 nombre_movimiento = nombre_movimiento,
