@@ -86,7 +86,14 @@
                 </a>
               </li>
               <li class="border-top my-3"></li>
-
+              <li>
+                <a href="/clientes/" class="nav-link active d-flex align-items-center">
+                  <span class="material-icons-outlined">
+                    contacts
+                    </span>
+                  <span class="mx-2">Clientes</span>
+                </a>
+              </li>
               <li>
                 <a href="/flotas/" class="nav-link active d-flex align-items-center">
                   <span class="material-icons-outlined">
@@ -173,6 +180,8 @@
             {% if user.is_authenticated %}
             
               <li class="nav-item border-end"><a href="/inicio/" class="nav-link px-2 text-body-secondary">Inicio</a></li>
+              
+              <li class="nav-item border-end"><a href="/clientes/" class="nav-link px-2 text-body-secondary">Clientes</a></li>
               <li class="nav-item border-end"><a href="/flotas/" class="nav-link px-2 text-body-secondary">Flotas</a></li>
               <li class="nav-item border-end"><a href="/tarifas_flotas/" class="nav-link px-2 text-body-secondary">Tarifas de flotas</a></li>
               <li class="nav-item border-end"><a href="/vencimientos/" class="nav-link px-2 text-body-secondary">Vencimientos</a></li>
@@ -215,7 +224,7 @@
         <!--Custom JS-->
         <script src="{% static 'js/colorMode.js' %}"></script>
         
-        <script src="{% static 'js/dataTables.js' %}"></script>
+        
         {% endblock %}
       </body>
 </html>

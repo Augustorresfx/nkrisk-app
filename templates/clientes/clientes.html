@@ -6,38 +6,17 @@
 {% block content %}
   <section class="mb-4">
   <div class="container-fluid h-custom">
-    <h1 class="h2 mt-5 pt-5">Tarifas para inclusiones a flotas</h1>
-      <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
-        
-    <div class="col">
-      <div class="card mb-3 p-4" style="max-width: 540px;">
-        <h4 class="h4 ">Importar desde excel</h4>
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="mb-3">
-            
-            <label for="formFile" class="form-label">Excel a importar</label>
-            <input name="file1" class="form-control" type="file" id="formFile">
+      <div class="mt-5 pt-5">
+        <div class="container-fluid h-custom">
+          <h1 class="h2">Clientes</h1>
           </div>
-          <button name="importar_excel" class="btn btn-primary mt-3" type="submit">Importar datos</button>
-    
-          
-      </form>
-    
-
-      
-      
-
-        </div>
-      </div>
-    </div>
-
+ 
   <!-- Modal -->
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Agregar tarifa</h1>
+          <h1 class="modal-title fs-5 " id="exampleModalLabel">Agregar cliente</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form method="post" enctype="multipart/form-data">
@@ -45,34 +24,38 @@
         <div class="modal-body">
             
                 <div class="mb-3">
-                  <label for="titulo" class="form-label">Título: </label>
-                  <input name="titulo" type="text" class="form-control" placeholder="Título" aria-label="Título" aria-describedby="basic-addon1">
+                  <label for="nombre" class="form-label">Nombre completo del cliente: </label>
+                  <input name="nombre" type="text" class="form-control" placeholder="Nombre completo" aria-label="Nombre completo" aria-describedby="basic-addon1">
                 </div>
                 <div class="mb-3">
-                    <label for="zona" class="form-label">Zona: </label>
-                    <input name="zona" type="text" class="form-control" placeholder="Zona" aria-label="Zona" aria-describedby="basic-addon1">
+                    <label for="nombre" class="form-label">Cuit del cliente: </label>
+                    <input name="cuit" type="text" class="form-control" placeholder="Cuit" aria-label="Cuit" aria-describedby="basic-addon1">
                   </div>
                   <div class="mb-3">
-                    <label for="tipo_vehiculo" class="form-label">Tipo de vehículo: </label>
-                    <input name="tipo_vehiculo" type="text" class="form-control" placeholder="Tipo de vehículo" aria-label="Tipo de vehículo" aria-describedby="basic-addon1">
+                    <label for="nombre" class="form-label">Nacionalidad: </label>
+                    <input name="nacionalidad" type="text" class="form-control" placeholder="Nacionalidad" aria-label="Nacionalidad" aria-describedby="basic-addon1">
                   </div>
                   <div class="mb-3">
-                    <label for="antiguedad" class="form-label">Antiguedad: </label>
-                    <input name="antiguedad" type="text" class="form-control" placeholder="Antiguedad" aria-label="Antiguedad" aria-describedby="basic-addon1">
+                    <label for="nombre" class="form-label">Provincia: </label>
+                    <input name="provincia" type="text" class="form-control" placeholder="Provincia" aria-label="Provincia" aria-describedby="basic-addon1">
                   </div>
                   <div class="mb-3">
-                    <label for="tipo_cobertura" class="form-label">Tipo de cobertura: </label>
-                    <input name="tipo_cobertura" type="text" class="form-control" placeholder="Tipo de cobertura" aria-label="Tipo de cobertura" aria-describedby="basic-addon1">
+                    <label for="nombre" class="form-label">Localidad: </label>
+                    <input name="localidad" type="text" class="form-control" placeholder="Localidad" aria-label="Localidad" aria-describedby="basic-addon1">
                   </div>
                   <div class="mb-3">
-                    <label for="tasa" class="form-label">Tasa c/CAA: </label>
-                    <input name="tasa" type="number" class="form-control" step="0.01" min="0" placeholder="Tasa c/CAA" aria-label="Tasa c/CAA" aria-describedby="basic-addon1">
+                    <label for="nombre" class="form-label">Dirección: </label>
+                    <input name="direccion" type="text" class="form-control" placeholder="Dirección" aria-label="Dirección" aria-describedby="basic-addon1">
                   </div>
                   <div class="mb-3">
-                    <label for="prima_rc_anual" class="form-label">Prima RC anual: </label>
-                    <input name="prima_rc_anual" type="number" class="form-control" step="0.01" min="0" placeholder="Prima RC anual" aria-label="Prima RC anual" aria-describedby="basic-addon1">
+                    <label for="nombre" class="form-label">Teléfono: </label>
+                    <input name="telefono" type="text" class="form-control" placeholder="Teléfono" aria-label="Teléfono" aria-describedby="basic-addon1">
                   </div>
-
+                  <div class="mb-3">
+                    <label for="nombre" class="form-label">E-mail: </label>
+                    <input name="email" type="email" class="form-control" placeholder="E-mail" aria-label="E-mail" aria-describedby="basic-addon1">
+                  </div>
+               
                 
             
         </div>
@@ -85,67 +68,69 @@
     </div>
   </div>
         
-  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 border-bottom">
-      <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
-            Agregar tarifa
-      </button>
+     
 
-        <form method="POST" action="{% url 'tarifas_flotas' %}">
-          {% csrf_token %}
-        <button type="submit" name="delete_data" class="btn btn-danger align-self-end">Eliminar datos</button>
-    </form>
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2  border-bottom">
+               <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Agregar cliente
+</button>
 
-  </div>         
+       
+      </div>
+         
             <div class="table-responsive mb-2">
             
                 <table class="table table-striped bg-white rounded shadow-sm">
                     <thead>
                       <tr>
-                        <th scope="col">Titulo</th>
-                        <th scope="col">Zona</th>
-                        <th scope="col">Tipo de vehiculo</th>
-                        <th scope="col">Antiguedad</th>
-                        <th scope="col">Tipo de cobertura</th>
-                        <th scope="col">Tasa c/CAA</th>
-                        <th scope="col">Prima RC anual</th>
+                        <th scope="col">Nombre cliente</th>
+                        <th scope="col">Cuit</th>
+                        <th scope="col">Nacionalidad</th>
+                        <th scope="col">Provincia</th>
+                        <th scope="col">Localidad</th>
                         
+                        <th scope="col">Dirección</th>
+                        <th scope="col">Teléfono</th>
+                        <th scope="col">Email</th>
 
+      
                         <th scope="col">Editar</th>
                         <th scope="col">Eliminar</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {% for tarifa in pages %}
+                      {% for cliente in pages %}
                       
                       <tr>
-                          <td>{{ tarifa.titulo }}</td>
-                          <td>{{ tarifa.zona }}</td>
-                          <td>{{ tarifa.tipo_vehiculo }}</td>
-                          <td>{{ tarifa.antiguedad }}</td>
-                          <td>{{ tarifa.tipo_cobertura }}</td>
-                          <td>{{ tarifa.tasa }}</td>
-                          <td>{{ tarifa.prima_rc_anual }}</td>
+                          <td>{{ cliente.nombre_cliente }}</td>
+                          <td>{{ cliente.cuit }}</td>
+                          <td>{{ cliente.nacionalidad }}</td>
+                          <td>{{ cliente.provincia }}</td>
+                          <td>{{ cliente.localidad }}</td>
+                        
+                          <td>{{ cliente.direccion }}</td>
+                          <td>{{ cliente.telefono }}</td>
+                          <td>{{ cliente.email }}</td>
 
 
       
       
                           <td>
-                            <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_tarifa_flota' tarifa.id %}">
-                              <span data-feather="edit"></span>
+                            <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_cliente' cliente.id %}">
                               Editar
+                                
                             </a>
                           </td>
                           <td>
-                            
-                            <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_tarifa' tarifa.id %}" id="eliminarFormulario">
+                       
+                            <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_cliente' cliente.id %}" id="eliminarFormulario">
                               {% csrf_token %}
                             <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
                               Eliminar
                                 
                             </button>
                           </form>
-                       
-                          
                           </td>
                         </tr>
                      
@@ -209,5 +194,4 @@
 
   </section>
   <script src="{% static 'js/swal.js' %}"></script>
-  <script src="{% static 'js/fileInput.js' %}"></script>
 {% endblock %}

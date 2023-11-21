@@ -24,39 +24,25 @@
         <div class="modal-body">
             
                 <div class="mb-3">
-                  <label for="nombre" class="form-label">Nombre completo del cliente: </label>
-                  <input name="nombre" type="text" class="form-control" placeholder="Nombre completo" aria-label="Nombre completo" aria-describedby="basic-addon1">
+                  <label for="numero" class="form-label">Número de flota: </label>
+                  <input name="numero" type="number" class="form-control" placeholder="Número de flota" aria-label="Número de flota" aria-describedby="basic-addon1">
                 </div>
                 <div class="mb-3">
-                    <label for="nombre" class="form-label">Cuit del cliente: </label>
-                    <input name="cuit" type="text" class="form-control" placeholder="Cuit" aria-label="Cuit" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="nombre" class="form-label">Nacionalidad: </label>
-                    <input name="nacionalidad" type="text" class="form-control" placeholder="Nacionalidad" aria-label="Nacionalidad" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="nombre" class="form-label">Provincia: </label>
-                    <input name="provincia" type="text" class="form-control" placeholder="Provincia" aria-label="Provincia" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="nombre" class="form-label">Localidad: </label>
-                    <input name="localidad" type="text" class="form-control" placeholder="Localidad" aria-label="Localidad" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="nombre" class="form-label">Dirección: </label>
-                    <input name="direccion" type="text" class="form-control" placeholder="Dirección" aria-label="Dirección" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="nombre" class="form-label">Teléfono: </label>
-                    <input name="telefono" type="text" class="form-control" placeholder="Teléfono" aria-label="Teléfono" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="nombre" class="form-label">E-mail: </label>
-                    <input name="email" type="email" class="form-control" placeholder="E-mail" aria-label="E-mail" aria-describedby="basic-addon1">
-                  </div>
+                  <label for="poliza" class="form-label">Número de póliza: </label>
+                  <input name="poliza" type="number" class="form-control" placeholder="Número de póliza" aria-label="Número de póliza" aria-describedby="basic-addon1">
+                </div>
+                <div class="mb-3">
+                    <label for="cliente" class="form-label">Cliente: </label>
+                    <select name="cliente" class="form-select" aria-label="Default select example">
+                      <option selected>Seleccionar cliente</option>
+                      {% for cliente in clientes %}
+                      <option value="{{cliente.id}}">{{cliente.nombre_cliente}}</option>
+                     {% endfor %}
+                    </select>
+                </div>
+              
                
-                
+          
             
         </div>
         <div class="modal-footer">
@@ -105,18 +91,13 @@
                 <table class="table table-striped bg-white rounded shadow-sm">
                     <thead>
                       <tr>
-                        <th scope="col">Nombre cliente</th>
-                        <th scope="col">Cuit</th>
-                        <th scope="col">Nacionalidad</th>
-                        <th scope="col">Provincia</th>
-                        <th scope="col">Localidad</th>
-                        <th scope="col">Fecha de creación</th>
-                        <th scope="col">Dirección</th>
-                        <th scope="col">Teléfono</th>
-                        <th scope="col">Email</th>
+                        <th scope="col">Número de flota</th>
+                        <th scope="col">Póliza</th>
+                        <th scope="col">Cliente</th>
+
 
       
-                        <th scope="col">Editar</th>
+                        <th scope="col">Editar vehículos</th>
                         <th scope="col">Eliminar</th>
                       </tr>
                     </thead>
@@ -124,30 +105,28 @@
                       {% for flota in pages %}
                       
                       <tr>
-                          <td>{{ flota.nombre_cliente }}</td>
-                          <td>{{ flota.cuit }}</td>
-                          <td>{{ flota.nacionalidad }}</td>
-                          <td>{{ flota.provincia }}</td>
-                          <td>{{ flota.localidad }}</td>
-                          <td>{{ flota.created|date:"d/m/Y"  }}</td>
-                          <td>{{ flota.direccion }}</td>
-                          <td>{{ flota.telefono }}</td>
-                          <td>{{ flota.email }}</td>
+                          <td>{{ flota.numero_flota }}</td>
+                          <td>{{ flota.poliza }}</td>
+                          <td>{{ flota.cliente.nombre_cliente }}</td>
+
 
 
       
       
                           <td>
                             <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_flota' flota.id %}">
-                              <span data-feather="edit"></span>
                               Editar
                             </a>
                           </td>
                           <td>
-                            <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="#">
+                            
+                            <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_flota' flota.id %}" id="eliminarFormulario">
+                              {% csrf_token %}
+                            <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
                               Eliminar
+                                
                             </button>
-                       
+                          </form>
                           
                           </td>
                         </tr>
@@ -211,5 +190,6 @@
       
 
   </section>
+  <script src="{% static 'js/swal.js' %}"></script>
   <script src="{% static 'js/fileInput.js' %}"></script>
 {% endblock %}

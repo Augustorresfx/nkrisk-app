@@ -7,82 +7,113 @@
   <section class="mb-4">
   <div class="container-fluid h-custom">
       <div class="mt-5 pt-5">
-        <h1 class="h2">Flota: {{flota.id}}</h1>
-    
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label for="formFile" class="form-label">Excel de flota: </label>
-            <input name="file1" class="form-control" type="file" id="formFile">
-          </div>
-          
-          </select>
-          <button name="calcular_excel" class="btn btn-primary" type="submit">Calcular</button>
-          {% comment %} <button type="submit" name="descargar_excel" class="btn btn-secondary">Descargar modelo</button> {% endcomment %}
-      </form>
-  
-  <!-- Modal -->
-  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Agregar vehículo</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-        <div class="modal-body">
-
+        <h1 class="h2">Flota: {{flota.numero_flota}}</h1>
+        
+        <h1 class="h2">Cliente: {{ flota.cliente.nombre_cliente }}</h1>
+          <!--
+            FORMULARIO IMPORTACION DESDE EXCEL
+          -->
+          <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
+              
+          <div class="col">
+            <h2> 
+              Agregar movimiento
+            </h2>
+            <div class="card mb-3 p-4" style="max-width: 540px;">
+              
+              <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
                 <div class="mb-3">
-                  <label for="cod_infoauto" class="form-label">Código de info auto: </label>
-                  <input name="cod_infoauto" type="number" class="form-control" placeholder="Código de info auto" aria-label="Código de info auto" aria-describedby="basic-addon1">
+                  <label for="nombre_movimiento" class="form-label">Nombre de movimiento: </label>
+                  <input name="nombre_movimiento" type="text" class="form-control" placeholder="Ejemplo: 'Endoso 0'" aria-label="Ejemplo: 'Endoso 0'" aria-describedby="basic-addon1">
                 </div>
                 <div class="mb-3">
-                    <label for="marca" class="form-label">Marca: </label>
-                    <input name="marca" type="text" class="form-control" placeholder="Marca" aria-label="Marca" aria-describedby="basic-addon1">
+                    <label for="tipo_movimiento" class="form-label">Tipo de movimiento: </label>
+                    <select name="tipo_movimiento" class="form-select" aria-label="Default select example">
+                      <option selected>Seleccionar tipo de movimiento</option>
+                      
+                      <option value=1>Combinado</option>
+                      
+                      <option value=2>Alta</option>
+                      
+                      <option value=3>Baja</option>
+                     
+                    </select>
                   </div>
-                  <div class="mb-3">
-                    <label for="modelo" class="form-label">Modelo: </label>
-                    <input name="modelo" type="text" class="form-control" placeholder="Modelo" aria-label="Modelo" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="patente" class="form-label">Patente: </label>
-                    <input name="patente" type="text" class="form-control" placeholder="Patente" aria-label="Patente" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="anio" class="form-label">Año: </label>
-                    <input name="anio" type="number" class="form-control" placeholder="Año" aria-label="Año" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="okm" class="form-label">Es 0km?: </label>
-                    <input name="okm" type="text" class="form-control" placeholder="Si o No" aria-label="Si o No" aria-describedby="basic-addon1">
-                  </div>
-                  <div class="mb-3">
-                    <label for="valor" class="form-label">Valor: </label>
-                    <input name="valor" type="number" class="form-control" placeholder="Valor" aria-label="Valor" aria-describedby="basic-addon1">
-                  </div>
-
-               
+                <div class="mb-3">
+                  
+                  <label for="formFile" class="form-label">Excel de flota (calcula prima automáticamente)</label>
+                  <input name="file1" class="form-control" type="file" id="formFile">
+                </div>
                 
-            
+              <button name="calcular_excel" class="btn btn-primary mb-2" type="submit">Agregar</button>
+              <button type="submit" name="descargar_excel" class="btn btn-secondary mb-2">Descargar modelo de flotas</button> 
+                
+            </form>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar</button>
-        </div>
-    </form>
+
+   
+  
+      <!--
+        MOVIMIENTOS
+      -->
+      <div class="">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+          <h2> 
+            Movimientos
+          </h2>
+       
+
       </div>
-    </div>
-  </div>
-        
-     
+        <!-- Menú scrollable con movimientos -->
+        <div class="list-group overflow-auto" style="max-height: 360px;">
+          <!-- Loop sobre los movimientos -->
+          {% for movimiento in movimientos %}
+            <div  class="list-group-item">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{movimiento.nombre_movimiento}}</h5>
+                <div>
+                  <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
+                    {% csrf_token %}
+                  <button type="submit" class="w-10 btn btn-sm btn-success exportar-excel mx-2">
+                    <span class="material-icons-outlined">
+                      file_download
+                      </span>
+                      
+                  </button>
+                </form>
+                <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_movimiento' flota.id movimiento.id %}" id="eliminarFormulario">
+                  {% csrf_token %}
+                <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
+                  <span class="material-icons-outlined">
+                    delete
+                    </span>
+                    
+                </button>
+              </form>
+
+                </div>
+              </div>
+              <p class="mb-1">{{movimiento.tipo_movimiento}}</p>
+              
+              <p class="mb-1">Creación: {{movimiento.created}}</p>
+              
+            </div>
+          {% endfor %}
+          
+        </div>
+      </div>
+</div>
+      
+ 
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-3 border-bottom">
-                <!-- Button trigger modal -->
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-          Agregar vehículo
-        </button>
-        <div class="btn-toolbar mb-2 mb-md-0">
+        <h2>
+          Vehiculos 
+        </h2>
+
+        {% comment %} <div class="btn-toolbar mb-2 mb-md-0">
           <div class="dropdown">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               Seleccionar mes
@@ -103,9 +134,9 @@
             </ul>
           </div>
            
-        </div>
+        </div> {% endcomment %}
       </div>
-         
+         <div class="row">
             <div class="table-responsive mb-2">
             
                 <table class="table table-striped bg-white rounded shadow-sm">
@@ -116,8 +147,9 @@
                         <th scope="col">Modelo</th>
                         <th scope="col">Tipo vehículo</th>
                         <th scope="col">Patente</th>
-                        <th scope="col">Anio</th>
+                        <th scope="col">Año</th>
                         <th scope="col">0km</th>
+                        <th scope="col">Importado</th>
                         <th scope="col">Zona</th>
                         <th scope="col">Fecha de operación</th>
                         <th scope="col">Fecha de vigencia</th>
@@ -136,14 +168,21 @@
                       {% for vehiculo in pages %}
                       
                       <tr>
-                          <td>{{ vehiculo.cod_infoauto }}</td>
-                          <td>{{ vehiculo.marca }}</td>
-                          <td>{{ vehiculo.modelo }}</td>
-                          <td>{{ vehiculo.patente }}</td>
-                          <td>{{ vehiculo.anio }}</td>
-                          <td>{{ vehiculo.okm  }}</td>
-                          <td>{{ vehiculo.valor }}</td>
-                          <td>{{ vehiculo.prima }}</td>
+                        <td>cod</td>
+                        <td>{{ vehiculo.marca }}</td>
+                        <td>{{ vehiculo.modelo }}</td>
+                        <td>{{ vehiculo.tipo_vehiculo }}</td>
+                        <td>{{ vehiculo.patente }}</td>
+                        <td>{{ vehiculo.anio }}</td>
+                        <td>{{ vehiculo.okm }}</td>
+                        <td>{{ vehiculo.importado }}</td>
+                        <td>{{ vehiculo.zona }}</td>
+                        <td>{{ vehiculo.fecha_operacion|date:"d/m/Y"  }}</td>
+                        <td>{{ vehiculo.fecha_vigencia|date:"d/m/Y"  }}</td>
+                        <td>{{ vehiculo.operacion }}</td>
+                        <td>{{ vehiculo.tipo_cobertura }}</td>
+                        <td>{{ vehiculo.suma_asegurada }}</td>
+                        <td>{{ vehiculo.prima }}</td>
 
 
       
@@ -214,7 +253,8 @@
                   {% endif %}
                 </ul>
                 </nav>
-         
+                
+              </div>
         </div>
         </div>
       </div>
@@ -222,5 +262,5 @@
       
 
   </section>
-  <script src="{% static 'js/fileInput.js' %}"></script>
+  <script src="{% static 'js/swal.js' %}"></script>
 {% endblock %}

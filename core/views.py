@@ -15,16 +15,17 @@ from django.core.files.base import ContentFile
 from django.templatetags.static import static
 import os
 from django.conf import settings
+from copy import deepcopy, copy
 
 # Importe de formularios
-from .forms import VehiculoForm
 
 # Importe de modelos
-from .models import Vencimiento, Flota, Vehiculo, TarifaFlota
+from .models import Vencimiento, Flota, Vehiculo, Movimiento, TarifaFlota, Cliente
 
 # Importe de librerias
 import pandas as pd
 import openpyxl
+from openpyxl.styles import NamedStyle
 import xlwings as xw
 class HomeView(View):
     def get(self, request, *args, **kwargs):
@@ -139,38 +140,25 @@ class InicioView(View):
             return response
         return render(request, 'dashboard.html', context)
 
-# Flotas
+# Clientes
 @method_decorator(login_required, name='dispatch')
-class FlotasView(View):
+class ClientesView(View):
     def get(self, request, *args, **kwargs):
-         # Obtén el mes seleccionado desde la URL
-        selected_month = request.GET.get("month")
+        clientes = Cliente.objects.all()
         
-        # Obtiene el primer día del mes seleccionado
-        if selected_month:
-            selected_month = int(selected_month)
-            start_date = datetime(datetime.now().year, selected_month, 1)
-            end_date = datetime(datetime.now().year, selected_month + 1, 1) if selected_month < 12 else datetime(datetime.now().year + 1, 1, 1)
-            
-            # Filtra las cobranzas para el mes seleccionado
-            flotas = Flota.objects.filter(created__gte=start_date, created__lt=end_date).order_by('-created')
-        else:
-            # Si no se selecciona un mes, muestra todas las cobranzas
-            flotas = Flota.objects.all().order_by('-created')
-        
-        flotas_paginadas = Paginator(flotas, 30)
+        clientes_paginados = Paginator(clientes, 30)
         page_number = request.GET.get("page")
-        filter_pages = flotas_paginadas.get_page(page_number)
+        filter_pages = clientes_paginados.get_page(page_number)
 
         context = {
-            'flotas': flotas, 
+            'clientes': clientes, 
             'pages': filter_pages,
 
         }
-        return render(request, 'flotas/flotas.html', context)
+        return render(request, 'clientes/clientes.html', context)
     def post(self, request, *args, **kwargs):
         # Obtén los datos del formulario directamente desde request.POST
-        created = datetime.now()
+        
         nombre = request.POST.get('nombre')
         cuit = request.POST.get('cuit')
         nacionalidad = request.POST.get('nacionalidad')
@@ -179,20 +167,11 @@ class FlotasView(View):
         direccion = request.POST.get('direccion')
         telefono = request.POST.get('telefono')
         email = request.POST.get('email')
-        # Agrega los otros campos del formulario aquí
+        
 
-        # Realiza la validación de los datos según tus necesidades
-        if not nombre or not cuit:
-            # Maneja la validación aquí, por ejemplo, mostrando un mensaje de error
-            # o redirigiendo al usuario nuevamente al formulario.
-            # Puedes usar la biblioteca messages de Django para mostrar mensajes al usuario.
-            # from django.contrib import messages
-            # messages.error(request, 'Los campos requeridos no pueden estar en blanco.')
-            return redirect('flotas')  # Redirige al usuario nuevamente al formulario
-
-        # Crea una nueva instancia de Flota y guárdala en la base de datos
-        nueva_flota = Flota(
-            created = created,
+        # Crea una nueva instancia de Flota
+        nuevo_cliente = Cliente(
+            
             nombre_cliente=nombre,
             cuit=cuit,
             nacionalidad=nacionalidad,
@@ -201,84 +180,317 @@ class FlotasView(View):
             direccion=direccion,
             telefono=telefono,
             email=email
-            # Agrega los otros campos del formulario aquí
+            
+        )
+        nuevo_cliente.save()
+
+        
+        return redirect('clientes')
+    
+class DetalleClienteView(View):
+    def get(self, request, cliente_id):
+        cliente = get_object_or_404(Cliente, id=cliente_id)
+
+        context = {
+            'cliente': cliente,
+
+        }
+        return render(request, 'clientes/detalle_cliente.html', context)
+
+    def post(self, request, cliente_id):
+        cliente = get_object_or_404(Cliente, id=cliente_id)
+        # Obtén los datos del formulario directamente desde request.POST
+        nombre = request.POST.get('nombre')
+        cuit = request.POST.get('cuit')
+        nacionalidad = request.POST.get('nacionalidad')
+        provincia = request.POST.get('provincia')
+        localidad = request.POST.get('localidad')
+        direccion = request.POST.get('direccion')
+        telefono = request.POST.get('telefono')
+        email = request.POST.get('email')
+        
+        # Actualiza los campos de la tarifa con los datos del formulario
+        cliente.nombre_cliente = nombre
+        cliente.cuit = cuit
+        cliente.nacionalidad = nacionalidad
+        cliente.provincia = provincia
+        cliente.localidad = localidad
+        cliente.direccion = direccion
+        cliente.telefono = telefono
+        cliente.email = email
+        cliente.save()
+        return redirect('clientes')
+
+class EliminarClienteView(View):
+    def get(self, request, cliente_id):
+        cliente = get_object_or_404(Cliente, id=cliente_id)
+        
+        context = {
+            'cliente': cliente,
+        }
+        return redirect('clientes')
+
+    def post(self, request, cliente_id):
+        cliente = get_object_or_404(Cliente, id=cliente_id)
+       
+        cliente.delete()
+        
+        return redirect('clientes')
+# Movimientos
+
+class EliminarMovimientoView(View):
+    def post(self, request, flota_id, movimiento_id):
+        
+        movimiento = get_object_or_404(Movimiento, id=movimiento_id)
+        movimiento.delete()
+        
+        return redirect('detalle_flota', flota_id=flota_id)
+    
+class ExportarMovimientoView(View):
+    def post(self, request, flota_id, movimiento_id):
+        # Obtener movimiento
+        movimiento = get_object_or_404(Movimiento, id=movimiento_id)
+        # Nombre del archivo modelo
+        file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
+        
+        # Cargar el archivo Excel modelo
+        workbook = openpyxl.load_workbook(file_path)
+        sheet = workbook.active
+        # Obtener los vehículos del movimiento
+        vehiculos = Vehiculo.objects.filter(movimiento_id=movimiento_id)
+        # Crear una copia del archivo Excel
+        duplicated_workbook = openpyxl.Workbook()
+        duplicated_sheet = duplicated_workbook.active
+
+        # Iterar sobre las celdas de la primera fila y copiar los estilos relevantes
+        for row in sheet.iter_rows(min_row=1, max_row=1):
+            for cell in row:
+                # Crear una nueva celda en la hoja de cálculo duplicada
+                nueva_celda = duplicated_sheet.cell(row=1, column=cell.column, value=cell.value)
+
+                # Copiar los estilos relevantes
+                nueva_celda.fill = copy(cell.fill)  # Copiar el estilo de fondo (relleno)
+                nueva_celda.border = copy(cell.border)  # Copiar los bordes
+        # Iterar sobre los vehículos y llenar el archivo Excel duplicado
+        for index, vehiculo in enumerate(vehiculos, start=2):
+
+
+            sheet.cell(row=index, column=1, value=vehiculo.marca)
+            sheet.cell(row=index, column=2, value=vehiculo.modelo)
+            sheet.cell(row=index, column=3, value=vehiculo.tipo_vehiculo)
+            sheet.cell(row=index, column=4, value=vehiculo.patente)
+            sheet.cell(row=index, column=5, value=vehiculo.anio)
+            sheet.cell(row=index, column=6, value=vehiculo.okm)
+            sheet.cell(row=index, column=7, value=vehiculo.importado)
+            sheet.cell(row=index, column=8, value=vehiculo.zona)
+            sheet.cell(row=index, column=9, value=vehiculo.fecha_operacion.strftime('%d/%m/%Y'))
+            sheet.cell(row=index, column=10, value=vehiculo.fecha_vigencia.strftime('%d/%m/%Y'))
+            sheet.cell(row=index, column=11, value=vehiculo.operacion)
+            sheet.cell(row=index, column=12, value=vehiculo.tipo_cobertura)
+            sheet.cell(row=index, column=13, value=vehiculo.suma_asegurada)
+            sheet.cell(row=index, column=14, value=vehiculo.prima_anual)
+            sheet.cell(row=index, column=15, value=vehiculo.prima_vigente)
+            sheet.cell(row=index, column=16, value=vehiculo.premio_anual)
+            sheet.cell(row=index, column=17, value=vehiculo.premio_vigente)
+            
+            # Agregar más celdas según las columnas en tu archivo Excel
+
+        
+
+        # Copiar los datos desde el archivo Excel original al duplicado
+        for row in sheet.iter_rows(min_row=1, max_col=sheet.max_column, max_row=sheet.max_row):
+            duplicated_sheet.append([cell.value for cell in row])
+
+        # Crear una respuesta HTTP con el archivo Excel duplicado adjunto
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={movimiento.nombre_movimiento}.xlsx'
+        duplicated_workbook.save(response)
+        workbook.close()
+
+        return response
+        
+        return redirect('detalle_flota', flota_id=flota_id)
+    
+
+# Flotas
+@method_decorator(login_required, name='dispatch')
+class FlotasView(View):
+    def get(self, request, *args, **kwargs):
+         # Obtenerel mes seleccionado desde la URL
+        selected_month = request.GET.get("month")
+        
+        # Obtener el primer día del mes seleccionado
+        if selected_month:
+            selected_month = int(selected_month)
+            start_date = datetime(datetime.now().year, selected_month, 1)
+            end_date = datetime(datetime.now().year, selected_month + 1, 1) if selected_month < 12 else datetime(datetime.now().year + 1, 1, 1)
+            
+            # Filtrar las cobranzas para el mes seleccionado
+            flotas = Flota.objects.filter(created__gte=start_date, created__lt=end_date).order_by('-created')
+        else:
+            # Si no se selecciona un mes, muestra todas las cobranzas
+            flotas = Flota.objects.all().order_by('-created')
+        
+        flotas_paginadas = Paginator(flotas, 30)
+        page_number = request.GET.get("page")
+        filter_pages = flotas_paginadas.get_page(page_number)
+        clientes = Cliente.objects.all()
+        context = {
+            'clientes': clientes,
+            'flotas': flotas, 
+            'pages': filter_pages,
+
+        }
+        return render(request, 'flotas/flotas.html', context)
+    def post(self, request, *args, **kwargs):
+        # Obtener los datos del formulario directamente desde request.POST
+        created = datetime.now()
+        numero_flota = request.POST.get('numero')
+        poliza = request.POST.get('poliza')
+        cliente_id = request.POST.get('cliente')
+        
+        
+        cliente = Cliente.objects.get(pk=cliente_id)
+        # Crear una nueva instancia de Flota
+        nueva_flota = Flota(
+            created = created,
+            numero_flota = numero_flota,
+            poliza = poliza,
+            cliente = cliente,
+            
         )
         nueva_flota.save()
 
-        # Redirige a la página de flotas o realiza alguna otra acción que desees
+        
+        return redirect('flotas')
+    
+class EliminarFlotaView(View):
+    def get(self, request, flota_id):
+        flota = get_object_or_404(Flota, id=flota_id)
+
+        context = {
+            'flota': flota,
+        }
         return redirect('flotas')
 
+    def post(self, request, flota_id):
+        flota = get_object_or_404(Flota, id=flota_id)
+        
+        flota.delete()
+
+        return redirect('flotas')
 
 # Flotas
 @method_decorator(login_required, name='dispatch')
 class DetalleFlotaView(View):
     def get(self, request, flota_id, *args, **kwargs):
         selected_month = request.GET.get("month")
+        # Obtener la flota
         flota = Flota.objects.get(id=flota_id)
-        # Obtiene el primer día del mes seleccionado
-        if selected_month:
-            selected_month = int(selected_month)
-            start_date = datetime(datetime.now().year, selected_month, 1)
-            end_date = datetime(datetime.now().year, selected_month + 1, 1) if selected_month < 12 else datetime(datetime.now().year + 1, 1, 1)
+        vehiculos = []
+        # Buscar el primer movimiento para esa flota
+        primer_movimiento = Movimiento.objects.filter(flota=flota).order_by('created').first()
+
+        if primer_movimiento:
+            # Obtener los vehículos vinculados a ese movimiento
+            vehiculos = Vehiculo.objects.filter(movimiento=primer_movimiento)
+            # Obtener los movimientos vinculados a esa flota
+            movimientos = Movimiento.objects.filter(flota=flota).order_by('-created')
+            page_number = request.GET.get("page")
             
-            # Filtra las cobranzas para el mes seleccionado
-            vehiculos = Vehiculo.objects.filter(flota=flota).order_by('-created')
+            vehiculos_paginados = Paginator(vehiculos, 30)
+            filter_pages = vehiculos_paginados.get_page(page_number)
+            context = {
+                'flota': flota,
+                'vehiculos': vehiculos,
+                'movimientos': movimientos,
+                'pages': filter_pages,
+            }
         else:
-            # Si no se selecciona un mes, muestra todas las cobranzas
-            vehiculos = Vehiculo.objects.filter(flota=flota).order_by('-created')
+            
+            context = {
+                'flota': flota,
+                'vehiculos': None,
+                'movimientos': None,
+                
+            }
         
-        vehiculos_paginados = Paginator(vehiculos, 30)
-        page_number = request.GET.get("page")
-        filter_pages = vehiculos_paginados.get_page(page_number)
-
-        context = {
-            'flota': flota,
-            'vehiculos': vehiculos, 
-            'pages': filter_pages,
-
-        }
+        
         flota = Flota.objects.get(id=flota_id)
         
         return render(request, 'flotas/detalle_flota.html', context)
     def post(self, request, flota_id, *args, **kwargs):
+        lista_errores = []
+        
+        if 'descargar_excel' in request.POST:
+            # Nombre del archivo que quieres descargar
+            file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
+
+
+            # Abre el archivo y lee su contenido
+            with open(file_path, 'rb') as file:
+                response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
+                return response
         if "calcular_excel" in request.POST:
+            created = datetime.now()
+            nombre_movimiento = request.POST.get('nombre_movimiento')
+            tipo_movimiento = request.POST.get('tipo_movimiento')
+            # Mapeo de tipos a cadenas
+            tipo_mapping = {
+                1: 'Combinado',
+                2: 'Alta',
+                3: 'Baja',
+            }
+            # Obtener la instancia de la Flota por su id
+            flota = Flota.objects.get(pk=flota_id)
+
+            # Acceder al cliente relacionado
+            cliente = flota.cliente
+            # Obtener el valor correspondiente o 'No especificado' si el tipo no está en el diccionario
+            tipo_string = tipo_mapping.get(tipo_movimiento, 'No especificado')
+            nuevo_movimiento = Movimiento(
+                created = created,
+                nombre_movimiento = nombre_movimiento,
+                tipo_movimiento = tipo_string,
+                flota = flota,
+                cliente = cliente,
+                
+            )
+            nuevo_movimiento.save()
             file1 = request.FILES.get('file1')
             workbook = openpyxl.load_workbook(file1)
             sheet = workbook.active
             for row_number, (marca, modelo, tipo_vehiculo, patente, anio, okm, importado, zona, fecha_operacion, fecha_vigencia, operacion, cobertura, suma_asegurada, _, _, _, _) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
-
-                # marca, modelo, tipo_vehiculo, patente, anio, okm, zona, fecha_operacion, fecha_vigencia, operacion, cobertura, suma_asegurada, _, _ = row
-                # Realizar cálculos según las fórmulas proporcionadas
-
+                row_values = sheet.cell(row=row_number, column=1).value
+                if row_values is None:
+                    # Salir del bucle si la fila está vacía
+                    break
                 anio_vehiculo = anio
                 anio_actual = datetime.now().year
                 antiguedad_vehiculo = anio_actual - anio_vehiculo
-
+                
+                # Mapeo de antigüedad a categoría
                 if antiguedad_vehiculo > 10:
-                    tarifa = TarifaFlota.objects.get(
-                        tipo_vehiculo = tipo_vehiculo,
-                        antiguedad = "MÁS DE 10",
-                        zona__contains = zona,
-                        tipo_cobertura__contains = cobertura,
-                    )
-                elif antiguedad_vehiculo <= 10 and antiguedad_vehiculo >= 6:
-                    tarifa = TarifaFlota.objects.get(
-                        tipo_vehiculo = tipo_vehiculo,
-                        antiguedad = "6 A 10",
-                        zona__contains = zona,
-                        tipo_cobertura__contains = cobertura,
-                    )
+                    antiguedad_categoria = "MÁS DE 10"
+                elif 6 <= antiguedad_vehiculo <= 10:
+                    antiguedad_categoria = "6 A 10"
                 else:
+                    antiguedad_categoria = "5"
+                
+                try:    
                     tarifa = TarifaFlota.objects.get(
-                        tipo_vehiculo = tipo_vehiculo,
-                        antiguedad = "5",
-                        zona__icontains = zona,
-                        tipo_cobertura__contains = cobertura,
+                        tipo_vehiculo=tipo_vehiculo,
+                        antiguedad=antiguedad_categoria,
+                        zona__icontains=zona,
+                        tipo_cobertura__contains=cobertura,
                     )
-
-
-                tasa = tarifa.tasa  # Obtener la tasa desde la base de datos según la zona, tipo de vehículo, antigüedad y tipo de cobertura
-                prima_rc_anual = tarifa.prima_rc_anual  # Obtener la prima_rc_anual desde la base de datos
+                except: 
+                    error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {zona}, {cobertura}"
+                    print(error_message)
+                    lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
+                tasa = tarifa.tasa
+                prima_rc_anual = tarifa.prima_rc_anual
 
                 prima_anual = (suma_asegurada * (tasa / 1000)) + prima_rc_anual
 
@@ -286,64 +498,59 @@ class DetalleFlotaView(View):
                 dias_vigencia = (fecha_vigencia - fecha_operacion).days
 
                 prima_vigente = prima_anual * dias_vigencia / 365
-                prima_vigente_redondeada = round(prima_vigente, 2)
+                
 
                 derecho_emision = 2400
-                recargo_administrativo = Decimal('10.5')
                 recargo_financiero = Decimal('5.68')
                 cobertura_nacional = 75000
                 cobertura_importado = 112500
-                
-                # Si operación es ALTA agregar el valor positivo, si es BAJA el valor pasa a ser negativo
-                if(operacion == "ALTA"):
-                    if(importado == "NO"):
-                        premio_anual = prima_anual + cobertura_nacional + derecho_emision + ((prima_anual * recargo_financiero) / 100)
-                        premio_vigente = prima_vigente + cobertura_nacional + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
-                        # Redondear valores
-                        premio_anual_redondeado = round(premio_anual, 2)
-                        premio_vigente_redondeado = round(premio_vigente, 2)
-                        # Actualizar los valores en las columnas existentes
-                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_anual)  # Actualizar la columna de Prima Anual
-                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
-                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
-                        sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
-                    else:
-                        premio_anual = prima_anual + cobertura_importado + derecho_emision + ((prima_anual * recargo_financiero) / 100)
-                        premio_vigente = prima_vigente + cobertura_importado + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
-                        # Redondear valores
-                        premio_anual_redondeado = round(premio_anual, 2)
-                        premio_vigente_redondeado = round(premio_vigente, 2)
-                        # Actualizar los valores en las columnas existentes
-                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_anual)  # Actualizar la columna de Prima Anual
-                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
-                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
-                        sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
-                           
-                else:
-                    if(importado == "NO"):
-                        premio_anual = prima_anual + cobertura_nacional + derecho_emision + ((prima_anual * recargo_financiero) / 100)
-                        premio_vigente = prima_vigente + cobertura_nacional + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
-                        # Redondear valores
-                        premio_anual_redondeado = round(premio_anual, 2)
-                        premio_vigente_redondeado = round(premio_vigente, 2)
-                        # Actualizar los valores en las columnas existentes
-                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=-prima_anual)  # Actualizar la columna de Prima Anual
-                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=-prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
-                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=-premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
-                        sheet.cell(row=row_number, column=sheet.max_column, value=-premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
-                    else:
-                        premio_anual = prima_anual + cobertura_importado + derecho_emision + ((prima_anual * recargo_financiero) / 100)
-                        premio_vigente = prima_vigente + cobertura_importado + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
-                        # Redondear valores
-                        premio_anual_redondeado = round(premio_anual, 2)
-                        premio_vigente_redondeado = round(premio_vigente, 2)
-                        # Actualizar los valores en las columnas existentes
-                        sheet.cell(row=row_number, column=sheet.max_column - 3, value=-prima_anual)  # Actualizar la columna de Prima Anual
-                        sheet.cell(row=row_number, column=sheet.max_column - 2, value=-prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
-                        sheet.cell(row=row_number, column=sheet.max_column - 1, value=-premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
-                        sheet.cell(row=row_number, column=sheet.max_column, value=-premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
+
+                # Determinar la cobertura según si la unidad es importada o no
+                cobertura = cobertura_importado if importado == "SI" else cobertura_nacional
+
+                premio_anual = prima_anual + cobertura + derecho_emision + ((prima_anual * recargo_financiero) / 100)
+                premio_vigente = prima_vigente + cobertura + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
+
+                if operacion == "BAJA":
+                    prima_anual = -prima_anual
+                    prima_vigente = -prima_vigente
+                    premio_anual = -premio_anual
+                    premio_vigente = -premio_vigente
+
+                # Redondear valores
+                premio_anual_redondeado = round(premio_anual, 2)
+                premio_vigente_redondeado = round(premio_vigente, 2)
+                prima_vigente_redondeada = round(prima_vigente, 2)
+                # Actualizar los valores en las columnas existentes
+                sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_anual)  # Actualizar la columna de Prima Anual
+                sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
+                sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
+                sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
                         
-                
+                # Crear una nueva instancia de Vehiculo
+                vehiculo = Vehiculo(
+                    created = created,
+                    movimiento = nuevo_movimiento,
+                    marca = marca,
+                    modelo=modelo,
+                    tipo_vehiculo=tipo_vehiculo,
+                    patente=patente,
+                    anio=anio,
+                    okm = okm,
+                    importado = importado,
+                    zona = zona,
+                    fecha_operacion = fecha_operacion,
+                    fecha_vigencia = fecha_vigencia,
+                    operacion = operacion,
+                    tipo_cobertura = cobertura,
+                    suma_asegurada = suma_asegurada,
+                    prima_anual = prima_anual,
+                    prima_vigente = prima_vigente_redondeada,
+                    premio_anual = premio_anual_redondeado,
+                    premio_vigente = premio_vigente_redondeado,
+                    
+                )
+                vehiculo.save()
                 # Guardar la hoja de cálculo actualizada
             output = BytesIO()
             workbook.save(output)
@@ -354,6 +561,7 @@ class DetalleFlotaView(View):
             response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
 
             return response
+        
                 
         flota = Flota.objects.get(id=flota_id)
         cod_infoauto = request.POST.get('cod_infoauto')
@@ -380,46 +588,6 @@ class DetalleFlotaView(View):
         else:
             # Maneja errores de validación o muestra un mensaje de error
             return HttpResponse('Error: Datos de vehículo incompletos')
-        
-      
-# Vehiculos
-@method_decorator(login_required, name='dispatch')
-class VehiculosView(View):
-    def get(self, request, *args, **kwargs):
-         # Obtén el mes seleccionado desde la URL
-        selected_month = request.GET.get("month")
-        form = VehiculoForm()
-        # Obtiene el primer día del mes seleccionado
-        if selected_month:
-            selected_month = int(selected_month)
-            start_date = datetime(datetime.now().year, selected_month, 1)
-            end_date = datetime(datetime.now().year, selected_month + 1, 1) if selected_month < 12 else datetime(datetime.now().year + 1, 1, 1)
-            
-            # Filtra las cobranzas para el mes seleccionado
-            vehiculos = Vehiculo.objects.filter(created__gte=start_date, created__lt=end_date).order_by('-created')
-        else:
-            # Si no se selecciona un mes, muestra todas las cobranzas
-            vehiculos = Vehiculo.objects.all().order_by('-created')
-        
-        vehiculos_paginados = Paginator(vehiculos, 30)
-        page_number = request.GET.get("page")
-        filter_pages = vehiculos_paginados.get_page(page_number)
-
-        context = {
-            'form': form,
-            'vehiculos': vehiculos,
-            'pages': filter_pages,
-
-        }
-        return render(request, 'vehiculos/vehiculos.html', context)
-    def post(self, request, *args, **kwargs):
-        form = VehiculoForm(request.POST)
-        if form.is_valid():
-            vehiculo = form.save()
-            return redirect('vehiculos')
-        else:
-            form = VehiculoForm()
-        return redirect('vehiculos')
 
 # Tarifas flotas
 @method_decorator(login_required, name='dispatch')
@@ -596,7 +764,7 @@ class CobranzasView(View):
 
         data = []  # Lista para almacenar las filas
         for row in sheet.iter_rows(min_row=4, values_only=True):
-            asegurador, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
+            asegurado, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
             # Si hay fecha cambia el formato al necesario por Django
             if fecha_vencimiento is not None:
                 fecha_vencimiento = fecha_vencimiento.replace("/", "-")
@@ -623,7 +791,7 @@ class CobranzasView(View):
     
     def process_data(self, data, selected_month, selected_year):
         for row in data:
-            asegurador, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
+            asegurado, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
             # Si hay fecha de vencimiento cambia el formato al necesario por Django
             if fecha_vencimiento is not None:
                 fecha_vencimiento = fecha_vencimiento.replace("/", "-")
@@ -632,7 +800,7 @@ class CobranzasView(View):
                 
                 if fecha_vencimiento.month == selected_month and fecha_vencimiento.year == selected_year:
                     Vencimiento.objects.create(
-                        asegurador=asegurador,
+                        asegurado=asegurado,
                         riesgo=riesgo,
                         productor=productor,
                         cliente=cliente,
@@ -692,7 +860,7 @@ class VencimientosView(View):
 
         data = []  # Lista para almacenar las filas
         for row in sheet.iter_rows(min_row=4, values_only=True):
-            asegurador, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
+            asegurado, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
             # Si hay fecha cambia el formato al necesario por Django
             if fecha_vencimiento is not None:
                 fecha_vencimiento = fecha_vencimiento.replace("/", "-")
@@ -719,7 +887,7 @@ class VencimientosView(View):
     
     def process_data(self, data, selected_month, selected_year):
         for row in data:
-            asegurador, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
+            asegurado, riesgo, productor, cliente, poliza, endoso, cuota, fecha_vencimiento, moneda, importe, saldo, forma_pago, factura = row
             # Si hay fecha de vencimiento cambia el formato al necesario por Django
             if fecha_vencimiento is not None:
                 fecha_vencimiento = fecha_vencimiento.replace("/", "-")
@@ -728,7 +896,7 @@ class VencimientosView(View):
                 
                 if fecha_vencimiento.month == selected_month and fecha_vencimiento.year == selected_year:
                     Vencimiento.objects.create(
-                        asegurador=asegurador,
+                        asegurado=asegurado,
                         riesgo=riesgo,
                         productor=productor,
                         cliente=cliente,
