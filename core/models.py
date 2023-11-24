@@ -72,6 +72,7 @@ class Movimiento(models.Model):
     
 class Vehiculo(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    cod = models.IntegerField(null=True, blank=True)
     movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE, null=True, blank=True)
     marca = models.CharField(max_length=100, blank=True, null=True)
     modelo = models.CharField(max_length=100, blank=True, null=True)

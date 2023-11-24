@@ -16,7 +16,8 @@ from django.templatetags.static import static
 import os
 from django.conf import settings
 from copy import deepcopy, copy
-
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 # Importe de formularios
 
 # Importe de modelos
@@ -182,10 +183,16 @@ class ClientesView(View):
             email=email
             
         )
-        nuevo_cliente.save()
+        try:
+            # Intenta crear el nuevo elemento
+            nuevo_cliente.save()
+            messages.success(request, 'El elemento se creó exitosamente.')
+        except Exception as e:
+            # Si hay un error al crear el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo crear el elemento. Detalles: {str(e)}')
 
-        
-        return redirect('clientes')
+        # Redirige, incluyendo los mensajes en el contexto
+        return HttpResponseRedirect(request.path_info)
     
 class DetalleClienteView(View):
     def get(self, request, cliente_id):
@@ -218,7 +225,13 @@ class DetalleClienteView(View):
         cliente.direccion = direccion
         cliente.telefono = telefono
         cliente.email = email
-        cliente.save()
+        try:
+            # Intenta guardar la actualización del elemento
+            cliente.save()
+            messages.success(request, 'El elemento se actualizó exitosamente.')
+        except Exception as e:
+            # Si hay un error al actualizar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
         return redirect('clientes')
 
 class EliminarClienteView(View):
@@ -232,8 +245,15 @@ class EliminarClienteView(View):
 
     def post(self, request, cliente_id):
         cliente = get_object_or_404(Cliente, id=cliente_id)
-       
-        cliente.delete()
+
+        try:
+            # Intenta guardar la eliminacion del elemento
+            cliente.delete()
+            messages.success(request, 'El elemento se eliminó exitosamente.')
+        except Exception as e:
+            # Si hay un error al eliminar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo eliminar el elemento. Detalles: {str(e)}')
+        
         
         return redirect('clientes')
 # Movimientos
@@ -242,7 +262,13 @@ class EliminarMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         
         movimiento = get_object_or_404(Movimiento, id=movimiento_id)
-        movimiento.delete()
+        try:
+            # Intenta guardar la eliminación del elemento
+            movimiento.delete()
+            messages.success(request, 'El elemento se eliminó exitosamente.')
+        except Exception as e:
+            # Si hay un error al eliminar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo eliminar el elemento. Detalles: {str(e)}')
         
         return redirect('detalle_flota', flota_id=flota_id)
     
@@ -359,8 +385,13 @@ class FlotasView(View):
             cliente = cliente,
             
         )
-        nueva_flota.save()
-
+        try:
+            # Intenta crear el nuevo elemento
+            nueva_flota.save()
+            messages.success(request, 'El elemento se creó exitosamente.')
+        except Exception as e:
+            # Si hay un error al crear el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo crear el elemento. Detalles: {str(e)}')
         
         return redirect('flotas')
     
@@ -376,7 +407,13 @@ class EliminarFlotaView(View):
     def post(self, request, flota_id):
         flota = get_object_or_404(Flota, id=flota_id)
         
-        flota.delete()
+        try:
+            # Intenta guardar la eliminación del elemento
+            flota.delete()
+            messages.success(request, 'El elemento se eliminó exitosamente.')
+        except Exception as e:
+            # Si hay un error al eliminar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo eliminar el elemento. Detalles: {str(e)}')
 
         return redirect('flotas')
 
@@ -592,6 +629,19 @@ class DetalleFlotaView(View):
 
 # Tarifas flotas
 @method_decorator(login_required, name='dispatch')
+class DeleteAllTarifasFlotasView(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            # Intenta guardar la eliminación del elemento
+            TarifaFlota.objects.all().delete()  # Elimina todos los registros de Tarifas
+            messages.success(request, 'Los datos se eliminaron exitosamente.')
+        except Exception as e:
+            # Si hay un error al eliminar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo eliminar los datos. Detalles: {str(e)}')
+        
+        return redirect('tarifas_flotas')
+    
+@method_decorator(login_required, name='dispatch')
 class TarifasFlotasView(View):
     def get(self, request, *args, **kwargs):
 
@@ -608,9 +658,7 @@ class TarifasFlotasView(View):
         }
         return render(request, 'tarifas_flotas/tarifas_flotas.html', context)
     def post(self, request, *args, **kwargs):
-        if "delete_data" in request.POST:
-            TarifaFlota.objects.all().delete()  # Elimina todos los registros de Tarifas
-            return redirect('tarifas_flotas')
+        
         
         if "importar_excel" in request.POST:
             file1 = request.FILES.get('file1')
@@ -700,7 +748,13 @@ class DetalleTarifaFlotaView(View):
         tarifa.tipo_cobertura = tipo_cobertura
         tarifa.tasa = tasa
         tarifa.prima_rc_anual = prima_rc_anual
-        tarifa.save()
+        try:
+            # Intenta guardar la actualización del elemento
+            tarifa.save()
+            messages.success(request, 'El elemento se actualizó exitosamente.')
+        except Exception as e:
+            # Si hay un error al actualizar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
         return redirect('tarifas_flotas')
 
 class EliminarTarifaFlotaView(View):
@@ -714,9 +768,16 @@ class EliminarTarifaFlotaView(View):
 
     def post(self, request, tarifa_id):
         tarifa = get_object_or_404(TarifaFlota, id=tarifa_id)
-        # Realiza la eliminación de la tarifa
-        tarifa.delete()
-        # Después de eliminar, redirige a la página de la lista de tarifas o a donde desees
+
+        try:
+            # Intenta guardar la eliminación del elemento
+            tarifa.delete()
+            messages.success(request, 'El elemento se eliminó exitosamente.')
+        except Exception as e:
+            # Si hay un error al eliminar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo eliminar el elemento. Detalles: {str(e)}')
+
+
         return redirect('tarifas_flotas')
 
 

@@ -10,6 +10,25 @@
         <h1 class="h2">Flota: {{flota.numero_flota}}</h1>
         
         <h1 class="h2">Cliente: {{ flota.cliente.nombre_cliente }}</h1>
+        {% if messages %}
+
+        {% for message in messages %}
+          {% if message.tags == 'error' %}
+          <div class="alert alert-danger m-0 p-0" role="alert">
+            {{ message }}
+          </div>
+          {% elif message.tags == 'success' %}
+          <div class="alert alert-success m-0" role="alert">
+            {{ message }}
+          </div>
+          {% else %}
+          <div class="alert alert-primary m-0" role="alert">
+            {{ message }}
+          </div>
+          {% endif %}
+        {% endfor %}
+
+      {% endif %}
           <!--
             FORMULARIO IMPORTACION DESDE EXCEL
           -->
@@ -83,15 +102,14 @@
                       
                   </button>
                 </form>
-                <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_movimiento' flota.id movimiento.id %}" id="eliminarFormulario">
-                  {% csrf_token %}
-                <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
+
+                <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" data-url="{% url 'delete_movimiento' flota.id movimiento.id %}">
                   <span class="material-icons-outlined">
                     delete
                     </span>
                     
                 </button>
-              </form>
+
 
                 </div>
               </div>
@@ -174,7 +192,7 @@
                       {% for vehiculo in pages %}
                       
                       <tr>
-                        <td>cod</td>
+                        <td>{{ vehiculo.cod }}</td>
                         <td>{{ vehiculo.marca }}</td>
                         <td>{{ vehiculo.modelo }}</td>
                         <td>{{ vehiculo.tipo_vehiculo }}</td>

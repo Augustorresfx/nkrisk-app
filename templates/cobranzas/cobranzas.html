@@ -8,6 +8,25 @@
   <div class="container-fluid h-custom">
       <div class="mt-5 pt-5">
         <h1 class="h2">Cobranzas</h1>
+        {% if messages %}
+
+          {% for message in messages %}
+            {% if message.tags == 'error' %}
+            <div class="alert alert-danger m-0 p-0" role="alert">
+              {{ message }}
+            </div>
+            {% elif message.tags == 'success' %}
+            <div class="alert alert-success m-0" role="alert">
+              {{ message }}
+            </div>
+            {% else %}
+            <div class="alert alert-primary m-0" role="alert">
+              {{ message }}
+            </div>
+            {% endif %}
+          {% endfor %}
+
+        {% endif %}
         <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
           
           <div class="col">

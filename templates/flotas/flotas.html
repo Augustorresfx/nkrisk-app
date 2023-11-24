@@ -9,61 +9,126 @@
       <div class="mt-5 pt-5">
         <div class="container-fluid h-custom">
           <h1 class="h2">Flotas</h1>
-          </div>
- 
-  <!-- Modal -->
-  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5 " id="exampleModalLabel">Agregar flota</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          {% if messages %}
+
+            {% for message in messages %}
+              {% if message.tags == 'error' %}
+              <div class="alert alert-danger m-0 p-0" role="alert">
+                {{ message }}
+              </div>
+              {% elif message.tags == 'success' %}
+              <div class="alert alert-success m-0" role="alert">
+                {{ message }}
+              </div>
+              {% else %}
+              <div class="alert alert-primary m-0" role="alert">
+                {{ message }}
+              </div>
+              {% endif %}
+            {% endfor %}
+
+          {% endif %}
         </div>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-        <div class="modal-body">
-            
-                <div class="mb-3">
-                  <label for="numero" class="form-label">Número de flota: </label>
-                  <input name="numero" type="number" class="form-control" placeholder="Número de flota" aria-label="Número de flota" aria-describedby="basic-addon1">
-                </div>
-                <div class="mb-3">
-                  <label for="poliza" class="form-label">Número de póliza: </label>
-                  <input name="poliza" type="number" class="form-control" placeholder="Número de póliza" aria-label="Número de póliza" aria-describedby="basic-addon1">
-                </div>
-                <div class="mb-3">
-                    <label for="cliente" class="form-label">Cliente: </label>
-                    <select name="cliente" class="form-select" aria-label="Default select example">
-                      <option selected>Seleccionar cliente</option>
-                      {% for cliente in clientes %}
-                      <option value="{{cliente.id}}">{{cliente.nombre_cliente}}</option>
-                     {% endfor %}
-                    </select>
-                </div>
+
+          <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
               
-               
+            <div class="col">
+              <h2> 
+                Agregar flota
+              </h2>
+              <div class="card mb-3 p-4" style="max-width: 540px;">
+                
+                <form method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <div class="mb-3">
+                    <label for="numero" class="form-label">Número de flota: </label>
+                    <input name="numero" type="number" class="form-control" placeholder="Número de flota" aria-label="Número de flota" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="poliza" class="form-label">Número de póliza: </label>
+                    <input name="poliza" type="number" class="form-control" placeholder="Número de póliza" aria-label="Número de póliza" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                      <label for="cliente" class="form-label">Cliente: </label>
+                      <select name="cliente" class="form-select" aria-label="Default select example">
+                        <option selected>Seleccionar cliente</option>
+                        {% for cliente in clientes %}
+                        <option value="{{cliente.id}}">{{cliente.nombre_cliente}}</option>
+                       {% endfor %}
+                      </select>
+                  </div>
+                
+                  
+                <button class="btn btn-primary mb-2" type="submit">Agregar</button>
+                
+                  
+              </form>
+            </div>
+          </div>
+  
+     
+    
+        <!--
+          MOVIMIENTOS
+        
+        <div class="">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+            <h2> 
+              Flotas
+            </h2>
+         
+  
+        </div>
           
+          <div class="list-group overflow-auto" style="max-height: 360px;">
+           
+            {% for movimiento in movimientos %}
+              <div  class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">{{movimiento.nombre_movimiento}}</h5>
+                  <div>
+                    <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
+                      {% csrf_token %}
+                    <button type="submit" class="w-10 btn btn-sm btn-success exportar-excel mx-2">
+                      <span class="material-icons-outlined">
+                        file_download
+                        </span>
+                        
+                    </button>
+                  </form>
+                  <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_movimiento' flota.id movimiento.id %}" id="eliminarFormulario">
+                    {% csrf_token %}
+                  <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
+                    <span class="material-icons-outlined">
+                      delete
+                      </span>
+                      
+                  </button>
+                </form>
+  
+                  </div>
+                </div>
+                <p class="mb-1">{{movimiento.tipo_movimiento}}</p>
+                
+                <p class="mb-1">Creación: {{movimiento.created}}</p>
+                
+              </div>
+            {% endfor %}
             
+          </div>
+        -->
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar</button>
-        </div>
-    </form>
-      </div>
-    </div>
   </div>
+ 
         
      
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2  border-bottom">
-               <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
-  Agregar flota
-</button>
 
         <div class="btn-toolbar mb-3">
+          <!--
           <div class="dropdown">
+            
             <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               Seleccionar mes
             </button>
@@ -82,7 +147,7 @@
               <li><a class="dropdown-item" href="?month=12">Diciembre</a></li>
             </ul>
           </div>
-           
+           -->
         </div>
       </div>
          
@@ -119,14 +184,12 @@
                             </a>
                           </td>
                           <td>
-                            
-                            <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_flota' flota.id %}" id="eliminarFormulario">
-                              {% csrf_token %}
-                            <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
+
+                            <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="{% url 'delete_flota' flota.id %}">
                               Eliminar
-                                
                             </button>
-                          </form>
+
+                            
                           
                           </td>
                         </tr>

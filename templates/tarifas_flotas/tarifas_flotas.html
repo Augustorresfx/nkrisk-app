@@ -7,6 +7,26 @@
   <section class="mb-4">
   <div class="container-fluid h-custom">
     <h1 class="h2 mt-5 pt-5">Tarifas para inclusiones a flotas</h1>
+    {% if messages %}
+
+    {% for message in messages %}
+      {% if message.tags == 'error' %}
+      <div class="alert alert-danger m-0 p-0" role="alert">
+        {{ message }}
+      </div>
+      {% elif message.tags == 'success' %}
+      <div class="alert alert-success m-0" role="alert">
+        {{ message }}
+      </div>
+      {% else %}
+      <div class="alert alert-primary m-0" role="alert">
+        {{ message }}
+      </div>
+      {% endif %}
+    {% endfor %}
+
+  {% endif %}
+    </div>
       <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
         
     <div class="col">
@@ -89,11 +109,13 @@
       <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
             Agregar tarifa
       </button>
-
-        <form method="POST" action="{% url 'tarifas_flotas' %}">
-          {% csrf_token %}
-        <button type="submit" name="delete_data" class="btn btn-danger align-self-end">Eliminar datos</button>
-    </form>
+      
+      <button type="submit" name="delete_data" class="w-10 btn btn-danger eliminar-elemento confirmar-eliminar mx-2" data-url="{% url 'delete_all_tarifas_flotas' %}">
+        Eliminar datos
+          
+      </button>
+   
+        
 
   </div>         
             <div class="table-responsive mb-2">
@@ -137,13 +159,9 @@
                           </td>
                           <td>
                             
-                            <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_tarifa' tarifa.id %}" id="eliminarFormulario">
-                              {% csrf_token %}
-                            <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
+                            <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="{% url 'delete_tarifa' tarifa.id %}">
                               Eliminar
-                                
                             </button>
-                          </form>
                        
                           
                           </td>

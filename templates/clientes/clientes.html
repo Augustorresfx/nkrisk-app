@@ -9,6 +9,26 @@
       <div class="mt-5 pt-5">
         <div class="container-fluid h-custom">
           <h1 class="h2">Clientes</h1>
+          {% if messages %}
+
+            {% for message in messages %}
+              {% if message.tags == 'error' %}
+              <div class="alert alert-danger m-0 p-0" role="alert">
+                {{ message }}
+              </div>
+              {% elif message.tags == 'success' %}
+              <div class="alert alert-success m-0" role="alert">
+                {{ message }}
+              </div>
+              {% else %}
+              <div class="alert alert-primary m-0" role="alert">
+                {{ message }}
+              </div>
+              {% endif %}
+            {% endfor %}
+
+          {% endif %}
+
           </div>
  
   <!-- Modal -->
@@ -84,6 +104,7 @@
                 <table class="table table-striped bg-white rounded shadow-sm">
                     <thead>
                       <tr>
+                        <th scope="col">ID</th>
                         <th scope="col">Nombre cliente</th>
                         <th scope="col">Cuit</th>
                         <th scope="col">Nacionalidad</th>
@@ -103,6 +124,7 @@
                       {% for cliente in pages %}
                       
                       <tr>
+                          <td>{{ cliente.id }}</td>
                           <td>{{ cliente.nombre_cliente }}</td>
                           <td>{{ cliente.cuit }}</td>
                           <td>{{ cliente.nacionalidad }}</td>
@@ -124,13 +146,9 @@
                           </td>
                           <td>
                        
-                            <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_cliente' cliente.id %}" id="eliminarFormulario">
-                              {% csrf_token %}
-                            <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
+                            <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="{% url 'delete_cliente' cliente.id %}">
                               Eliminar
-                                
                             </button>
-                          </form>
                           </td>
                         </tr>
                      
