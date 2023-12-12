@@ -14,6 +14,7 @@ from decimal import Decimal
 from django.core.files.base import ContentFile
 from django.templatetags.static import static
 import os
+import calendar
 from django.conf import settings
 from copy import deepcopy, copy
 from django.contrib import messages
@@ -486,7 +487,7 @@ class DetalleFlotaView(View):
             cliente = flota.cliente
             # Obtener el valor correspondiente o 'No especificado' si el tipo no está en el diccionario
             tipo_string = tipo_mapping.get(tipo_movimiento, 'No especificado')
-            print(tipo_movimiento)
+            
             nuevo_movimiento = Movimiento(
                 created = created,
                 nombre_movimiento = nombre_movimiento,
@@ -499,15 +500,19 @@ class DetalleFlotaView(View):
             file1 = request.FILES.get('file1')
             workbook = openpyxl.load_workbook(file1)
             sheet = workbook.active
-            for row_number, (marca, modelo, tipo_vehiculo, patente, anio, okm, importado, zona, fecha_operacion, fecha_vigencia, operacion, cobertura, suma_asegurada, _, _, _, _) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+            for row_number, (marca, modelo, tipo_vehiculo, patente, anio, okm, importado, zona, fecha_operacion, fecha_vigencia_str, operacion, cobertura, suma_asegurada, _, _, _, _) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
                 row_values = sheet.cell(row=row_number, column=1).value
                 if row_values is None:
                     # Salir del bucle si la fila está vacía
                     break
                 anio_vehiculo = anio
                 anio_actual = datetime.now().year
-                antiguedad_vehiculo = anio_actual - anio_vehiculo
                 
+                
+                antiguedad_vehiculo = anio_actual - anio_vehiculo
+                fecha_vigencia = fecha_vigencia_str
+                anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else anio_actual + 1
+                print(anio_a_calcular)
                 # Mapeo de antigüedad a categoría
                 if antiguedad_vehiculo > 10:
                     antiguedad_categoria = "MÁS DE 10"
@@ -529,41 +534,70 @@ class DetalleFlotaView(View):
                     lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
                 tasa = tarifa.tasa
                 prima_rc_anual = tarifa.prima_rc_anual
-
-                prima_anual = (suma_asegurada * (tasa / 1000)) + prima_rc_anual
-
-                # Calcular los días de vigencia
-                dias_vigencia = (fecha_vigencia - fecha_operacion).days
-
-                prima_vigente = prima_anual * dias_vigencia / 365
-                
-
+                print(tasa)
+                print(tasa/1000)
+                print("Rc:", prima_rc_anual)
+                # Impuestos
                 derecho_emision = 2400
+                recargo_administrativo = Decimal('10.5')
+                cien = Decimal('100')
                 recargo_financiero = Decimal('5.68')
                 cobertura_nacional = 75000
                 cobertura_importado = 112500
+                imp_y_sellados = Decimal('5.2')
+                iva_21 = Decimal('21')
+                iva_rg_3337 = Decimal('3')
+                
+                prima_tecnica_anual = (suma_asegurada * (tasa / 1000)) + prima_rc_anual 
+                print(prima_tecnica_anual)
+                prima_por_recargo_administrativo = (prima_tecnica_anual * recargo_administrativo) / cien
+                prima_pza_anual = prima_tecnica_anual + prima_por_recargo_administrativo + derecho_emision
+                print("Prima 10,5%: ",prima_por_recargo_administrativo)
+
+                # Determinar si el año siguiente es bisiesto
+                dias_totales = 366 if calendar.isleap(anio_a_calcular) else 365
+
+                # Calcular los días de vigencia
+                dias_vigencia = (fecha_vigencia - fecha_operacion).days
+                print("Dias vigencia: ",dias_vigencia)
+                print("Dias totales: ", dias_totales)
+                print("Dias vigencia / dias totales:",dias_vigencia/dias_totales)
+            
+                prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
+                prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
+
+                
 
                 # Determinar la cobertura según si la unidad es importada o no
                 cobertura = cobertura_importado if importado == "SI" else cobertura_nacional
 
-                premio_anual = prima_anual + cobertura + derecho_emision + ((prima_anual * recargo_financiero) / 100)
-                premio_vigente = prima_vigente + cobertura + derecho_emision + ((prima_vigente * recargo_financiero) / 100)
+                premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / cien)
+                premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / cien)
+                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva_21) / cien) + ((premio_vigente_sin_iva * iva_rg_3337) / cien)
+                
+                print(premio_vigente_sin_iva)
+                print(premio_vigente_sin_iva * 3 / 100)
+                print(premio_vigente_sin_iva * iva_21 / cien)
+                print(premio_vigente_sin_iva * imp_y_sellados / cien)
+                
+                # Redondear valores
+                prima_tecnica_vigente = round(prima_tecnica_vigente, 2)
+                prima_pza_vigente = round(prima_pza_vigente, 2)
+                premio_vigente_sin_iva = round(premio_vigente_sin_iva, 2)
+                premio_vigente_con_iva = round(premio_vigente_con_iva, 2)
 
                 if operacion == "BAJA":
-                    prima_anual = -prima_anual
-                    prima_vigente = -prima_vigente
-                    premio_anual = -premio_anual
-                    premio_vigente = -premio_vigente
+                    prima_tecnica_vigente = -prima_tecnica_vigente
+                    prima_pza_vigente = -prima_pza_vigente
+                    premio_vigente_sin_iva = -premio_vigente_sin_iva
+                    premio_vigente_con_iva = -premio_vigente_con_iva
 
-                # Redondear valores
-                premio_anual_redondeado = round(premio_anual, 2)
-                premio_vigente_redondeado = round(premio_vigente, 2)
-                prima_vigente_redondeada = round(prima_vigente, 2)
+                
                 # Actualizar los valores en las columnas existentes
-                sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_anual)  # Actualizar la columna de Prima Anual
-                sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_vigente_redondeada)  # Actualizar la columna de Prima Vigente
-                sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_anual_redondeado)  # Actualizar la columna de Prremio Anual
-                sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_redondeado)  # Actualizar la columna de Premio Vigente
+                sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_tecnica_vigente)  # Actualizar la columna de Prima Anual
+                sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_pza_vigente)  # Actualizar la columna de Prima Vigente
+                sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_vigente_sin_iva)  # Actualizar la columna de Prremio Anual
+                sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_con_iva)  # Actualizar la columna de Premio Vigente
                         
                 # Crear una nueva instancia de Vehiculo
                 vehiculo = Vehiculo(
@@ -582,10 +616,10 @@ class DetalleFlotaView(View):
                     operacion = operacion,
                     tipo_cobertura = cobertura,
                     suma_asegurada = suma_asegurada,
-                    prima_anual = prima_anual,
-                    prima_vigente = prima_vigente_redondeada,
-                    premio_anual = premio_anual_redondeado,
-                    premio_vigente = premio_vigente_redondeado,
+                    prima_tecnica = prima_tecnica_vigente,
+                    prima_pza = prima_pza_vigente,
+                    premio_sin_iva = premio_vigente_sin_iva,
+                    premio_con_iva = premio_vigente_con_iva,
                     
                 )
                 vehiculo.save()
@@ -720,8 +754,8 @@ class DetalleTarifaFlotaView(View):
         tarifa = get_object_or_404(TarifaFlota, id=tarifa_id)
         # Crea un formulario de edición de tarifa personalizado aquí (por ejemplo, usando Django Forms)
         # Puedes pasar el formulario como contexto a tu plantilla de edición
-        tasa_formatted = "{:.2f}".format(tarifa.tasa).replace(',', '.')
-        prima_formatted = "{:.2f}".format(tarifa.prima_rc_anual).replace(',', '.')
+        tasa_formatted = "{:.3f}".format(tarifa.tasa).replace(',', '.')
+        prima_formatted = "{:.3f}".format(tarifa.prima_rc_anual).replace(',', '.')
         context = {
             'tarifa': tarifa,
             'tasa_formatted': tasa_formatted,

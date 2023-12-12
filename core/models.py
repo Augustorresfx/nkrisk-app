@@ -30,7 +30,7 @@ class TarifaFlota(models.Model):
     tipo_vehiculo = models.CharField(max_length=100, blank=True, null=True)
     antiguedad = models.CharField(max_length=100, blank=True, null=True)
     tipo_cobertura = models.CharField(max_length=100, blank=True, null=True)
-    tasa = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    tasa = models.DecimalField(decimal_places=3, max_digits=100, null=True, blank=True)
     prima_rc_anual = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     
 class Cliente(models.Model):
@@ -87,8 +87,8 @@ class Vehiculo(models.Model):
     operacion = models.CharField(max_length=100, blank=True, null=True)
     tipo_cobertura = models.CharField(max_length=100, blank=True, null=True)
     suma_asegurada = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    prima_anual = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    prima_vigente = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    premio_anual = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    premio_vigente = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    prima_tecnica = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    prima_pza = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    premio_sin_iva = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    premio_con_iva = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     
