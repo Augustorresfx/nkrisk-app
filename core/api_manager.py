@@ -19,8 +19,19 @@ class ApiManager:
         # Verificar si hay un AccessToken válido en la base de datos
         current_time = timezone.now()
         try:
-            access_token = AccessToken.objects.get(expiracion__gt=current_time)
-            return access_token.token
+            access_tokens = AccessToken.objects.filter(expiracion__gt=current_time)
+            # Verificar si hay al menos un AccessToken válido
+            if access_tokens.exists():
+                # Obtener el primer AccessToken válido
+                return access_tokens.first().token
+            else:
+                # Intentar refrescar el AccessToken usando el RefreshToken
+                if self.refresh_access_token():
+                    # Si el refresh fue exitoso, intentar obtener el nuevo AccessToken
+                    return self.get_valid_access_token()
+                else:
+                    return None
+
         except AccessToken.DoesNotExist:
             # Intentar refrescar el AccessToken usando el RefreshToken
             if self.refresh_access_token():

@@ -7,7 +7,7 @@ def access_expiration():
     return timezone.now() + timezone.timedelta(hours=1)
 
 def refresh_expiration():
-    return timezone.now() + timezone.timedelta(hours=1)
+    return timezone.now() + timezone.timedelta(hours=24)
 
 class AccessToken(models.Model):
     token = models.CharField(max_length=500)

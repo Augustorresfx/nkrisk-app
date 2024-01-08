@@ -698,15 +698,15 @@ class DetalleFlotaView(View):
                 )
                 vehiculo.save()
                 # Guardar la hoja de cálculo actualizada
-            output = BytesIO()
-            workbook.save(output)
-            output.seek(0)
+            #output = BytesIO()
+            #workbook.save(output)
+            #output.seek(0)
 
             # Crear una respuesta HTTP con el archivo adjunto
-            response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
+            #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
 
-            return response
+            return redirect('detalle_flota', flota_id)
         
         """ if "calcular_excel" in request.POST:
             created = datetime.now()
