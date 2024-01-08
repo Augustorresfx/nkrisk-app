@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-from .views import HomeView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
+from .views import HomeView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,13 +12,13 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('inicio/', InicioView.as_view(), name='inicio'),
     path('vencimientos/', VencimientosView.as_view(), name='vencimientos'),
+    path('localidades/', LocalidadesView.as_view(), name='localidades'),
     path('cobranzas/', CobranzasView.as_view(), name='cobranzas'),
     path('clientes/', ClientesView.as_view(), name='clientes'),
     path('clientes/<int:cliente_id>/', DetalleClienteView.as_view(), name='detalle_cliente'),
     path('clientes/<int:cliente_id>/eliminar/', EliminarClienteView.as_view(), name='delete_cliente'),
     path('movimientos/<int:flota_id>/<int:movimiento_id>/eliminar/', EliminarMovimientoView.as_view(), name='delete_movimiento'),
     path('movimientos/<int:flota_id>/<int:movimiento_id>/exportar/', ExportarMovimientoView.as_view(), name='exportar_movimiento'),
-    path('flotas/', FlotasView.as_view(), name='flotas'),
     path('flotas/', FlotasView.as_view(), name='flotas'),
     path('flotas/<int:flota_id>/eliminar/', EliminarFlotaView.as_view(), name='delete_flota'),
     path('flotas/<int:flota_id>/', DetalleFlotaView.as_view(), name='detalle_flota'),

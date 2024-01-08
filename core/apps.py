@@ -6,4 +6,4 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         from .jobs import updater
-        updater.notificar_cobranzas()
+        updater.configurar_planificador()

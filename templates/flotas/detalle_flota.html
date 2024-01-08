@@ -86,7 +86,42 @@
 
       </div>
         <!-- Menú scrollable con movimientos -->
-        <div class="list-group overflow-auto" style="max-height: 360px;">
+        <div class="list-group overflow-auto d-none d-lg-block" style="max-height: 370px;">
+          <!-- Loop sobre los movimientos -->
+          {% for movimiento in movimientos %}
+            <div  class="list-group-item">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{movimiento.nombre_movimiento}}</h5>
+                <div>
+                  <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
+                    {% csrf_token %}
+                  <button type="submit" class="w-10 btn btn-sm btn-success exportar-excel mx-2">
+                    <span class="material-icons-outlined">
+                      file_download
+                      </span>
+                      
+                  </button>
+                </form>
+
+                <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" data-url="{% url 'delete_movimiento' flota.id movimiento.id %}">
+                  <span class="material-icons-outlined">
+                    delete
+                    </span>
+                    
+                </button>
+
+
+                </div>
+              </div>
+              <p class="mb-1">{{movimiento.tipo_movimiento}}</p>
+              
+              <p class="mb-1">Creación: {{movimiento.created}}</p>
+              
+            </div>
+          {% endfor %}
+          
+        </div>
+        <div class="list-group overflow-auto  d-block d-lg-none" style="max-height: 440px;">
           <!-- Loop sobre los movimientos -->
           {% for movimiento in movimientos %}
             <div  class="list-group-item">
@@ -167,7 +202,6 @@
                         <th scope="col">Patente</th>
                         <th scope="col">Año</th>
                         <th scope="col">0km</th>
-                        <th scope="col">Importado</th>
                         <th scope="col">Zona</th>
                         <th scope="col">Fecha de operación</th>
                         <th scope="col">Fecha de vigencia</th>
@@ -199,7 +233,6 @@
                         <td>{{ vehiculo.patente }}</td>
                         <td>{{ vehiculo.anio }}</td>
                         <td>{{ vehiculo.okm }}</td>
-                        <td>{{ vehiculo.importado }}</td>
                         <td>{{ vehiculo.zona }}</td>
                         <td>{{ vehiculo.fecha_operacion|date:"d/m/Y"  }}</td>
                         <td>{{ vehiculo.fecha_vigencia|date:"d/m/Y"  }}</td>

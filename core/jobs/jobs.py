@@ -8,7 +8,7 @@ from email.mime.application import MIMEApplication
 from email.mime.base import MIMEBase
 from email import encoders
 from datetime import timedelta, datetime
-from ..models import Vencimiento
+from ..models import Vencimiento, AccessToken, RefreshToken
 from openpyxl import load_workbook
 from pathlib import Path
 from datetime import date
@@ -54,3 +54,10 @@ def expiracion_cobranzas():
 
         # Enviar el correo electrónico
         msg.send()
+        
+def eliminar_tokens():
+    if AccessToken.objects.exists():
+        AccessToken.objects.all().delete()
+    
+    if RefreshToken.objects.exists():
+        RefreshToken.objects.all().delete()

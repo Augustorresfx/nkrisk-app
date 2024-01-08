@@ -1,7 +1,34 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from datetime import datetime, timedelta
 
+def access_expiration():
+    return timezone.now() + timezone.timedelta(hours=1)
+
+def refresh_expiration():
+    return timezone.now() + timezone.timedelta(hours=1)
+
+class AccessToken(models.Model):
+    token = models.CharField(max_length=500)
+    expiracion = models.DateTimeField(default=access_expiration)
+    
+    class Meta:
+        get_latest_by = 'expiracion'
+    
+class RefreshToken(models.Model):
+    token = models.CharField(max_length=500)
+    expiracion = models.DateTimeField(default=refresh_expiration)
+    
+    class Meta:
+        get_latest_by = 'expiracion'
+        
+class Localidad(models.Model):
+    nombre_localidad = models.CharField(null=True, blank=True, max_length=100)
+    nombre_municipio = models.CharField(null=True, blank=True, max_length=100)
+    nombre_provincia = models.CharField(null=True, blank=True, max_length=100)
+    zona = models.CharField(null=True, blank=True, max_length=100)
+    
 class Vencimiento(models.Model):
     asegurado = models.CharField(null=True, blank=True, max_length=100)
     riesgo = models.CharField(null=True, blank=True, max_length=100)
@@ -80,7 +107,6 @@ class Vehiculo(models.Model):
     patente = models.CharField(max_length=100, blank=True, null=True)
     anio = models.IntegerField(blank=True, null=True)
     okm = models.CharField(max_length=100, blank=True, null=True)
-    importado = models.CharField(max_length=100, blank=True, null=True)
     zona = models.CharField(max_length=100, blank=True, null=True)
     fecha_operacion = models.DateField(null=True, blank=True)
     fecha_vigencia = models.DateField(null=True, blank=True)

@@ -19,16 +19,26 @@ from django.conf import settings
 from copy import deepcopy, copy
 from django.contrib import messages
 from django.http import HttpResponseRedirect
+import requests
+from datetime import timedelta
+from django.utils import timezone
+import csv
+from io import TextIOWrapper
 # Importe de formularios
 
 # Importe de modelos
-from .models import Vencimiento, Flota, Vehiculo, Movimiento, TarifaFlota, Cliente
+from .models import Vencimiento, Localidad, Flota, Vehiculo, Movimiento, TarifaFlota, Cliente, AccessToken, RefreshToken, Localidad
 
 # Importe de librerias
 import pandas as pd
 import openpyxl
 from openpyxl.styles import NamedStyle
 import xlwings as xw
+from unidecode import unidecode
+
+# Importe de funciones
+from .api_auth import ApiAuthentication, AuthenticationError
+from .api_manager import ApiManager
 class HomeView(View):
     def get(self, request, *args, **kwargs):
         context = {
@@ -59,6 +69,31 @@ class InicioView(View):
                 response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
                 return response
+        if 'importar_localidades' in request.POST:
+            file1 = request.FILES.get('file1')
+
+            # Envuelve el archivo en un TextIOWrapper para manejar la codificación
+            csv_file_wrapper = TextIOWrapper(file1.file, encoding='utf-8')
+
+            # Usa DictReader para obtener un diccionario por fila
+            csv_reader = csv.DictReader(csv_file_wrapper)
+
+            # Itera sobre las filas del CSV
+            for row_number, row in enumerate(csv_reader, start=2):
+                municipio = row.get('municipio_nombre', '')
+                localidad = row.get('nombre', '')
+                provincia = row.get('provincia_nombre', '')
+                zona = row.get('zona_nombre', '')
+
+                # Crea el objeto Localidad
+                Localidad.objects.create(
+                    nombre_localidad=localidad,
+                    nombre_municipio=municipio,
+                    nombre_provincia=provincia,
+                    zona=zona
+                )
+                
+                
         if "calcular_excel" in request.POST:
             file1 = request.FILES.get('file1')
             workbook = openpyxl.load_workbook(file1)
@@ -301,33 +336,29 @@ class ExportarMovimientoView(View):
         # Iterar sobre los vehículos y llenar el archivo Excel duplicado
         for index, vehiculo in enumerate(vehiculos, start=2):
 
+            duplicated_row = [None] * sheet.max_column  # Crear una lista para la nueva fila duplicada
 
-            sheet.cell(row=index, column=1, value=vehiculo.marca)
-            sheet.cell(row=index, column=2, value=vehiculo.modelo)
-            sheet.cell(row=index, column=3, value=vehiculo.tipo_vehiculo)
-            sheet.cell(row=index, column=4, value=vehiculo.patente)
-            sheet.cell(row=index, column=5, value=vehiculo.anio)
-            sheet.cell(row=index, column=6, value=vehiculo.okm)
-            sheet.cell(row=index, column=7, value=vehiculo.importado)
-            sheet.cell(row=index, column=8, value=vehiculo.zona)
-            sheet.cell(row=index, column=9, value=vehiculo.fecha_operacion.strftime('%d/%m/%Y'))
-            sheet.cell(row=index, column=10, value=vehiculo.fecha_vigencia.strftime('%d/%m/%Y'))
-            sheet.cell(row=index, column=11, value=vehiculo.operacion)
-            sheet.cell(row=index, column=12, value=vehiculo.tipo_cobertura)
-            sheet.cell(row=index, column=13, value=vehiculo.suma_asegurada)
-            sheet.cell(row=index, column=14, value=vehiculo.prima_anual)
-            sheet.cell(row=index, column=15, value=vehiculo.prima_vigente)
-            sheet.cell(row=index, column=16, value=vehiculo.premio_anual)
-            sheet.cell(row=index, column=17, value=vehiculo.premio_vigente)
-            
+            duplicated_row[0] = vehiculo.marca
+            duplicated_row[1] = vehiculo.modelo
+            duplicated_row[2] = vehiculo.tipo_vehiculo
+            duplicated_row[3] = vehiculo.patente
+            duplicated_row[4] = vehiculo.anio
+            duplicated_row[5] = vehiculo.okm
+            duplicated_row[6] = vehiculo.zona
+            duplicated_row[7] = vehiculo.fecha_operacion.strftime('%d/%m/%Y')
+            duplicated_row[8] = vehiculo.fecha_vigencia.strftime('%d/%m/%Y')
+            duplicated_row[9] = vehiculo.operacion
+            duplicated_row[10] = vehiculo.tipo_cobertura
+            duplicated_row[11] = vehiculo.suma_asegurada
+            duplicated_row[12] = vehiculo.prima_tecnica
+            duplicated_row[13] = vehiculo.prima_pza
+            duplicated_row[14] = vehiculo.premio_sin_iva
+            duplicated_row[15] = vehiculo.premio_con_iva
+
             # Agregar más celdas según las columnas en tu archivo Excel
 
-        
-
-        # Copiar los datos desde el archivo Excel original al duplicado
-        for row in sheet.iter_rows(min_row=1, max_col=sheet.max_column, max_row=sheet.max_row):
-            duplicated_sheet.append([cell.value for cell in row])
-
+            # Agregar la nueva fila duplicada al archivo Excel duplicado
+            duplicated_sheet.append(duplicated_row)
         # Crear una respuesta HTTP con el archivo Excel duplicado adjunto
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename={movimiento.nombre_movimiento}.xlsx'
@@ -461,16 +492,223 @@ class DetalleFlotaView(View):
         lista_errores = []
         
         if 'descargar_excel' in request.POST:
+            localidades = Localidad.objects.all()
+            for localidad in localidades:
+                localidad.nombre_localidad
             # Nombre del archivo que quieres descargar
             file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
-
 
             # Abre el archivo y lee su contenido
             with open(file_path, 'rb') as file:
                 response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
                 return response
+            
         if "calcular_excel" in request.POST:
+            created = datetime.now()
+            
+            RefreshToken.objects.all().delete()
+            AccessToken.objects.all().delete()
+
+            api_manager = ApiManager()
+            
+            access_token = api_manager.get_valid_access_token()
+            print(access_token)
+            nombre_movimiento = request.POST.get('nombre_movimiento')
+            tipo_movimiento = request.POST.get('tipo_movimiento')
+            # Mapeo de tipos a cadenas
+            tipo_mapping = {
+                "1": 'Combinado',
+                "2": 'Alta',
+                "3": 'Baja',
+            }
+            # Obtener la instancia de la Flota por su id
+            flota = Flota.objects.get(pk=flota_id)
+
+            # Acceder al cliente relacionado
+            cliente = flota.cliente
+            # Obtener el valor correspondiente o 'No especificado' si el tipo no está en el diccionario
+            tipo_string = tipo_mapping.get(tipo_movimiento, 'No especificado')
+            
+            nuevo_movimiento = Movimiento(
+                created = created,
+                nombre_movimiento = nombre_movimiento,
+                tipo_movimiento = tipo_string,
+                flota = flota,
+                cliente = cliente,
+                
+            )
+            nuevo_movimiento.save()
+
+            file1 = request.FILES.get('file1')
+            workbook = openpyxl.load_workbook(file1)
+            sheet = workbook.active
+            for row_number, (nro_orden, cliente, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, estado, fecha_operacion, fecha_vigencia_str, clau_ajuste, codia, marca, modelo, descripcion, usuario, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa, prima_rc, prima_total, accesorios, _, _, _, _, _,) in enumerate(sheet.iter_rows(min_row=4, values_only=True), start=4):
+                row_values = sheet.cell(row=row_number, column=1).value
+                if row_values is None:
+                    # Salir del bucle si la fila está vacía
+                    break
+                anio_vehiculo = int(anio)
+                anio_actual = datetime.now().year
+                print(codia)
+                if tipo_cobertura == 'TODO AUTO FCIA. IMP. $112.500.-':
+                    cobertura = 'COB TODO AUTO'
+                elif tipo_cobertura == 'POLIZA CLASICA':
+                    cobertura = 'COB CLASICA'
+                elif tipo_cobertura == 'TODO RIESGO CON FRANQUICIA $75.000':
+                    cobertura = 'COB TODO AUTO'
+                precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
+                tipo_vehiculo = api_manager.get_vehicle_features(access_token, codia)
+                # Obtener el último elemento de la lista (correspondiente al último año)
+                ultimo_ano = precios_vehiculo[-1]
+                
+                # Obtener el valor 'price' del último año
+                precio_ultimo_ano = ultimo_ano['price']
+                
+                antiguedad_vehiculo = anio_actual - anio_vehiculo
+                fecha_vigencia = fecha_vigencia_str
+                anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else anio_actual + 1
+                print(anio_a_calcular)
+                # Mapeo de antigüedad a categoría
+                if antiguedad_vehiculo > 10:
+                    antiguedad_categoria = "MÁS DE 10"
+                elif 6 <= antiguedad_vehiculo <= 10:
+                    antiguedad_categoria = "6 A 10"
+                else:
+                    antiguedad_categoria = "5"
+                print(localidad_vehiculo)
+                localidades_encontradas = Localidad.objects.filter(nombre_localidad=localidad_vehiculo)
+                if localidades_encontradas.exists():
+                    localidad = localidades_encontradas.first()
+                    print(f"Localidad encontrada: {localidad.nombre_localidad}")
+                    
+                    print(f"Zona encontrada: {localidad.zona}")
+                else:
+                    error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
+                    print(error_message)
+                    lista_errores.append(error_message)
+                """try:    
+                    localidad = Localidad.objects.get(
+                        nombre_localidad = "MORENO"
+                    )
+                except:
+                    error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
+                    print(error_message)
+                    lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
+                """
+                try:
+                    
+                    tarifa = TarifaFlota.objects.get(
+                        tipo_vehiculo=tipo_vehiculo,
+                        antiguedad=antiguedad_categoria,
+                        zona__icontains=localidad.zona,
+                        tipo_cobertura__contains=cobertura,
+                    )
+                except:
+                    error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {cobertura}"
+                    print(error_message)
+                    lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
+                tasa = tarifa.tasa
+                prima_rc_anual = tarifa.prima_rc_anual
+                print(tasa)
+                print(tasa/1000)
+                print("Rc:", prima_rc_anual)
+                # Impuestos
+                derecho_emision = 2400
+                recargo_administrativo = Decimal('10.5')
+                cien = Decimal('100')
+                recargo_financiero = Decimal('5.68')
+                cobertura_nacional = 75000
+                cobertura_importado = 112500
+                imp_y_sellados = Decimal('5.2')
+                iva_21 = Decimal('21')
+                iva_rg_3337 = Decimal('3')
+                
+                prima_tecnica_anual = (precio_ultimo_ano * (tasa / 1000)) + prima_rc_anual 
+                print(prima_tecnica_anual)
+                prima_por_recargo_administrativo = (prima_tecnica_anual * recargo_administrativo) / cien
+                prima_pza_anual = prima_tecnica_anual + prima_por_recargo_administrativo + derecho_emision
+                print("Prima 10,5%: ",prima_por_recargo_administrativo)
+
+                # Determinar si el año siguiente es bisiesto
+                dias_totales = 366 if calendar.isleap(anio_a_calcular) else 365
+
+                # Calcular los días de vigencia
+                dias_vigencia = (fecha_vigencia - fecha_operacion).days
+                print("Dias vigencia: ",dias_vigencia)
+                print("Dias totales: ", dias_totales)
+                print("Dias vigencia / dias totales:",dias_vigencia/dias_totales)
+            
+                prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
+                prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
+
+                # Determinar la cobertura según si la unidad es importada o no
+                cobertura = cobertura_importado if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else cobertura_nacional
+
+                premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / cien)
+                premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / cien)
+                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva_21) / cien) + ((premio_vigente_sin_iva * iva_rg_3337) / cien)
+                
+                print(premio_vigente_sin_iva)
+                print(premio_vigente_sin_iva * 3 / 100)
+                print(premio_vigente_sin_iva * iva_21 / cien)
+                print(premio_vigente_sin_iva * imp_y_sellados / cien)
+                
+                # Redondear valores
+                prima_tecnica_vigente = round(prima_tecnica_vigente, 2)
+                prima_pza_vigente = round(prima_pza_vigente, 2)
+                premio_vigente_sin_iva = round(premio_vigente_sin_iva, 2)
+                premio_vigente_con_iva = round(premio_vigente_con_iva, 2)
+
+                if tipo_string == "Baja":
+                    prima_tecnica_vigente = -prima_tecnica_vigente
+                    prima_pza_vigente = -prima_pza_vigente
+                    premio_vigente_sin_iva = -premio_vigente_sin_iva
+                    premio_vigente_con_iva = -premio_vigente_con_iva
+                
+                # Actualizar los valores en las columnas existentes
+                """"
+                sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_tecnica_vigente)  # Actualizar la columna de Prima Anual
+                sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_pza_vigente)  # Actualizar la columna de Prima Vigente
+                sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_vigente_sin_iva)  # Actualizar la columna de Prremio Anual
+                sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_con_iva)  # Actualizar la columna de Premio Vigente
+                """    
+                # Crear una nueva instancia de Vehiculo
+                vehiculo = Vehiculo(
+                    created = created,
+                    cod = codia,
+                    movimiento = nuevo_movimiento,
+                    marca = marca,
+                    modelo = modelo,
+                    tipo_vehiculo = tipo_vehiculo,
+                    patente = patente,
+                    anio = anio,
+                    okm = okm,
+                    zona = localidad_vehiculo,
+                    fecha_operacion = fecha_operacion,
+                    fecha_vigencia = fecha_vigencia,
+                    operacion = tipo_string,
+                    tipo_cobertura = cobertura,
+                    suma_asegurada = precio_ultimo_ano,
+                    prima_tecnica = prima_tecnica_vigente,
+                    prima_pza = prima_pza_vigente,
+                    premio_sin_iva = premio_vigente_sin_iva,
+                    premio_con_iva = premio_vigente_con_iva,
+                    
+                )
+                vehiculo.save()
+                # Guardar la hoja de cálculo actualizada
+            output = BytesIO()
+            workbook.save(output)
+            output.seek(0)
+
+            # Crear una respuesta HTTP con el archivo adjunto
+            response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
+
+            return response
+        
+        """ if "calcular_excel" in request.POST:
             created = datetime.now()
             nombre_movimiento = request.POST.get('nombre_movimiento')
             tipo_movimiento = request.POST.get('tipo_movimiento')
@@ -497,6 +735,7 @@ class DetalleFlotaView(View):
                 
             )
             nuevo_movimiento.save()
+
             file1 = request.FILES.get('file1')
             workbook = openpyxl.load_workbook(file1)
             sheet = workbook.active
@@ -632,7 +871,7 @@ class DetalleFlotaView(View):
             response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
 
-            return response
+            return response """
         
                 
         flota = Flota.objects.get(id=flota_id)
@@ -660,7 +899,9 @@ class DetalleFlotaView(View):
         else:
             # Maneja errores de validación o muestra un mensaje de error
             return HttpResponse('Error: Datos de vehículo incompletos')
-
+    
+    #def calcular_datos_con_access_token(self, access_token):
+        
 # Tarifas flotas
 @method_decorator(login_required, name='dispatch')
 class DeleteAllTarifasFlotasView(View):
@@ -1006,8 +1247,62 @@ class VencimientosView(View):
                         forma_pago=forma_pago,
                         factura=factura
                     )
+                    
+# Localidades
+class LocalidadesView(View):
+    def get(self, request, *args, **kwargs):
+        localidades = Localidad.objects.all()
+        cobranzas_paginadas = Paginator(localidades, 30)
+        page_number = request.GET.get("page")
+        filter_pages = cobranzas_paginadas.get_page(page_number)
 
+        context = {
+            'localidades': localidades,  # Pasar las cobranzas al contexto
+            'pages': filter_pages,
 
+        }
+        return render(request, 'localidades/localidades.html', context)
+    def post(self, request, *args, **kwargs):
+        lista_errores = []
+        context = {
+            'errores': lista_errores
+        }
+        if 'delete_data' in request.POST:
+            Localidad.objects.all().delete()
+            return redirect('localidades')
+        if 'normalizar_nombres' in request.POST:
+            localidades = Localidad.objects.all()
+            for localidad in localidades:
+                # Cambiar nombre a mayúsculas y sin tilde
+                nombre_normalizado = unidecode(localidad.nombre_localidad.upper())
+    
+                # Actualiza el nombre de la localidad en la base de datos
+                localidad.nombre_localidad = nombre_normalizado
+                localidad.save()
+        if 'importar_excel' in request.POST:
+            file1 = request.FILES.get('file1')
+
+            # Envuelve el archivo en un TextIOWrapper para manejar la codificación
+            csv_file_wrapper = TextIOWrapper(file1.file, encoding='utf-8')
+
+            # Usa DictReader para obtener un diccionario por fila
+            csv_reader = csv.DictReader(csv_file_wrapper)
+
+            # Itera sobre las filas del CSV
+            for row_number, row in enumerate(csv_reader, start=2):
+                municipio = row.get('municipio_nombre', '')
+                localidad = row.get('nombre', '')
+                provincia = row.get('provincia_nombre', '')
+                zona = row.get('zona_nombre', '')
+
+                # Crea el objeto Localidad
+                Localidad.objects.create(
+                    nombre_localidad=localidad,
+                    nombre_municipio=municipio,
+                    nombre_provincia=provincia,
+                    zona=zona
+                )
+        return render(request, 'localidades/localidades.html', context)
 # Autenticación
 class SignOutView(View):
     def get(self, request, *args, **kwargs):
