@@ -673,6 +673,7 @@ class DetalleFlotaView(View):
                 sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_vigente_sin_iva)  # Actualizar la columna de Prremio Anual
                 sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_con_iva)  # Actualizar la columna de Premio Vigente
                 """    
+                print("Antes de crear el vehiculo")
                 # Crear una nueva instancia de Vehiculo
                 vehiculo = Vehiculo(
                     created = created,
@@ -697,6 +698,7 @@ class DetalleFlotaView(View):
                     
                 )
                 vehiculo.save()
+                print("Luego de crear el vehiculo")
                 # Guardar la hoja de cálculo actualizada
             #output = BytesIO()
             #workbook.save(output)
@@ -705,7 +707,8 @@ class DetalleFlotaView(View):
             # Crear una respuesta HTTP con el archivo adjunto
             #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
-
+            messages.success(request, 'El elemento se creó exitosamente.')
+            print("Antes de direccionar")
             return redirect('detalle_flota', flota_id)
         
         """ if "calcular_excel" in request.POST:
