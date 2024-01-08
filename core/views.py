@@ -23,6 +23,7 @@ import requests
 from datetime import timedelta
 from django.utils import timezone
 import csv
+
 from io import TextIOWrapper
 # Importe de formularios
 
@@ -700,16 +701,17 @@ class DetalleFlotaView(View):
                 vehiculo.save()
                 print("Luego de crear el vehiculo")
                 # Guardar la hoja de cálculo actualizada
-            #output = BytesIO()
-            #workbook.save(output)
-            #output.seek(0)
+            output = BytesIO()
+            workbook.save(output)
+            output.seek(0)
 
             # Crear una respuesta HTTP con el archivo adjunto
-            #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
-            messages.success(request, 'El elemento se creó exitosamente.')
+            response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
+            workbook.close()
+            
             print("Antes de direccionar")
-            return redirect('detalle_flota', flota_id)
+            return response
         
         """ if "calcular_excel" in request.POST:
             created = datetime.now()
