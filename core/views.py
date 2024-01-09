@@ -553,11 +553,11 @@ class DetalleFlotaView(View):
                 anio_actual = datetime.now().year
                 print(codia)
                 if tipo_cobertura == 'TODO AUTO FCIA. IMP. $112.500.-':
-                    cobertura = 'COB TODO AUTO'
+                    tipo_de_cobertura = 'COB TODO AUTO'
                 elif tipo_cobertura == 'POLIZA CLASICA':
-                    cobertura = 'COB CLASICA'
+                    tipo_de_cobertura = 'COB CLASICA'
                 elif tipo_cobertura == 'TODO RIESGO CON FRANQUICIA $75.000':
-                    cobertura = 'COB TODO AUTO'
+                    tipo_de_cobertura = 'COB TODO AUTO'
                 precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
                 tipo_vehiculo = api_manager.get_vehicle_features(access_token, codia)
                 # Obtener el último elemento de la lista (correspondiente al último año)
@@ -674,7 +674,7 @@ class DetalleFlotaView(View):
                 sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_vigente_sin_iva)  # Actualizar la columna de Prremio Anual
                 sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_con_iva)  # Actualizar la columna de Premio Vigente
                 """    
-                print("Antes de crear el vehiculo")
+
                 # Crear una nueva instancia de Vehiculo
                 vehiculo = Vehiculo(
                     created = created,
@@ -690,7 +690,7 @@ class DetalleFlotaView(View):
                     fecha_operacion = fecha_operacion,
                     fecha_vigencia = fecha_vigencia,
                     operacion = tipo_string,
-                    tipo_cobertura = cobertura,
+                    tipo_cobertura = tipo_de_cobertura,
                     suma_asegurada = precio_ultimo_ano,
                     prima_tecnica = prima_tecnica_vigente,
                     prima_pza = prima_pza_vigente,
@@ -699,7 +699,7 @@ class DetalleFlotaView(View):
                     
                 )
                 vehiculo.save()
-                print("Luego de crear el vehiculo")
+
                 # Guardar la hoja de cálculo actualizada
             output = BytesIO()
             workbook.save(output)
@@ -709,8 +709,7 @@ class DetalleFlotaView(View):
             response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
             workbook.close()
-            
-            print("Antes de direccionar")
+
             return response
         
         """ if "calcular_excel" in request.POST:
