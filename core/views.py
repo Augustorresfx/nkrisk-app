@@ -603,7 +603,7 @@ class DetalleFlotaView(View):
                         tipo_vehiculo=tipo_vehiculo,
                         antiguedad=antiguedad_categoria,
                         zona__icontains=localidad.zona,
-                        tipo_cobertura__contains=cobertura,
+                        tipo_cobertura__contains=tipo_de_cobertura,
                     )
                 except:
                     error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {cobertura}"
