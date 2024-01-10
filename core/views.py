@@ -28,7 +28,7 @@ from io import TextIOWrapper
 # Importe de formularios
 
 # Importe de modelos
-from .models import Vencimiento, Localidad, Flota, Vehiculo, Movimiento, TarifaFlota, Cliente, AccessToken, RefreshToken, Localidad
+from .models import Vencimiento, Localidad, Flota, VehiculoFlota, Movimiento, TarifaFlota, Cliente, AccessToken, RefreshToken, Localidad
 
 # Importe de librerias
 import pandas as pd
@@ -320,7 +320,7 @@ class ExportarMovimientoView(View):
         workbook = openpyxl.load_workbook(file_path)
         sheet = workbook.active
         # Obtener los vehículos del movimiento
-        vehiculos = Vehiculo.objects.filter(movimiento_id=movimiento_id)
+        vehiculos = VehiculoFlota.objects.filter(movimiento_id=movimiento_id)
         # Crear una copia del archivo Excel
         duplicated_workbook = openpyxl.Workbook()
         duplicated_sheet = duplicated_workbook.active
@@ -463,7 +463,7 @@ class DetalleFlotaView(View):
 
         if primer_movimiento:
             # Obtener los vehículos vinculados a ese movimiento
-            vehiculos = Vehiculo.objects.filter(movimiento=primer_movimiento)
+            vehiculos = VehiculoFlota.objects.filter(movimiento=primer_movimiento)
             # Obtener los movimientos vinculados a esa flota
             movimientos = Movimiento.objects.filter(flota=flota).order_by('-created')
             page_number = request.GET.get("page")
@@ -676,7 +676,7 @@ class DetalleFlotaView(View):
                 """    
 
                 # Crear una nueva instancia de Vehiculo
-                vehiculo = Vehiculo(
+                vehiculo = VehiculoFlota(
                     created = created,
                     cod = codia,
                     movimiento = nuevo_movimiento,
@@ -888,7 +888,7 @@ class DetalleFlotaView(View):
         valor = request.POST.get('valor')
 
         if cod_infoauto and marca:
-            nuevo_vehiculo = Vehiculo(
+            nuevo_vehiculo = VehiculoFlota(
                 flota_id=flota_id,
                 cod_infoauto=cod_infoauto,
                 marca=marca,

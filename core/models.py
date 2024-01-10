@@ -97,7 +97,7 @@ class Movimiento(models.Model):
     flota = models.ForeignKey(Flota, on_delete=models.CASCADE)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, null=True, blank=True)    
     
-class Vehiculo(models.Model):
+class VehiculoFlota(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     cod = models.IntegerField(null=True, blank=True)
     movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE, null=True, blank=True)
