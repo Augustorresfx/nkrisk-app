@@ -23,17 +23,18 @@ import requests
 from datetime import timedelta
 from django.utils import timezone
 import csv
-
+from itertools import islice
 from io import TextIOWrapper
 # Importe de formularios
 
 # Importe de modelos
-from .models import Vencimiento, Localidad, Flota, VehiculoFlota, Movimiento, TarifaFlota, Cliente, AccessToken, RefreshToken, Localidad
+from .models import Vencimiento, Localidad, Flota, VehiculoFlota, VehiculoInfoAuto, MarcaInfoAuto, PrecioAnual, Movimiento, TarifaFlota, Cliente, AccessToken, RefreshToken, Localidad
 
 # Importe de librerias
 import pandas as pd
 import openpyxl
 from openpyxl.styles import NamedStyle
+
 import xlwings as xw
 from unidecode import unidecode
 
@@ -938,7 +939,9 @@ class TarifasFlotasView(View):
         return render(request, 'tarifas_flotas/tarifas_flotas.html', context)
     def post(self, request, *args, **kwargs):
         
-        
+        if "delete_data" in request.POST:
+            TarifaFlota.objects.all().delete()
+            return redirect('tarifas_flotas')
         if "importar_excel" in request.POST:
             file1 = request.FILES.get('file1')
             workbook = openpyxl.load_workbook(file1)
@@ -967,15 +970,11 @@ class TarifasFlotasView(View):
         tasa = request.POST.get('tasa')
         prima_rc_anual = request.POST.get('prima_rc_anual')
 
-        # Agrega los otros campos del formulario aquí
+        
 
-        # Realiza la validación de los datos según tus necesidades
+
         if not prima_rc_anual or not tasa:
-            # Maneja la validación aquí, por ejemplo, mostrando un mensaje de error
-            # o redirigiendo al usuario nuevamente al formulario.
-            # Puedes usar la biblioteca messages de Django para mostrar mensajes al usuario.
-            # from django.contrib import messages
-            # messages.error(request, 'Los campos requeridos no pueden estar en blanco.')
+         
             return redirect('tarifas_flotas')  # Redirige al usuario nuevamente al formulario
 
         # Crea una nueva instancia de Flota y guárdala en la base de datos
@@ -1261,7 +1260,7 @@ class LocalidadesView(View):
         filter_pages = cobranzas_paginadas.get_page(page_number)
 
         context = {
-            'localidades': localidades,  # Pasar las cobranzas al contexto
+            'localidades': localidades, 
             'pages': filter_pages,
 
         }
@@ -1306,7 +1305,80 @@ class LocalidadesView(View):
                     nombre_provincia=provincia,
                     zona=zona
                 )
-        return render(request, 'localidades/localidades.html', context)
+        return redirect('localidades')
+
+# Vehículos info auto
+class VehiculosInfoAutoView(View):
+    def get(self, request, *args, **kwargs):
+        vehiculos = VehiculoInfoAuto.objects.all()
+        vehiculos_paginados = Paginator(vehiculos, 30)
+        page_number = request.GET.get("page")
+        filter_pages = vehiculos_paginados.get_page(page_number)
+
+        context = {
+            'vehiculos': vehiculos,
+            'pages': filter_pages,
+
+        }
+        return render(request, 'info_auto/vehiculos_info_auto.html', context)
+    def post(self, request, *args, **kwargs):
+        lista_errores = []
+        context = {
+            'errores': lista_errores
+        }
+        if 'delete_data' in request.POST:
+            VehiculoInfoAuto.objects.all().delete()
+            return redirect('vehiculos')
+        if 'importar_excel' in request.POST:
+            MarcaInfoAuto.objects.all().delete()
+            VehiculoInfoAuto.objects.all().delete()
+            PrecioAnual.objects.all().delete()
+            file1 = request.FILES.get('file1')
+            archivo_csv_texto = TextIOWrapper(file1, encoding='utf-8')
+            datos_csv = csv.reader(islice(archivo_csv_texto, 3, None))
+
+            # Itera sobre las filas del CSV
+            for fila in datos_csv:
+                
+                cod =fila[0]
+                marca =fila[1]
+                descripcion =fila[2]
+                nacionalidad =fila[3]
+                tipo = fila[4]
+                okm =fila[5]
+                # Si la marca ya fue creada lo guardo en marca
+                marca, created = MarcaInfoAuto.objects.get_or_create(nombre=marca)
+                print(cod)
+                print(marca)
+                print(descripcion)
+                print(tipo)
+                print(okm)
+                # Crear el objeto VehiculoInfoauto
+                vehiculo = VehiculoInfoAuto.objects.create(
+                    codigo=cod,
+                    marca=marca,
+                    descripcion=descripcion,
+                    nacionalidad=nacionalidad,
+                    tipo_vehiculo=tipo,
+
+                )
+                if okm != '':
+                    okm_decimal = Decimal(okm.replace(',', '.'))  # Reemplaza ',' con '.' para manejar decimales
+                    print("0km decimal: ", okm_decimal)
+                    vehiculo.precio_okm = okm_decimal
+                    vehiculo.save()
+                # Iterar a través de los años y asignar precios si hay información
+               
+               
+                for i, year in enumerate(range(2024, 2003, -1)):
+                    precio_str = fila[i + 6] if i + 6 < len(fila) else None
+                    if precio_str is not None and precio_str != '':
+                        precio_decimal = Decimal(precio_str.replace(',', '.'))  # Reemplaza ',' con '.' para manejar decimales
+                        print("Precio: ", precio_decimal)
+                        PrecioAnual.objects.create(vehiculo=vehiculo, anio=year, precio=precio_decimal)
+                       
+                
+        return redirect('vehiculos')
 # Autenticación
 class SignOutView(View):
     def get(self, request, *args, **kwargs):

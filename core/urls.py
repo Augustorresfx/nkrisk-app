@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-from .views import HomeView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
+from .views import HomeView, VehiculosInfoAutoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,8 +22,8 @@ urlpatterns = [
     path('flotas/', FlotasView.as_view(), name='flotas'),
     path('flotas/<int:flota_id>/eliminar/', EliminarFlotaView.as_view(), name='delete_flota'),
     path('flotas/<int:flota_id>/', DetalleFlotaView.as_view(), name='detalle_flota'),
+    path('vehiculos/', VehiculosInfoAutoView.as_view(), name='vehiculos'),
     path('tarifas_flotas/', TarifasFlotasView.as_view(), name='tarifas_flotas'),
-    path('tarifas_flotas/eliminar_todo', DeleteAllTarifasFlotasView.as_view(), name='delete_all_tarifas_flotas'),
     path('tarifas_flotas/<int:tarifa_id>/', DetalleTarifaFlotaView.as_view(), name='detalle_tarifa_flota'),
     path('tarifas_flotas/<int:tarifa_id>/eliminar/', EliminarTarifaFlotaView.as_view(), name='delete_tarifa'),
 

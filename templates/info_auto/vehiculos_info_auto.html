@@ -7,7 +7,7 @@
   <section class="mb-4">
   <div class="container-fluid h-custom">
       <div class="mt-5 pt-5">
-        <h1 class="h2">Localidades</h1>
+        <h1 class="h2">Base de datos de vehículos</h1>
         {% if messages %}
 
           {% for message in messages %}
@@ -59,19 +59,13 @@
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom pt-4">
         <div class="btn-toolbar mb-2">
-        <form method="POST" action="{% url 'localidades' %}" id="deleteForm">
+        <form method="POST" action="{% url 'vehiculos' %}" id="deleteForm">
           {% csrf_token %}
           <input type="hidden" name="delete_data" value="delete_data">
-          <button type="submit" class="btn btn-danger" id="deleteButton">Eliminar datos</button>
+          <button type="submit"class="btn btn-danger" id="deleteButton">Eliminar datos</button>
         </form>
       </div>
 
-        <div class="btn-toolbar mb-2 ">
-          <form method="POST" action="{% url 'localidades' %}">
-            {% csrf_token %}
-            <button type="submit" name="normalizar_nombres" class="btn btn-primary">Normalizar nombres</button>
-          </form>
-        </div>
       </div>
          
             <div class="table-responsive mb-2">
@@ -79,23 +73,23 @@
                 <table class="table table-striped bg-white rounded shadow-sm">
                     <thead>
                       <tr>
-                        <th scope="col">Localidad</th>
-                        <th scope="col">Municipio</th>
-                        <th scope="col">Provincia</th>
-                        <th scope="col">Zona</th>
+                        <th scope="col">Código</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Nacionalidad</th>
       
                         <th scope="col">Editar</th>
                         <th scope="col">Eliminar</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {% for localidad in pages %}
+                      {% for vehiculo in pages %}
                       
                       <tr>
-                          <td>{{ localidad.nombre_localidad }}</td>
-                          <td>{{ localidad.nombre_municipio }}</td>
-                          <td>{{ localidad.nombre_provincia }}</td>
-                          <td>{{ localidad.zona }}</td>
+                          <td>{{ vehiculo.codigo }}</td>
+                          <td>{{ vehiculo.marca }}</td>
+                          <td>{{ vehiculo.descripcion }}</td>
+                          <td>{{ vehiculo.nacionalidad }}</td>
 
       
       
