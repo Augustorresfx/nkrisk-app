@@ -25,6 +25,7 @@ from django.utils import timezone
 import csv
 from itertools import islice
 from io import TextIOWrapper
+from django.db import transaction
 # Importe de formularios
 
 # Importe de modelos
@@ -1185,7 +1186,7 @@ class VencimientosView(View):
         }
         return render(request, 'vencimientos/vencimientos.html', context)
     
-    
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         if "delete_data" in request.POST:
             Vencimiento.objects.all().delete()  # Elimina todos los registros de Cobranza
