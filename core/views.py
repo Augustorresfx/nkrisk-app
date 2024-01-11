@@ -25,6 +25,7 @@ from django.utils import timezone
 import csv
 from itertools import islice
 from io import TextIOWrapper
+from django.db import transaction
 # Importe de formularios
 
 # Importe de modelos
@@ -1321,6 +1322,7 @@ class VehiculosInfoAutoView(View):
 
         }
         return render(request, 'info_auto/vehiculos_info_auto.html', context)
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         lista_errores = []
         context = {
@@ -1330,9 +1332,7 @@ class VehiculosInfoAutoView(View):
             VehiculoInfoAuto.objects.all().delete()
             return redirect('vehiculos')
         if 'importar_excel' in request.POST:
-            MarcaInfoAuto.objects.all().delete()
-            VehiculoInfoAuto.objects.all().delete()
-            PrecioAnual.objects.all().delete()
+
             file1 = request.FILES.get('file1')
             archivo_csv_texto = TextIOWrapper(file1, encoding='utf-8')
             datos_csv = csv.reader(islice(archivo_csv_texto, 3, None))
@@ -1354,7 +1354,7 @@ class VehiculosInfoAutoView(View):
                 print(tipo)
                 print(okm)
                 # Crear el objeto VehiculoInfoauto
-                vehiculo = VehiculoInfoAuto.objects.create(
+                vehiculo, created = VehiculoInfoAuto.objects.get_or_create(
                     codigo=cod,
                     marca=marca,
                     descripcion=descripcion,
@@ -1375,7 +1375,12 @@ class VehiculosInfoAutoView(View):
                     if precio_str is not None and precio_str != '':
                         precio_decimal = Decimal(precio_str.replace(',', '.'))  # Reemplaza ',' con '.' para manejar decimales
                         print("Precio: ", precio_decimal)
-                        PrecioAnual.objects.create(vehiculo=vehiculo, anio=year, precio=precio_decimal)
+                        # Obtener o crear la instancia de PrecioAnual asociada al vehículo y año
+                        precio_anual, created = PrecioAnual.objects.get_or_create(
+                            vehiculo=vehiculo,
+                            anio=year,
+                            defaults={'precio': precio_decimal}
+                        )
                        
                 
         return redirect('vehiculos')
