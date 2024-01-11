@@ -1310,7 +1310,7 @@ class LocalidadesView(View):
 # Vehículos info auto
 class VehiculosInfoAutoView(View):
     def get(self, request, *args, **kwargs):
-        vehiculos = VehiculoInfoAuto.objects.all()
+        vehiculos = VehiculoInfoAuto.objects.order_by('marca__nombre')
         vehiculos_paginados = Paginator(vehiculos, 30)
         page_number = request.GET.get("page")
         filter_pages = vehiculos_paginados.get_page(page_number)
