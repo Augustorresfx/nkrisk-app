@@ -25,7 +25,6 @@ from django.utils import timezone
 import csv
 from itertools import islice
 from io import TextIOWrapper
-from django.db import transaction
 # Importe de formularios
 
 # Importe de modelos
@@ -1322,7 +1321,7 @@ class VehiculosInfoAutoView(View):
 
         }
         return render(request, 'info_auto/vehiculos_info_auto.html', context)
-    @transaction.atomic
+    
     def post(self, request, *args, **kwargs):
         lista_errores = []
         context = {
@@ -1354,7 +1353,7 @@ class VehiculosInfoAutoView(View):
                 print(tipo)
                 print(okm)
                 # Crear el objeto VehiculoInfoauto
-                vehiculo, created = VehiculoInfoAuto.objects.get_or_create(
+                vehiculo = VehiculoInfoAuto.objects.create(
                     codigo=cod,
                     marca=marca,
                     descripcion=descripcion,
@@ -1375,12 +1374,7 @@ class VehiculosInfoAutoView(View):
                     if precio_str is not None and precio_str != '':
                         precio_decimal = Decimal(precio_str.replace(',', '.'))  # Reemplaza ',' con '.' para manejar decimales
                         print("Precio: ", precio_decimal)
-                        # Obtener o crear la instancia de PrecioAnual asociada al vehículo y año
-                        precio_anual, created = PrecioAnual.objects.get_or_create(
-                            vehiculo=vehiculo,
-                            anio=year,
-                            defaults={'precio': precio_decimal}
-                        )
+                        PrecioAnual.objects.create(vehiculo=vehiculo, anio=year, precio=precio_decimal)
                        
                 
         return redirect('vehiculos')
