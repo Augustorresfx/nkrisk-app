@@ -1322,7 +1322,7 @@ class VehiculosInfoAutoView(View):
 
         }
         return render(request, 'info_auto/vehiculos_info_auto.html', context)
-    
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         lista_errores = []
         context = {
