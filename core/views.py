@@ -1323,6 +1323,35 @@ def obtener_vehiculos_por_marca(request, marca_id):
     # Devuelve la lista de vehículos en formato JSON
     return JsonResponse(list(vehiculos), safe=False)
 
+
+def obtener_datos_vehiculo(request, vehiculo_id):
+        
+        try:
+            vehiculo = VehiculoInfoAuto.objects.get(pk=vehiculo_id)
+            precios = PrecioAnual.objects.filter(vehiculo=vehiculo)
+            # Obtener precios del vehículo
+            precios = PrecioAnual.objects.filter(vehiculo=vehiculo).order_by('-anio')
+
+            # Crear una lista de años y precios para enviar en la respuesta JSON
+            anios_precios = [{'anio': precio.anio, 'precio': precio.precio} for precio in precios]
+            
+            data = {
+                'codigo': vehiculo.codigo,
+                'marca': vehiculo.marca.nombre,
+                'descripcion': vehiculo.descripcion,
+                'nacionalidad': vehiculo.nacionalidad,
+                'precios': anios_precios,
+                
+                # ... otros campos que quieras incluir ...
+            }
+            if vehiculo.precio_okm:
+                data['okm'] = vehiculo.precio_okm
+            print(data)
+            
+            return JsonResponse(data)
+        except VehiculoInfoAuto.DoesNotExist:
+            return JsonResponse({'error': 'Vehículo no encontrado'}, status=404)
+
 class BuscarVehiculoView(View):
     def get(self, request, *args, **kwargs):
         marcas = MarcaInfoAuto.objects.order_by('nombre')

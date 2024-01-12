@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-from .views import HomeView, VehiculosInfoAutoView, autocomplete_marcas, obtener_vehiculos_por_marca, BuscarVehiculoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
+from .views import HomeView, VehiculosInfoAutoView, obtener_datos_vehiculo, autocomplete_marcas, obtener_vehiculos_por_marca, BuscarVehiculoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +29,7 @@ urlpatterns = [
     path('tarifas_flotas/<int:tarifa_id>/eliminar/', EliminarTarifaFlotaView.as_view(), name='delete_tarifa'),
     path('autocomplete_marcas/', autocomplete_marcas, name='autocomplete_marcas'),
     path('obtener_vehiculos/<int:marca_id>/', obtener_vehiculos_por_marca, name='obtener_vehiculos_por_marca'),
+    path('obtener_datos_vehiculo/<int:vehiculo_id>/', obtener_datos_vehiculo, name='obtener_datos_vehiculo'),
 ]
 
 if settings.DEBUG:
