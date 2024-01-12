@@ -24,6 +24,7 @@ from datetime import timedelta
 from django.utils import timezone
 import csv
 from itertools import islice
+from django.http import JsonResponse
 from io import TextIOWrapper
 from django.db import transaction
 # Importe de formularios
@@ -1307,6 +1308,29 @@ class LocalidadesView(View):
                     zona=zona
                 )
         return redirect('localidades')
+
+# Buscar vehículo 
+
+def autocomplete_marcas(request):
+    term = request.GET.get('term', '')
+    marcas = MarcaInfoAuto.objects.filter(nombre__icontains=term).values('id', 'nombre')
+    return JsonResponse(list(marcas), safe=False)
+
+def obtener_vehiculos_por_marca(request, marca_id):
+    # Lógica para obtener vehículos por marca (ajusta esto según tus modelos)
+    vehiculos = VehiculoInfoAuto.objects.filter(marca__id=marca_id).values('id', 'descripcion')
+
+    # Devuelve la lista de vehículos en formato JSON
+    return JsonResponse(list(vehiculos), safe=False)
+
+class BuscarVehiculoView(View):
+    def get(self, request, *args, **kwargs):
+        marcas = MarcaInfoAuto.objects.order_by('nombre')
+        
+        context = {
+            'marcas': marcas,
+        }
+        return render(request, 'info_auto/buscar_vehiculo.html', context)
 
 # Vehículos info auto
 class VehiculosInfoAutoView(View):

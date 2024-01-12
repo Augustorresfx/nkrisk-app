@@ -5,7 +5,7 @@
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
 <!doctype html>
-<html id="colorMode" data-bs-theme="dark" >
+<html>
     <head>
         
         <meta charset="utf-8">
@@ -26,7 +26,9 @@
         <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Lilita+One&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
         
-        
+        <!--Select2-->
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 
     </head>
     <body>
@@ -44,7 +46,7 @@
               <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
-              <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+              {% comment %} <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                 <li class="nav-item">
                   <a id="colorModeButton" class="nav-link active d-flex align-items-center">
                     <span class="material-icons-outlined">
@@ -53,7 +55,7 @@
                     <span class="mx-2">Cambiar iluminación</span>
                   </a>
                 </li>
-              </ul>
+              </ul> {% endcomment %}
               <ul class="navbar-nav ms-auto">   
   
               {% if user.is_authenticated %}
@@ -81,6 +83,14 @@
                     directions_car
                     </span>
                   <span class="mx-2">Flotas</span>
+                </a>
+              </li>
+              <li>
+                <a href="/buscar_vehiculo/" class="nav-link active d-flex align-items-center">
+                  <span class="material-icons-outlined">
+                    manage_search
+                    </span>
+                  <span class="mx-2">Buscar un vehículo</span>
                 </a>
               </li>
               <li>
@@ -182,6 +192,7 @@
             <ul class="nav flex-column">
               <li class="nav-item"><a href="/clientes/" class="nav-link text-body-secondary p-0">Clientes</a></li>
               <li class="nav-item"><a href="/flotas/" class="nav-link text-body-secondary p-0">Flotas</a></li>
+              <li class="nav-item"><a href="/buscar_vehiculo/" class="nav-link text-body-secondary p-0">Buscar un vehículo</a></li>
               <li class="nav-item"><a href="/tarifas_flotas/" class="nav-link text-body-secondary p-0">Tarifas de flotas</a></li>
               <li class="nav-item"><a href="/localidades/" class="nav-link text-body-secondary p-0">Localidades</a></li>
           </div>
@@ -216,20 +227,59 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
         {% block customJS %}
-        <script
-        src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-        crossorigin="anonymous"
-      ></script>
-      <script>
-        window.jQuery ||
-          document.write(
-            '<script src="/docs/4.4/static/js/vendor/jquery.slim.min.js"><\/script>'
-          );
-      </script>
+      
       <!--Bootstrap-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <!-- jQuery -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <!-- Select2 -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+        <script>
+          // In your Javascript (external .js resource or <script> tag)
+        $(document).ready(function() {
+            $('#Marcas').select2({
+              
+              escapeMarkup: function(m) { 
+                return m;
+              }
+            });
+        });
+
+      </script>
+      <script>
+        $(document).ready(function() {
+            // Inicialización de Select2 para la marca
+            $('#Marcas').select2();
+    
+            // Manejo del cambio en el select de la marca
+            $('#Marcas').on('change', function() {
+                var marca_id = $(this).val();
+                var url = '/obtener_vehiculos/' + marca_id + '/';
+    
+                // Realiza la solicitud AJAX al servidor
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        // Llena el select de vehículos con la respuesta del servidor
+                        var selectVehiculos = $('#Vehiculos');
+                        selectVehiculos.empty();
+    
+                        $.each(data, function(index, vehiculo) {
+                            selectVehiculos.append('<option value="' + vehiculo.id + '">' + vehiculo.descripcion + '</option>');
+                        });
+    
+                        // Actualiza Select2 después de cambiar las opciones
+                        selectVehiculos.select2();
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
@@ -239,8 +289,9 @@
         <!--Data Tables-->
         <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
         
+      
         <!--Custom JS-->
-        <script src="{% static 'js/colorMode.js' %}"></script>
+        {% comment %} <script src="{% static 'js/colorMode.js' %}"></script> {% endcomment %}
         
         
         {% endblock %}
