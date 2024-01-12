@@ -1346,7 +1346,6 @@ def obtener_datos_vehiculo(request, vehiculo_id):
             }
             if vehiculo.precio_okm:
                 data['okm'] = vehiculo.precio_okm
-            print(data)
             
             return JsonResponse(data)
         except VehiculoInfoAuto.DoesNotExist:

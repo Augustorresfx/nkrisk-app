@@ -1,0 +1,29 @@
+@media (max-width: 840px) {
+    select.my-x-select + span.select2 {
+      width: 140px !important;
+    }
+}
+
+
+@media (max-width: 400px) {
+    select.my-x-select + span.select2 {
+      width: 140px !important;
+    }
+  }
+
+@media (max-width: 360px) {
+    select.my-x-select + span.select2 {
+        width: 60px !important;
+}
+}
+
+@media (max-width: 300px) {
+    select.my-x-select + span.select2 {
+        width: 20px !important;
+}
+}
+@media (max-width: 280px) {
+    select.my-x-select + span.select2 {
+        width: 10px !important;
+}
+}
