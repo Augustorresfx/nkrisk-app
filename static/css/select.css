@@ -27,8 +27,3 @@
         width: 10px !important;
 }
 }
-@media (max-width: 576px) {
-  footer {
-      display: none,
-}
-}
