@@ -516,13 +516,6 @@ class DetalleFlotaView(View):
         if "calcular_excel" in request.POST:
             created = datetime.now()
             
-            RefreshToken.objects.all().delete()
-            AccessToken.objects.all().delete()
-
-            api_manager = ApiManager()
-            
-            access_token = api_manager.get_valid_access_token()
-            print(access_token)
             nombre_movimiento = request.POST.get('nombre_movimiento')
             tipo_movimiento = request.POST.get('tipo_movimiento')
             # Mapeo de tipos a cadenas
@@ -566,8 +559,11 @@ class DetalleFlotaView(View):
                     tipo_de_cobertura = 'COB CLASICA'
                 elif tipo_cobertura == 'TODO RIESGO CON FRANQUICIA $75.000':
                     tipo_de_cobertura = 'COB TODO AUTO'
-                precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
-                tipo_vehiculo = api_manager.get_vehicle_features(access_token, codia)
+                vehiculo = VehiculoInfoAuto.objects.get(codigo=codia)
+                precios_vehiculo =  PrecioAnual.objects.filter(vehiculo=vehiculo)
+                precio_anio = precios_vehiculo.get(anio=anio_vehiculo)
+                print("Precio Año: ",precio_anio)
+                tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
                 # Obtener el último elemento de la lista (correspondiente al último año)
                 ultimo_ano = precios_vehiculo[-1]
                 
@@ -719,6 +715,29 @@ class DetalleFlotaView(View):
             workbook.close()
 
             return response
+        
+        def get_vehicle_type(tipo_vehiculo):
+            tipo_vehiculo_a_categoria = {
+            "SED": "AUTO",
+            "CAB": "AUTO",
+            "CUP": "AUTO",
+            "PKA": "PICK UP CLASE A",
+            "FUA": "PICK UP CLASE A",
+            "WA4": "PICK UP 4X4",
+            "WAG": "AUTO",
+            "RUR": "AUTO",
+            "PKB": "PICK UP CLASE B",
+            "PB4": "PICK UP CLASE B",
+            "FUB": "PICK UP CLASE B",
+            "JEE": "PICK UP 4X4",
+            "MIV": "AUTO",
+            "VAN": "AUTO",
+            "MBU": "PICK UP CLASE B",
+            "LIV": "PICK UP CLASE B",
+            "PES": "PICK UP CLASE B",
+            "SPE": "PICK UP CLASE B",
+        }
+            return tipo_vehiculo_a_categoria.get(tipo_vehiculo, "Desconocido")
         
         """ if "calcular_excel" in request.POST:
             created = datetime.now()
@@ -1319,13 +1338,13 @@ class LocalidadesView(View):
 
 # Buscar vehículo 
 
-@method_decorator(login_required, name='dispatch')   
+@login_required
 def autocomplete_marcas(request):
     term = request.GET.get('term', '')
     marcas = MarcaInfoAuto.objects.filter(nombre__icontains=term).values('id', 'nombre')
     return JsonResponse(list(marcas), safe=False)
 
-@method_decorator(login_required, name='dispatch')   
+@login_required
 def obtener_vehiculos_por_marca(request, marca_id):
     # Lógica para obtener vehículos por marca (ajusta esto según tus modelos)
     vehiculos = VehiculoInfoAuto.objects.filter(marca__id=marca_id).values('id', 'descripcion')
@@ -1333,7 +1352,7 @@ def obtener_vehiculos_por_marca(request, marca_id):
     # Devuelve la lista de vehículos en formato JSON
     return JsonResponse(list(vehiculos), safe=False)
 
-@method_decorator(login_required, name='dispatch')   
+@login_required
 def obtener_datos_vehiculo(request, vehiculo_id):
         
         try:
