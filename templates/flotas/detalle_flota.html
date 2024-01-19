@@ -61,9 +61,18 @@
                   </div>
                 <div class="mb-3">
                   
-                  <label for="formFile" class="form-label">Excel de flota (calcula prima automáticamente)</label>
+                  <label for="formFile" class="form-label">Excel de flota</label>
                   <input name="file1" class="form-control" type="file" id="formFile">
                 </div>
+                <div class="mb-3">
+                  <label for="fuente_datos" class="form-label">Fuente de datos:</label>
+                  <select name="fuente_datos" class="form-select" aria-label="Default select example">
+                      <option selected>Seleccionar fuente de datos</option>
+                      <option value="excel">Datos del Excel</option>
+                      <option value="info_auto">Datos de Info Auto</option>
+                      <option value="base_datos">Datos de la base de datos propia</option>
+                  </select>
+              </div>
                 
               <button name="calcular_excel" class="btn btn-primary mb-2" type="submit">Agregar</button>
               <button type="submit" name="descargar_excel" class="btn btn-secondary mb-2">Descargar modelo de flotas</button> 
@@ -86,7 +95,7 @@
 
       </div>
         <!-- Menú scrollable con movimientos -->
-        <div class="list-group overflow-auto d-none d-lg-block" style="max-height: 354px;">
+        <div class="list-group overflow-auto d-none d-lg-block" style="max-height: 440px;">
           <!-- Loop sobre los movimientos -->
           {% for movimiento in movimientos %}
             <div  class="list-group-item">
@@ -121,7 +130,7 @@
           {% endfor %}
           
         </div>
-        <div class="list-group overflow-auto  d-block d-lg-none" style="max-height: 424px;">
+        <div class="list-group overflow-auto  d-block d-lg-none" style="max-height: 486px;">
           <!-- Loop sobre los movimientos -->
           {% for movimiento in movimientos %}
             <div  class="list-group-item">
