@@ -501,9 +501,7 @@ class DetalleFlotaView(View):
         lista_errores = []
         
         if 'descargar_excel' in request.POST:
-            localidades = Localidad.objects.all()
-            for localidad in localidades:
-                localidad.nombre_localidad
+            
             # Nombre del archivo que quieres descargar
             file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
 
@@ -532,15 +530,10 @@ class DetalleFlotaView(View):
             # Obtener el valor correspondiente o 'No especificado' si el tipo no está en el diccionario
             tipo_string = tipo_mapping.get(tipo_movimiento, 'No especificado')
             
-            nuevo_movimiento = Movimiento(
-                created = created,
-                nombre_movimiento = nombre_movimiento,
-                tipo_movimiento = tipo_string,
-                flota = flota,
-                cliente = cliente,
-                
-            )
-            nuevo_movimiento.save()
+            # Variables para el seguimiento del número de orden actual
+            numero_orden_actual = None
+            nuevo_movimiento = None
+             
             def get_vehicle_type(tipo_vehiculo):
                 tipo_vehiculo_a_categoria = {
                 "SED": "AUTO",
@@ -571,193 +564,242 @@ class DetalleFlotaView(View):
             if fuente_datos == 'info_auto':
                 access_token = api_manager.get_valid_access_token()
                 print(access_token)
-            for row_number, (nro_orden, cliente, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, estado, fecha_operacion, fecha_vigencia_str, clau_ajuste, codia, marca, modelo, descripcion, usuario, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa, prima_rc, prima_total, accesorios, _, _, _, _, _,) in enumerate(sheet.iter_rows(min_row=4, values_only=True), start=4):
+            for row_number, (nro_orden, cliente, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, endoso, motivo_endoso, fecha_operacion, fecha_vigencia_str, prima, premio, estado, vigencia_desde, vigencia_hasta, clau_ajuste, codia, marca, modelo, descripcion, usuario, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa, prima_rc, prima_total, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op) in enumerate(sheet.iter_rows(min_row=1, values_only=True), start=1):
                 row_values = sheet.cell(row=row_number, column=1).value
                 if row_values is None:
                     # Salir del bucle si la fila está vacía
                     break
-                # Solo procesar la o las filas con estado == "nuevo"
-                if estado.lower() == "nuevo":
-                    anio_vehiculo = int(anio)
-                    anio_actual = datetime.now().year
-                    print(codia)
-                    # Formateo del tipo de cobertura
-                    if tipo_cobertura == 'TODO AUTO FCIA. IMP. $112.500.-':
-                        tipo_de_cobertura = 'COB TODO AUTO'
-                    elif tipo_cobertura == 'POLIZA CLASICA':
-                        tipo_de_cobertura = 'COB CLASICA'
-                    elif tipo_cobertura == 'TODO RIESGO CON FRANQUICIA $75.000':
-                        tipo_de_cobertura = 'COB TODO AUTO'
-                        
-                    # Usar el precio de vehiculo que este en el Excel
-                    if fuente_datos == "excel":
-                        precio = suma_aseg
-                        vehiculo = VehiculoInfoAuto.objects.get(codigo=codia)
-                        tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
-                    # Usar los datos de vehiculo de info auto
-                    elif fuente_datos == 'info_auto':
-                        precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
-                        tipo_vehiculo = api_manager.get_vehicle_features(access_token, codia)
-                        # Obtener el último elemento de la lista (correspondiente al último año)
-                        ultimo_ano = precios_vehiculo[-1]
-                        
-                        # Obtener el valor 'price' del último año
-                        precio = ultimo_ano['price']
-                        precio = None
-    
-                        for precio_anual in precios_vehiculo:
-                            if precio_anual['year'] == anio_vehiculo:
-                                precio = precio_anual['price']
-                                break
-                            
-                        # Si no se encuentra el precio para el año asignar 0 como valor
-                        if precio is None:
-                            precio = 0
-                    # Usar los datos de vehiculo de la base de datos propia
-                    elif fuente_datos == 'base_datos':
-                        vehiculo = VehiculoInfoAuto.objects.get(codigo=codia)
-                        precios_vehiculo =  PrecioAnual.objects.filter(vehiculo=vehiculo)
-                        precio_anio = precios_vehiculo.get(anio=anio_vehiculo)
-                        precio = precio_anio.precio
-                        # Si no se encuentra el precio para el año asignar 0 como valor
-                        if precio is None:
-                            precio = 0
-                            
-                        tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
-                                
                 
-                    antiguedad_vehiculo = anio_actual - anio_vehiculo
-                    fecha_vigencia = fecha_vigencia_str
-                    anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else anio_actual + 1
+                # Verificar si el número de orden cambió (crea un movimiento por c/nro de orden)
+                if nro_orden != numero_orden_actual:
+                    nuevo_movimiento = Movimiento(
+                    created = created,
+                    nombre_movimiento = nombre_movimiento,
+                    tipo_movimiento = tipo_string,
+                    flota = flota,
+                    cliente = cliente,
+
+                    )
+                    nuevo_movimiento.save()
                     
-                    # Mapeo de antigüedad a categoría
-                    if antiguedad_vehiculo > 10:
-                        antiguedad_categoria = "MÁS DE 10"
-                    elif 6 <= antiguedad_vehiculo <= 10:
-                        antiguedad_categoria = "6 A 10"
-                    else:
-                        antiguedad_categoria = "5"
-                    print(localidad_vehiculo)
-                    # Buscar zona de riesgo mediante la localidad que este en el Excel
-                    localidades_encontradas = Localidad.objects.filter(nombre_localidad=localidad_vehiculo)
-                    if localidades_encontradas.exists():
-                        localidad = localidades_encontradas.first()
-                        print(f"Localidad encontrada: {localidad.nombre_localidad}")
+                anio_vehiculo = int(anio)
+                anio_actual = datetime.now().year
+                print(codia)
+                # Formateo del tipo de cobertura
+                if tipo_cobertura == 'TODO AUTO FCIA. IMP. $112.500.-':
+                    tipo_de_cobertura = 'COB TODO AUTO'
+                elif tipo_cobertura == 'POLIZA CLASICA':
+                    tipo_de_cobertura = 'COB CLASICA'
+                elif tipo_cobertura == 'TODO RIESGO CON FRANQUICIA $75.000':
+                    tipo_de_cobertura = 'COB TODO AUTO'
+                elif tipo_cobertura == 'A - RESPONSABILIDAD CIVIL':
+                    tipo_de_cobertura == ''
+                    
+                # Usar el precio de vehiculo que este en el Excel
+                if fuente_datos == "excel":
+                    precio = suma_aseg
+                    vehiculo = VehiculoInfoAuto.objects.get(codigo=codia)
+                    tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
+                # Usar los datos de vehiculo de info auto
+                elif fuente_datos == 'info_auto':
+                    precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
+                    tipo_vehiculo = api_manager.get_vehicle_features(access_token, codia)
+                    # Obtener el último elemento de la lista (correspondiente al último año)
+                    ultimo_ano = precios_vehiculo[-1]
+                    
+                    # Obtener el valor 'price' del último año
+                    precio = ultimo_ano['price']
+                    precio = None
+
+                    for precio_anual in precios_vehiculo:
+                        if precio_anual['year'] == anio_vehiculo:
+                            precio = precio_anual['price']
+                            break
                         
-                        print(f"Zona encontrada: {localidad.zona}")
-                    else:
-                        error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
-                        print(error_message)
-                        lista_errores.append(error_message)
-                    """try:    
-                        localidad = Localidad.objects.get(
-                            nombre_localidad = "MORENO"
-                        )
-                    except:
-                        error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
-                        print(error_message)
-                        lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
-                    """
-                    # Buscar la tarifa
-                    try:
-                        tarifa = TarifaFlota.objects.get(
-                            tipo_vehiculo=tipo_vehiculo,
-                            antiguedad=antiguedad_categoria,
-                            zona__icontains=localidad.zona,
-                            tipo_cobertura__contains=tipo_de_cobertura,
-                        )
-                    except:
-                        error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {cobertura}"
-                        print(error_message)
-                        lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
-                    
-                    tasa = tarifa.tasa
-                    prima_rc_anual = tarifa.prima_rc_anual
-                    print(tasa)
-                    print(tasa/1000)
-                    print("Rc:", prima_rc_anual)
-                    
-                    # Impuestos
-                    derecho_emision = 2400
-                    recargo_administrativo = Decimal('10.5')
-                    cien = Decimal('100')
-                    recargo_financiero = Decimal('5.68')
-                    cobertura_nacional = 75000
-                    cobertura_importado = 112500
-                    imp_y_sellados = Decimal('5.2')
-                    iva_21 = Decimal('21')
-                    iva_rg_3337 = Decimal('3')
-                    
-                    # Calcular prima tecnica y prima póliza anual
-                    prima_tecnica_anual = (precio * (tasa / 1000)) + prima_rc_anual 
-                    print(prima_tecnica_anual)
-                    prima_por_recargo_administrativo = (prima_tecnica_anual * recargo_administrativo) / cien
-                    prima_pza_anual = prima_tecnica_anual + prima_por_recargo_administrativo + derecho_emision
-                    print("Prima 10,5%: ",prima_por_recargo_administrativo)
-
-                    # Determinar si el año siguiente es bisiesto
-                    dias_totales = 366 if calendar.isleap(anio_a_calcular) else 365
-
-                    # Calcular los días de vigencia
-                    dias_vigencia = (fecha_vigencia - fecha_operacion).days
-                    print("Dias vigencia: ",dias_vigencia)
-                    print("Dias totales: ", dias_totales)
-                    print("Dias vigencia / dias totales:",dias_vigencia/dias_totales)
+                    # Si no se encuentra el precio para el año asignar 0 como valor
+                    if precio is None:
+                        precio = 0
+                # Usar los datos de vehiculo de la base de datos propia
+                elif fuente_datos == 'base_datos':
+                    vehiculo = VehiculoInfoAuto.objects.get(codigo=codia)
+                    precios_vehiculo =  PrecioAnual.objects.filter(vehiculo=vehiculo)
+                    precio_anio = precios_vehiculo.get(anio=anio_vehiculo)
+                    precio = precio_anio.precio
+                    # Si no se encuentra el precio para el año asignar 0 como valor
+                    if precio is None:
+                        precio = 0
+                        
+                    tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
+                            
+            
+                antiguedad_vehiculo = anio_actual - anio_vehiculo
+                fecha_vigencia = fecha_vigencia_str
+                anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else anio_actual + 1
                 
-                    # Calcular prima tecnica y prima póliza por la vigencia
-                    prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
-                    prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
-
-                    # Determinar la cobertura según si la unidad es importada o no
-                    cobertura = cobertura_importado if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else cobertura_nacional
-
-                    premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / cien)
-                    premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / cien)
-                    premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva_21) / cien) + ((premio_vigente_sin_iva * iva_rg_3337) / cien)
+                # Mapeo de antigüedad a categoría
+                if antiguedad_vehiculo > 10:
+                    antiguedad_categoria = "MÁS DE 10"
+                elif 6 <= antiguedad_vehiculo <= 10:
+                    antiguedad_categoria = "6 A 10"
+                else:
+                    antiguedad_categoria = "5"
+                print(localidad_vehiculo)
+                # Buscar zona de riesgo mediante la localidad que este en el Excel
+                localidades_encontradas = Localidad.objects.filter(nombre_localidad=localidad_vehiculo)
+                if localidades_encontradas.exists():
+                    localidad = localidades_encontradas.first()
+                    print(f"Localidad encontrada: {localidad.nombre_localidad}")
                     
-                    print(premio_vigente_sin_iva)
-                    print(premio_vigente_sin_iva * 3 / 100)
-                    print(premio_vigente_sin_iva * iva_21 / cien)
-                    print(premio_vigente_sin_iva * imp_y_sellados / cien)
-                    
-                    # Redondear valores
-                    prima_tecnica_vigente = round(prima_tecnica_vigente, 2)
-                    prima_pza_vigente = round(prima_pza_vigente, 2)
-                    premio_vigente_sin_iva = round(premio_vigente_sin_iva, 2)
-                    premio_vigente_con_iva = round(premio_vigente_con_iva, 2)
+                    print(f"Zona encontrada: {localidad.zona}")
+                else:
+                    error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
+                    print(error_message)
+                    lista_errores.append(error_message)
+                """try:    
+                    localidad = Localidad.objects.get(
+                        nombre_localidad = "MORENO"
+                    )
+                except:
+                    error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
+                    print(error_message)
+                    lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
+                """
+                # Buscar la tarifa
+                try:
+                    tarifa = TarifaFlota.objects.get(
+                        tipo_vehiculo=tipo_vehiculo,
+                        antiguedad=antiguedad_categoria,
+                        zona__icontains=localidad.zona,
+                        tipo_cobertura__contains=tipo_de_cobertura,
+                    )
+                except:
+                    error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {cobertura}"
+                    print(error_message)
+                    lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
+                
+                tasa = tarifa.tasa
+                prima_rc_anual = tarifa.prima_rc_anual
+                print(tasa)
+                print(tasa/1000)
+                print("Rc:", prima_rc_anual)
+                
+                # Impuestos
+                derecho_emision = 2400
+                recargo_administrativo = Decimal('10.5')
+                cien = Decimal('100')
+                recargo_financiero = Decimal('5.68')
+                cobertura_nacional = 75000
+                cobertura_importado = 112500
+                imp_y_sellados = Decimal('5.2')
+                iva_21 = Decimal('21')
+                iva_rg_3337 = Decimal('3')
+                
+                # Calcular prima tecnica y prima póliza anual
+                prima_tecnica_anual = (precio * (tasa / 1000)) + prima_rc_anual 
+                print(prima_tecnica_anual)
+                prima_por_recargo_administrativo = (prima_tecnica_anual * recargo_administrativo) / cien
+                prima_pza_anual = prima_tecnica_anual + prima_por_recargo_administrativo + derecho_emision
+                print("Prima 10,5%: ",prima_por_recargo_administrativo)
 
-                    # Si el movimiento es una baja los valores serán negativos
-                    if tipo_string == "Baja":
-                        prima_tecnica_vigente = -prima_tecnica_vigente
-                        prima_pza_vigente = -prima_pza_vigente
-                        premio_vigente_sin_iva = -premio_vigente_sin_iva
-                        premio_vigente_con_iva = -premio_vigente_con_iva
-                    
-                    # Actualizar los valores en las columnas existentes
-                    """"
-                    sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_tecnica_vigente)  # Actualizar la columna de Prima Anual
-                    sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_pza_vigente)  # Actualizar la columna de Prima Vigente
-                    sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_vigente_sin_iva)  # Actualizar la columna de Prremio Anual
-                    sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_con_iva)  # Actualizar la columna de Premio Vigente
-                    """    
+                # Determinar si el año siguiente es bisiesto
+                dias_totales = 366 if calendar.isleap(anio_a_calcular) else 365
 
-                    # Crear una nueva instancia de Vehiculo
+                # Calcular los días de vigencia
+                dias_vigencia = (fecha_vigencia - fecha_operacion).days
+                print("Dias vigencia: ",dias_vigencia)
+                print("Dias totales: ", dias_totales)
+                print("Dias vigencia / dias totales:",dias_vigencia/dias_totales)
+            
+                # Calcular prima tecnica y prima póliza por la vigencia
+                prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
+                prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
+
+                # Determinar la cobertura según si la unidad es importada o no
+                cobertura = cobertura_importado if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else cobertura_nacional
+
+                premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / cien)
+                premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / cien)
+                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva_21) / cien) + ((premio_vigente_sin_iva * iva_rg_3337) / cien)
+                
+                print(premio_vigente_sin_iva)
+                print(premio_vigente_sin_iva * 3 / 100)
+                print(premio_vigente_sin_iva * iva_21 / cien)
+                print(premio_vigente_sin_iva * imp_y_sellados / cien)
+                
+                # Redondear valores
+                prima_tecnica_vigente = round(prima_tecnica_vigente, 2)
+                prima_pza_vigente = round(prima_pza_vigente, 2)
+                premio_vigente_sin_iva = round(premio_vigente_sin_iva, 2)
+                premio_vigente_con_iva = round(premio_vigente_con_iva, 2)
+
+                # Si el movimiento es una baja los valores serán negativos
+                if tipo_string == "Baja":
+                    prima_tecnica_vigente = -prima_tecnica_vigente
+                    prima_pza_vigente = -prima_pza_vigente
+                    premio_vigente_sin_iva = -premio_vigente_sin_iva
+                    premio_vigente_con_iva = -premio_vigente_con_iva
+                
+                # Actualizar los valores en las columnas existentes
+                """"
+                sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_tecnica_vigente)  # Actualizar la columna de Prima Anual
+                sheet.cell(row=row_number, column=sheet.max_column - 2, value=prima_pza_vigente)  # Actualizar la columna de Prima Vigente
+                sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_vigente_sin_iva)  # Actualizar la columna de Prremio Anual
+                sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_con_iva)  # Actualizar la columna de Premio Vigente
+                """    
+                # Verificar si el vehículo ya existe
+                existing_vehicle = VehiculoFlota.objects.filter(cod=codia, patente=patente, localidad=localidad_vehiculo).first()
+                
+                # Si el vehículo ya existe, actualizar los datos necesarios
+                if existing_vehicle:
+                    # Si el motivo es la modificacion de datos, actualizar todo
+                    if motivo_endoso == 'MODIFIC. DATOS DEL VEHICULO AÑO  MODELO':
+                        existing_vehicle.marca = marca
+                        existing_vehicle.modelo = modelo
+                        existing_vehicle.descripcion = descripcion
+                        existing_vehicle.patente = patente
+                        existing_vehicle.anio = anio
+                        existing_vehicle.okm = okm
+                        existing_vehicle.localidad = localidad_vehiculo
+                        existing_vehicle.zona = localidad.zona
+                        existing_vehicle.suma_asegurada = precio
+                        existing_vehicle.usuario_item = usuario
+                        existing_vehicle.valor_actual = valor_actual
+                        existing_vehicle.tipo_cobertura = tipo_de_cobertura
+                        existing_vehicle.estado = estado
+                        existing_vehicle.uso_vehiculo = uso_vehiculo
+                        existing_vehicle.save()
+                    # Si el motivo es el aumento de la suma asegurada, actualizar solo eso
+                    elif motivo_endoso == 'AUMENTO DE SUMA ASEGURADA':
+                        existing_vehicle.suma_asegurada = precio
+                        existing_vehicle.save()
+                else:
+                # Crear una nueva instancia de Vehiculo
                     vehiculo = VehiculoFlota(
                         created = created,
                         cod = codia,
                         movimiento = nuevo_movimiento,
                         marca = marca,
                         modelo = modelo,
+                        descripcion = descripcion,
                         tipo_vehiculo = tipo_vehiculo,
+                        usuario_item = usuario,
                         patente = patente,
                         anio = anio,
                         okm = okm,
-                        zona = localidad_vehiculo,
-                        fecha_operacion = fecha_operacion,
-                        fecha_vigencia = fecha_vigencia,
-                        operacion = tipo_string,
-                        tipo_cobertura = tipo_de_cobertura,
+                        motor = motor,
+                        chasis = chasis,
+                        localidad = localidad_vehiculo,
+                        zona = localidad.zona,
+                        vigencia_desde = fecha_operacion,
+                        vigencia_hasta = fecha_vigencia,
+                        estado = estado,
+                        uso_vehiculo = uso_vehiculo,
                         suma_asegurada = precio,
+                        valor_actual = valor_actual,
+                        tipo_cobertura = tipo_de_cobertura,
+                        tasa = tasa,
+                        prima_rc = prima_rc,
+                        observacion = observacion,
                         prima_tecnica = prima_tecnica_vigente,
                         prima_pza = prima_pza_vigente,
                         premio_sin_iva = premio_vigente_sin_iva,

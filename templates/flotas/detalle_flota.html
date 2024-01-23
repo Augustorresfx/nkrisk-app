@@ -207,16 +207,25 @@
                         <th scope="col">Código info auto</th>
                         <th scope="col">Marca</th>
                         <th scope="col">Modelo</th>
+                        <th scope="col">Descripción</th>
                         <th scope="col">Tipo vehículo</th>
+                        <th scope="col">Usuario</th>
                         <th scope="col">Patente</th>
                         <th scope="col">Año</th>
                         <th scope="col">0km</th>
+                        <th scope="col">Motor</th>
+                        <th scope="col">Chasis</th>
+                        <th scope="col">Localidad</th>
                         <th scope="col">Zona</th>
-                        <th scope="col">Fecha de operación</th>
-                        <th scope="col">Fecha de vigencia</th>
-                        <th scope="col">Operación</th>
-                        <th scope="col">Cobertura</th>
+                        <th scope="col">Vigencia desde</th>
+                        <th scope="col">Vigencia hasta</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Uso</th>
                         <th scope="col">Suma asegurada</th>
+                        <th scope="col">Valor actual</th>
+                        <th scope="col">Cobertura</th>
+                        <th scope="col">Tasa</th>
+                        <th scope="col">Prima RC</th>
                         <th scope="col">Prima técnica</th>
                         <th scope="col">Prima de póliza</th>
                         <th scope="col">Premio sin IVA</th>
@@ -238,16 +247,25 @@
                         <td>{{ vehiculo.cod }}</td>
                         <td>{{ vehiculo.marca }}</td>
                         <td>{{ vehiculo.modelo }}</td>
+                        <td>{{ vehiculo.descripcion }}</td>
                         <td>{{ vehiculo.tipo_vehiculo }}</td>
+                        <td>{{ vehiculo.usuario_item }}</td>
                         <td>{{ vehiculo.patente }}</td>
                         <td>{{ vehiculo.anio }}</td>
                         <td>{{ vehiculo.okm }}</td>
+                        <td>{{ vehiculo.motor }}</td>
+                        <td>{{ vehiculo.chasis }}</td>
+                        <td>{{ vehiculo.localidad }}</td>
                         <td>{{ vehiculo.zona }}</td>
-                        <td>{{ vehiculo.fecha_operacion|date:"d/m/Y"  }}</td>
-                        <td>{{ vehiculo.fecha_vigencia|date:"d/m/Y"  }}</td>
-                        <td>{{ vehiculo.operacion }}</td>
-                        <td>{{ vehiculo.tipo_cobertura }}</td>
+                        <td>{{ vehiculo.vigencia_desde|date:"d/m/Y"  }}</td>
+                        <td>{{ vehiculo.vigencia_hasta|date:"d/m/Y"  }}</td>
+                        <td>{{ vehiculo.estado }}</td>
+                        <td>{{ vehiculo.uso_vehiculo }}</td>
                         <td>{{ vehiculo.suma_asegurada }}</td>
+                        <td>{{ vehiculo.valor_actual }}</td>
+                        <td>{{ vehiculo.tipo_cobertura }}</td>
+                        <td>{{ vehiculo.tasa }}</td>
+                        <td>{{ vehiculo.prima_rc }}</td>
                         <td>{{ vehiculo.prima_tecnica }}</td>
                         <td>{{ vehiculo.prima_pza }}</td>
                         <td>{{ vehiculo.premio_sin_iva }}</td>
