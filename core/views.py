@@ -43,6 +43,8 @@ from unidecode import unidecode
 # Importe de funciones
 from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
+from .utils import get_vehicle_type, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
+
 class HomeView(View):
     def get(self, request, *args, **kwargs):
         context = {
@@ -54,6 +56,7 @@ class HomeView(View):
 @method_decorator(login_required, name='dispatch')    
 class InicioView(View):
     def get(self, request, *args, **kwargs):
+        
         context = {
             
         }
@@ -207,6 +210,9 @@ class ClientesView(View):
         direccion = request.POST.get('direccion')
         telefono = request.POST.get('telefono')
         email = request.POST.get('email')
+        recargo_financiero = request.POST.get('recargo_financiero')
+        sellado_impuestos = request.POST.get('sellado_impuestos')
+        iva = request.POST.get('iva')
         
 
         # Crea una nueva instancia de Flota
@@ -219,7 +225,10 @@ class ClientesView(View):
             localidad=localidad,
             direccion=direccion,
             telefono=telefono,
-            email=email
+            email=email,
+            recargo_financiero=recargo_financiero,
+            sellado_impuestos=sellado_impuestos,
+            iva=iva,
             
         )
         try:
@@ -237,10 +246,16 @@ class ClientesView(View):
 class DetalleClienteView(View):
     def get(self, request, cliente_id):
         cliente = get_object_or_404(Cliente, id=cliente_id)
-
+        # Formatear los decimales para poder mostrarlos
+        recargo_financiero_formatted = "{:.3f}".format(cliente.recargo_financiero).replace(',', '.')
+        sellado_impuestos_formatted = "{:.3f}".format(cliente.sellado_impuestos).replace(',', '.')
+        iva_formatted = "{:.3f}".format(cliente.iva).replace(',', '.')
+    
         context = {
             'cliente': cliente,
-
+            'recargo_financiero_formatted': recargo_financiero_formatted,
+            'sellado_impuestos_formatted': sellado_impuestos_formatted,
+            'iva_formatted': iva_formatted,
         }
         return render(request, 'clientes/detalle_cliente.html', context)
 
@@ -460,46 +475,60 @@ class EliminarFlotaView(View):
 # Flotas
 @method_decorator(login_required, name='dispatch')
 class DetalleFlotaView(View):
-    def get(self, request, flota_id, *args, **kwargs):
+    def get(self, request, flota_id, movimiento_id=None, *args, **kwargs):
         selected_month = request.GET.get("month")
         # Obtener la flota
         flota = Flota.objects.get(id=flota_id)
-        vehiculos = []
-        # Buscar el primer movimiento para esa flota
-        primer_movimiento = Movimiento.objects.filter(flota=flota).order_by('created').first()
 
-        if primer_movimiento:
-            # Obtener los vehículos vinculados a ese movimiento
-            vehiculos = VehiculoFlota.objects.filter(movimiento=primer_movimiento)
-            # Obtener los movimientos vinculados a esa flota
-            movimientos = Movimiento.objects.filter(flota=flota).order_by('-created')
-            page_number = request.GET.get("page")
-            
-            vehiculos_paginados = Paginator(vehiculos, 30)
-            filter_pages = vehiculos_paginados.get_page(page_number)
-            context = {
-                'flota': flota,
-                'vehiculos': vehiculos,
-                'movimientos': movimientos,
-                'pages': filter_pages,
-            }
+        # Obtener todos los movimientos vinculados a esa flota
+        movimientos = Movimiento.objects.filter(flota=flota).order_by('fecha_alta_op')
+
+        if movimiento_id:
+            # Si hay un movimiento_id específico, obtener ese movimiento
+            movimiento = Movimiento.objects.filter(id=movimiento_id).first()
+
+            if movimiento:
+                # Obtener todos los vehículos vinculados a ese movimiento a lo largo de su historial
+                vehiculos = VehiculoFlota.history.filter(movimiento=movimiento)
+            else:
+                # Si el movimiento no existe, establecer vehículos como vacío
+                vehiculos = VehiculoFlota.history.none()
         else:
-            
-            context = {
-                'flota': flota,
-                'vehiculos': None,
-                'movimientos': None,
-                
-            }
-        
-        
-        flota = Flota.objects.get(id=flota_id)
+            # Obtener los vehículos vinculados al primer movimiento si existe
+            primer_movimiento = movimientos.first()
+            vehiculos = VehiculoFlota.history.filter(movimiento=primer_movimiento) if primer_movimiento else VehiculoFlota.history.none()
+
+        prima_tecnica_total = 0
+        prima_pza_total = 0
+        premio_sin_iva_total = 0
+        premio_con_iva_total = 0
+
+        for vehiculo in vehiculos:
+            prima_tecnica_total += vehiculo.prima_tecnica
+            prima_pza_total += vehiculo.prima_pza
+            premio_sin_iva_total += vehiculo.premio_sin_iva
+            premio_con_iva_total += vehiculo.premio_con_iva
+        print(prima_tecnica_total)
+        print(prima_pza_total)
+        print(premio_sin_iva_total)
+        print(premio_con_iva_total)
+        page_number = request.GET.get("page")
+        vehiculos_paginados = Paginator(vehiculos, 30)
+        filter_pages = vehiculos_paginados.get_page(page_number)
+
+        context = {
+            'flota': flota,
+            'vehiculos': vehiculos,
+            'movimientos': movimientos,
+            'pages': filter_pages,
+        }
         
         return render(request, 'flotas/detalle_flota.html', context)
     @transaction.atomic
     def post(self, request, flota_id, *args, **kwargs):
         lista_errores = []
-        
+        flota = Flota.objects.get(id=flota_id)
+        cliente = flota.cliente
         if 'descargar_excel' in request.POST:
             
             # Nombre del archivo que quieres descargar
@@ -534,28 +563,6 @@ class DetalleFlotaView(View):
             numero_orden_actual = None
             nuevo_movimiento = None
              
-            def get_vehicle_type(tipo_vehiculo):
-                tipo_vehiculo_a_categoria = {
-                "SED": "AUTO",
-                "CAB": "AUTO",
-                "CUP": "AUTO",
-                "PKA": "PICK UP CLASE A",
-                "FUA": "PICK UP CLASE A",
-                "WA4": "PICK UP 4X4",
-                "WAG": "AUTO",
-                "RUR": "AUTO",
-                "PKB": "PICK UP CLASE B",
-                "PB4": "PICK UP CLASE B",
-                "FUB": "PICK UP CLASE B",
-                "JEE": "PICK UP 4X4",
-                "MIV": "AUTO",
-                "VAN": "AUTO",
-                "MBU": "PICK UP CLASE B",
-                "LIV": "PICK UP CLASE B",
-                "PES": "PICK UP CLASE B",
-                "SPE": "PICK UP CLASE B",
-            }
-                return tipo_vehiculo_a_categoria.get(tipo_vehiculo, "Desconocido")
             file1 = request.FILES.get('file1')
             workbook = openpyxl.load_workbook(file1)
             sheet = workbook.active
@@ -564,24 +571,36 @@ class DetalleFlotaView(View):
             if fuente_datos == 'info_auto':
                 access_token = api_manager.get_valid_access_token()
                 print(access_token)
-            for row_number, (nro_orden, cliente, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, endoso, motivo_endoso, fecha_operacion, fecha_vigencia_str, prima, premio, estado, vigencia_desde, vigencia_hasta, clau_ajuste, codia, marca, modelo, descripcion, usuario, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa, prima_rc, prima_total, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op) in enumerate(sheet.iter_rows(min_row=1, values_only=True), start=1):
+            for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, endoso, motivo_endoso, fecha_operacion_str, fecha_vigencia_str, prima, premio, estado, vigencia_desde, vigencia_hasta, clau_ajuste, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_excel, prima_total, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op_str) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
                 row_values = sheet.cell(row=row_number, column=1).value
                 if row_values is None:
                     # Salir del bucle si la fila está vacía
                     break
-                
+                print(fecha_operacion_str)
+                fecha_operacion = convert_date(fecha_operacion_str)
+                fecha_vigencia = convert_date(fecha_vigencia_str)
+                fecha_alta_op = fecha_alta_op_str.strftime("%Y-%m-%d")
+                # Verificar si el número de orden cambió (crea un movimiento por c/nro de orden)
                 # Verificar si el número de orden cambió (crea un movimiento por c/nro de orden)
                 if nro_orden != numero_orden_actual:
-                    nuevo_movimiento = Movimiento(
-                    created = created,
-                    nombre_movimiento = nombre_movimiento,
-                    tipo_movimiento = tipo_string,
-                    flota = flota,
-                    cliente = cliente,
+                    # Guardar el movimiento anterior si existe
+                    if nuevo_movimiento:
+                        nuevo_movimiento.save()
 
+                    nuevo_movimiento = Movimiento(
+                        created=created,
+                        numero_endoso=endoso,
+                        motivo_endoso=motivo_endoso,
+                        flota=flota,
+                        numero_orden=nro_orden,
+                        vigencia_desde=fecha_operacion,
+                        vigencia_hasta=fecha_vigencia,
+                        fecha_alta_op=fecha_alta_op
                     )
                     nuevo_movimiento.save()
-                    
+
+                # Actualizar el número de orden actual
+                numero_orden_actual = nro_orden
                 anio_vehiculo = int(anio)
                 anio_actual = datetime.now().year
                 print(codia)
@@ -594,12 +613,18 @@ class DetalleFlotaView(View):
                     tipo_de_cobertura = 'COB TODO AUTO'
                 elif tipo_cobertura == 'A - RESPONSABILIDAD CIVIL':
                     tipo_de_cobertura == ''
-                    
+                
                 # Usar el precio de vehiculo que este en el Excel
                 if fuente_datos == "excel":
-                    precio = suma_aseg
+                    precio = Decimal(suma_aseg)
                     vehiculo = VehiculoInfoAuto.objects.get(codigo=codia)
                     tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
+                    if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
+                        vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
+                        if suma_aseg != vehiculo_anterior.suma_asegurada:
+                            precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
+                        else:
+                            precio = 0
                 # Usar los datos de vehiculo de info auto
                 elif fuente_datos == 'info_auto':
                     precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
@@ -633,9 +658,9 @@ class DetalleFlotaView(View):
                             
             
                 antiguedad_vehiculo = anio_actual - anio_vehiculo
-                fecha_vigencia = fecha_vigencia_str
-                anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else anio_actual + 1
-                
+                print(type(fecha_vigencia), fecha_vigencia)
+                anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else fecha_vigencia.year
+                print("Año a calcular: ",anio_a_calcular)
                 # Mapeo de antigüedad a categoría
                 if antiguedad_vehiculo > 10:
                     antiguedad_categoria = "MÁS DE 10"
@@ -665,20 +690,29 @@ class DetalleFlotaView(View):
                     lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
                 """
                 # Buscar la tarifa
+                print(motivo_endoso)
                 try:
                     tarifa = TarifaFlota.objects.get(
                         tipo_vehiculo=tipo_vehiculo,
                         antiguedad=antiguedad_categoria,
-                        zona__icontains=localidad.zona,
-                        tipo_cobertura__contains=tipo_de_cobertura,
+                        zona=localidad.zona,
+                        tipo_cobertura=tipo_de_cobertura,
                     )
                 except:
-                    error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {cobertura}"
+                    error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {tipo_de_cobertura}"
                     print(error_message)
                     lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
                 
-                tasa = tarifa.tasa
-                prima_rc_anual = tarifa.prima_rc_anual
+                if tasa_excel and tasa_excel != 0.00:
+                    tasa = tasa_excel
+                else:
+                    tasa = tarifa.tasa
+                if prima_rc_excel and prima_rc_excel != 0.00:
+                    prima_rc_anual = prima_rc_excel
+                else:
+                    prima_rc_anual = tarifa.prima_rc_anual
+                
+                
                 print(tasa)
                 print(tasa/1000)
                 print("Rc:", prima_rc_anual)
@@ -687,15 +721,41 @@ class DetalleFlotaView(View):
                 derecho_emision = 2400
                 recargo_administrativo = Decimal('10.5')
                 cien = Decimal('100')
-                recargo_financiero = Decimal('5.68')
+                print(cliente)
+                recargo_financiero = cliente.recargo_financiero
                 cobertura_nacional = 75000
                 cobertura_importado = 112500
-                imp_y_sellados = Decimal('5.2')
-                iva_21 = Decimal('21')
+                imp_y_sellados = cliente.sellado_impuestos
+                iva = cliente.iva
                 iva_rg_3337 = Decimal('3')
                 
+                if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
+                    if suma_aseg != vehiculo_anterior.suma_asegurada:
+                        tasa = vehiculo_anterior.tasa
+                        prima_rc_anual = 0
+                    else:
+                        prima_rc_anual = 0
+                        tasa = 0
+                        derecho_emision = 0
+                        cobertura_importado = 0
+                        cobertura_nacional = 0
+                if suma_aseg == 0:
+                    prima_rc_anual = 0
+                    precio = 0
+                    tasa = 0
+                    derecho_emision = 0
+                    cobertura_importado = 0
+                    cobertura_nacional = 0
+                    
+                    
+                precio = Decimal(str(precio))
+                tasa = Decimal(str(tasa))
+                prima_rc_anual = Decimal(str(prima_rc_anual))
+                print(type(precio), precio)
+                print(type(tasa), tasa)
+                print(type(prima_rc_anual), prima_rc_anual)
                 # Calcular prima tecnica y prima póliza anual
-                prima_tecnica_anual = (precio * (tasa / 1000)) + prima_rc_anual 
+                prima_tecnica_anual = (precio) * (tasa / 1000) + prima_rc_anual 
                 print(prima_tecnica_anual)
                 prima_por_recargo_administrativo = (prima_tecnica_anual * recargo_administrativo) / cien
                 prima_pza_anual = prima_tecnica_anual + prima_por_recargo_administrativo + derecho_emision
@@ -708,22 +768,32 @@ class DetalleFlotaView(View):
                 dias_vigencia = (fecha_vigencia - fecha_operacion).days
                 print("Dias vigencia: ",dias_vigencia)
                 print("Dias totales: ", dias_totales)
+                dias_vigencia = Decimal(str(dias_vigencia))
+                dias_totales = Decimal(str(dias_totales))
+                print(type(dias_vigencia), dias_vigencia)
+                print(type(dias_totales), dias_totales)
                 print("Dias vigencia / dias totales:",dias_vigencia/dias_totales)
-            
+                dias_calculado = dias_vigencia/dias_totales
+                
+                print(type(dias_calculado), dias_calculado)
                 # Calcular prima tecnica y prima póliza por la vigencia
                 prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
                 prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
-
+                print(patente)
+                print(prima_tecnica_vigente)
+                print(prima_pza_vigente)
                 # Determinar la cobertura según si la unidad es importada o no
                 cobertura = cobertura_importado if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else cobertura_nacional
 
                 premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / cien)
                 premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / cien)
-                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva_21) / cien) + ((premio_vigente_sin_iva * iva_rg_3337) / cien)
+                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva) / cien) + ((premio_vigente_sin_iva * iva_rg_3337) / cien)
                 
                 print(premio_vigente_sin_iva)
+                
+                print(premio_vigente_con_iva)
                 print(premio_vigente_sin_iva * 3 / 100)
-                print(premio_vigente_sin_iva * iva_21 / cien)
+                print(premio_vigente_sin_iva * iva / cien)
                 print(premio_vigente_sin_iva * imp_y_sellados / cien)
                 
                 # Redondear valores
@@ -746,78 +816,105 @@ class DetalleFlotaView(View):
                 sheet.cell(row=row_number, column=sheet.max_column - 1, value=premio_vigente_sin_iva)  # Actualizar la columna de Prremio Anual
                 sheet.cell(row=row_number, column=sheet.max_column, value=premio_vigente_con_iva)  # Actualizar la columna de Premio Vigente
                 """    
+                
+                # Crear un diccionario para mapear los motivos de endoso a las funciones correspondientes
+                motivo_endoso_handlers = {
+                    'MODIFIC. DATOS DEL VEHICULO AÑO  MODELO': handle_modificacion_datos,
+                    'MODIFICACION DE DATOS DEL ASEGURADO': handle_modificacion_datos,
+                    'MODIFICACION DE ITEMS': handle_modificacion_datos,
+                    'AUMENTO DE SUMA ASEGURADA': handle_aumento_suma_asegurada,
+                    ' AUMENTO DE SUMA ASEGURADA': handle_aumento_suma_asegurada,
+                    'CAMBIO DE COBERTURA': handle_cambio_cobertura,
+                    'BAJA DE ITEMS': handle_baja_items,
+                }
                 # Verificar si el vehículo ya existe
                 existing_vehicle = VehiculoFlota.objects.filter(cod=codia, patente=patente, localidad=localidad_vehiculo).first()
-                
-                # Si el vehículo ya existe, actualizar los datos necesarios
-                if existing_vehicle:
-                    # Si el motivo es la modificacion de datos, actualizar todo
-                    if motivo_endoso == 'MODIFIC. DATOS DEL VEHICULO AÑO  MODELO':
-                        existing_vehicle.marca = marca
-                        existing_vehicle.modelo = modelo
-                        existing_vehicle.descripcion = descripcion
-                        existing_vehicle.patente = patente
-                        existing_vehicle.anio = anio
-                        existing_vehicle.okm = okm
-                        existing_vehicle.localidad = localidad_vehiculo
-                        existing_vehicle.zona = localidad.zona
-                        existing_vehicle.suma_asegurada = precio
-                        existing_vehicle.usuario_item = usuario
-                        existing_vehicle.valor_actual = valor_actual
-                        existing_vehicle.tipo_cobertura = tipo_de_cobertura
-                        existing_vehicle.estado = estado
-                        existing_vehicle.uso_vehiculo = uso_vehiculo
-                        existing_vehicle.save()
-                    # Si el motivo es el aumento de la suma asegurada, actualizar solo eso
-                    elif motivo_endoso == 'AUMENTO DE SUMA ASEGURADA':
-                        existing_vehicle.suma_asegurada = precio
-                        existing_vehicle.save()
-                else:
-                # Crear una nueva instancia de Vehiculo
-                    vehiculo = VehiculoFlota(
-                        created = created,
-                        cod = codia,
-                        movimiento = nuevo_movimiento,
-                        marca = marca,
-                        modelo = modelo,
-                        descripcion = descripcion,
-                        tipo_vehiculo = tipo_vehiculo,
-                        usuario_item = usuario,
-                        patente = patente,
-                        anio = anio,
-                        okm = okm,
-                        motor = motor,
-                        chasis = chasis,
-                        localidad = localidad_vehiculo,
-                        zona = localidad.zona,
-                        vigencia_desde = fecha_operacion,
-                        vigencia_hasta = fecha_vigencia,
-                        estado = estado,
-                        uso_vehiculo = uso_vehiculo,
-                        suma_asegurada = precio,
-                        valor_actual = valor_actual,
-                        tipo_cobertura = tipo_de_cobertura,
-                        tasa = tasa,
-                        prima_rc = prima_rc,
-                        observacion = observacion,
-                        prima_tecnica = prima_tecnica_vigente,
-                        prima_pza = prima_pza_vigente,
-                        premio_sin_iva = premio_vigente_sin_iva,
-                        premio_con_iva = premio_vigente_con_iva,
-                        
-                    )
-                    vehiculo.save()
+
+                # Si existe, obtener el handler correspondiente al motivo de endoso y ejecutarlo
+                if existing_vehicle and motivo_endoso in motivo_endoso_handlers:
+                    data = {
+                        'marca': marca,
+                        'modelo': modelo,
+                        'descripcion': descripcion,
+                        'patente': patente,
+                        'anio': anio,
+                        'okm': okm,
+                        'localidad_vehiculo': localidad_vehiculo,
+                        'localidad': localidad,
+                        'precio': precio,
+                        'usuario_item': usuario_item,
+                        'valor_actual': valor_actual,
+                        'tipo_de_cobertura': tipo_de_cobertura,
+                        'estado': estado,
+                        'uso_vehiculo': uso_vehiculo,
+                        'accesorios': accesorios,
+                        'suma_aseg_acc': suma_aseg_acc,
+                        'suma_aseg': suma_aseg,
+                        'prima_tecnica_vigente': prima_tecnica_vigente,
+                        'prima_pza_vigente': prima_pza_vigente,
+                        'premio_vigente_sin_iva': premio_vigente_sin_iva,
+                        'premio_vigente_con_iva': premio_vigente_con_iva,
+                        'tasa': tasa,
+                        'prima_rc_anual': prima_rc_anual,
+                        'observacion': observacion,
+                        'created': created,
+                        'codia': codia,
+                        'nuevo_movimiento': nuevo_movimiento,
+                        'tipo_vehiculo': vehiculo.tipo_vehiculo,
+                        'motor': motor,
+                        'chasis': chasis,
+                        'fecha_operacion': fecha_operacion,
+                        'fecha_vigencia': fecha_vigencia,
+                    }
+                    motivo_endoso_handlers[motivo_endoso](existing_vehicle, data, nuevo_movimiento)
+                elif not existing_vehicle and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS':
+                    # Si no existe, crear un nuevo vehículo
+                    handle_renovacion_alta_items({
+                        'created': created,
+                        'codia': codia,
+                        'nuevo_movimiento': nuevo_movimiento,
+                        'marca': marca,
+                        'modelo': modelo,
+                        'descripcion': descripcion,
+                        'tipo_vehiculo': vehiculo.tipo_vehiculo,
+                        'usuario_item': usuario_item,
+                        'patente': patente,
+                        'anio': anio,
+                        'okm': okm,
+                        'motor': motor,
+                        'chasis': chasis,
+                        'localidad_vehiculo': localidad_vehiculo,
+                        'localidad': localidad,
+                        'fecha_operacion': fecha_operacion,
+                        'fecha_vigencia': fecha_vigencia,
+                        'estado': estado,
+                        'uso_vehiculo': uso_vehiculo,
+                        'precio': precio,
+                        'valor_actual': valor_actual,
+                        'tipo_de_cobertura': tipo_de_cobertura,
+                        'tasa': tasa,
+                        'prima_rc_anual': prima_rc_anual,
+                        'accesorios': accesorios,
+                        'suma_aseg_acc': suma_aseg_acc,
+                        'observacion': observacion,
+                        'prima_tecnica_vigente': prima_tecnica_vigente,
+                        'prima_pza_vigente': prima_pza_vigente,
+                        'premio_vigente_sin_iva': premio_vigente_sin_iva,
+                        'premio_vigente_con_iva': premio_vigente_con_iva,
+                    }, nuevo_movimiento)
 
                 # Guardar la hoja de cálculo actualizada
             #output = BytesIO()
             #workbook.save(output)
             #output.seek(0)
-
+            # Guardar el último movimiento después de salir del bucle
+            if nuevo_movimiento:
+                nuevo_movimiento.save()
             # Crear una respuesta HTTP con el archivo adjunto
             #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
             workbook.close()
-
+            
             return redirect(request.path_info) # Redirecciona a la misma URL que estaba antes del procesamiento
         
         """ if "calcular_excel" in request.POST:
@@ -1104,8 +1201,7 @@ class TarifasFlotasView(View):
 class DetalleTarifaFlotaView(View):
     def get(self, request, tarifa_id):
         tarifa = get_object_or_404(TarifaFlota, id=tarifa_id)
-        # Crea un formulario de edición de tarifa personalizado aquí (por ejemplo, usando Django Forms)
-        # Puedes pasar el formulario como contexto a tu plantilla de edición
+        # Formatear los decimales para poder mostrarlos
         tasa_formatted = "{:.3f}".format(tarifa.tasa).replace(',', '.')
         prima_formatted = "{:.3f}".format(tarifa.prima_rc_anual).replace(',', '.')
         context = {

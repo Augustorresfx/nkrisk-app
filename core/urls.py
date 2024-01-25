@@ -22,6 +22,8 @@ urlpatterns = [
     path('flotas/', FlotasView.as_view(), name='flotas'),
     path('flotas/<int:flota_id>/eliminar/', EliminarFlotaView.as_view(), name='delete_flota'),
     path('flotas/<int:flota_id>/', DetalleFlotaView.as_view(), name='detalle_flota'),
+    path('flotas/<int:flota_id>/<int:movimiento_id>/', DetalleFlotaView.as_view(), name='detalle_flota_con_movimiento'),
+
     path('vehiculos/', VehiculosInfoAutoView.as_view(), name='vehiculos'),
     path('buscar_vehiculo/', BuscarVehiculoView.as_view(), name='buscar_vehiculo'),
     path('tarifas_flotas/', TarifasFlotasView.as_view(), name='tarifas_flotas'),

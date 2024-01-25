@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime, timedelta
+from simple_history.models import HistoricalRecords
 
 def access_expiration():
     return timezone.now() + timezone.timedelta(hours=1)
@@ -69,6 +70,10 @@ class Cliente(models.Model):
     direccion = models.CharField(max_length=100, blank=True, null=True)
     telefono = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=254)
+    recargo_financiero = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    sellado_impuestos = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    iva = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    
     
     class Meta: 
         ordering = ('id',)
@@ -87,8 +92,8 @@ class Flota(models.Model):
         ordering = ('created',)
         verbose_name_plural = 'Flotas'
         
-        def __str__(self):
-            return self.numero_flota
+    def __str__(self):
+        return str(self.numero_flota)
 
 class Movimiento(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -104,7 +109,7 @@ class Movimiento(models.Model):
 class VehiculoFlota(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     cod = models.IntegerField(null=True, blank=True)
-    movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE, null=True, blank=True)
+    movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE)
     marca = models.CharField(max_length=100, blank=True, null=True)
     modelo = models.CharField(max_length=100, blank=True, null=True)
     descripcion = models.CharField(max_length=255, blank=True, null=True)
@@ -126,12 +131,14 @@ class VehiculoFlota(models.Model):
     tipo_cobertura = models.CharField(max_length=100, blank=True, null=True)
     tasa = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     prima_rc = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    tiene_accesorios = models.CharField(max_length=100, blank=True, null=True)
+    suma_asegurada_accesorios = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     observacion = models.CharField(max_length=100, blank=True, null=True)
     prima_tecnica = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     prima_pza = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     premio_sin_iva = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     premio_con_iva = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    
+    history = HistoricalRecords()
     
 class MarcaInfoAuto(models.Model):
     nombre = models.CharField(max_length=100, blank=True, null=True)

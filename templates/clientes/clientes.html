@@ -75,8 +75,18 @@
                     <label for="nombre" class="form-label">E-mail: </label>
                     <input name="email" type="email" class="form-control" placeholder="E-mail" aria-label="E-mail" aria-describedby="basic-addon1">
                   </div>
-               
-                
+                  <div class="mb-3">
+                    <label for="recargo_financiero" class="form-label">Recargo financiero: </label>
+                    <input name="recargo_financiero" type="number" class="form-control" step="0.01" min="0" placeholder="Recargo financiero" aria-label="Recargo financiero" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="sellado_impuestos" class="form-label">SELLA./ IMPUESTOS: </label>
+                    <input name="sellado_impuestos" type="number" class="form-control" step="0.01" min="0" placeholder="SELLA./ IMPUESTOS" aria-label="SELLA./ IMPUESTOS" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="iva" class="form-label">IVA: </label>
+                    <input name="iva" type="number" class="form-control" step="0.01" min="0" placeholder="IVA" aria-label="IVA" aria-describedby="basic-addon1">
+                  </div>
             
         </div>
         <div class="modal-footer">
@@ -110,10 +120,12 @@
                         <th scope="col">Nacionalidad</th>
                         <th scope="col">Provincia</th>
                         <th scope="col">Localidad</th>
-                        
                         <th scope="col">Dirección</th>
                         <th scope="col">Teléfono</th>
                         <th scope="col">Email</th>
+                        <th scope="col">RF</th>
+                        <th scope="col">SELLA./ IMPUESTOS </th>
+                        <th scope="col">IVA</th>
 
       
                         <th scope="col">Editar</th>
@@ -130,18 +142,16 @@
                           <td>{{ cliente.nacionalidad }}</td>
                           <td>{{ cliente.provincia }}</td>
                           <td>{{ cliente.localidad }}</td>
-                        
                           <td>{{ cliente.direccion }}</td>
                           <td>{{ cliente.telefono }}</td>
                           <td>{{ cliente.email }}</td>
+                          <td>{{ cliente.recargo_financiero }}</td>
+                          <td>{{ cliente.sellado_impuestos }}</td>
+                          <td>{{ cliente.iva }}</td>
 
-
-      
-      
                           <td>
                             <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_cliente' cliente.id %}">
                               Editar
-                                
                             </a>
                           </td>
                           <td>
