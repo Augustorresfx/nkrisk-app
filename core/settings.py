@@ -80,6 +80,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+# Authentication
+LOGIN_URL = '/login/'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
