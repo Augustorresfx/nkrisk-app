@@ -4,6 +4,10 @@ from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from .views import HomeView, VehiculosInfoAutoView, obtener_datos_vehiculo, autocomplete_marcas, obtener_vehiculos_por_marca, BuscarVehiculoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
+from django.conf.urls import handler404
+from .views import pagina_no_encontrada
+
+handler404 = pagina_no_encontrada
 
 urlpatterns = [
     path('admin/', admin.site.urls),

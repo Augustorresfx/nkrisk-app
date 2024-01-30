@@ -27,6 +27,8 @@ from itertools import islice
 from django.http import JsonResponse
 from io import TextIOWrapper
 from django.db import transaction
+from django.http import HttpResponseNotFound
+
 # Importe de formularios
 
 # Importe de modelos
@@ -44,6 +46,11 @@ from unidecode import unidecode
 from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_vehicle_type, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
+
+
+def pagina_no_encontrada(request, exception):
+    print("Error 404 ocurrido")
+    return HttpResponseNotFound(render(request, '404.html'))
 
 class HomeView(View):
     def get(self, request, *args, **kwargs):

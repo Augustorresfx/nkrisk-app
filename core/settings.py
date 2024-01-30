@@ -29,7 +29,7 @@ EMAIL_HOST_PASSWORD = SMTP_PASSWORD # Cambia esto a tu contraseña de correo
 SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True #'RENDER' not in os.environ
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = []
 
