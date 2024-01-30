@@ -53,7 +53,7 @@ class HomeView(View):
         return redirect('login')
 
 # Inicio
-@method_decorator(login_required, name='dispatch')    
+@method_decorator(login_required(login_url='/login/'), name='dispatch')    
 class InicioView(View):
     def get(self, request, *args, **kwargs):
         
@@ -184,7 +184,7 @@ class InicioView(View):
         return render(request, 'dashboard.html', context)
 
 # Clientes
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class ClientesView(View):
     def get(self, request, *args, **kwargs):
         clientes = Cliente.objects.all()
@@ -242,7 +242,7 @@ class ClientesView(View):
         # Redirige, incluyendo los mensajes en el contexto
         return HttpResponseRedirect(request.path_info)
     
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class DetalleClienteView(View):
     def get(self, request, cliente_id):
         cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -289,7 +289,7 @@ class DetalleClienteView(View):
             messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
         return redirect('clientes')
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class EliminarClienteView(View):
     def get(self, request, cliente_id):
         cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -314,7 +314,7 @@ class EliminarClienteView(View):
         return redirect('clientes')
 # Movimientos
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class EliminarMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         
@@ -329,7 +329,7 @@ class EliminarMovimientoView(View):
         
         return redirect('detalle_flota', flota_id=flota_id)
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class ExportarMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         # Obtener movimiento
@@ -393,7 +393,7 @@ class ExportarMovimientoView(View):
     
 
 # Flotas
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class FlotasView(View):
     def get(self, request, *args, **kwargs):
          # Obtenerel mes seleccionado desde la URL
@@ -449,7 +449,7 @@ class FlotasView(View):
         
         return redirect('flotas')
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class EliminarFlotaView(View):
     def get(self, request, flota_id):
         flota = get_object_or_404(Flota, id=flota_id)
@@ -473,7 +473,7 @@ class EliminarFlotaView(View):
         return redirect('flotas')
 
 # Flotas
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class DetalleFlotaView(View):
     def get(self, request, flota_id, movimiento_id=None, *args, **kwargs):
         selected_month = request.GET.get("month")
@@ -577,10 +577,11 @@ class DetalleFlotaView(View):
                     # Salir del bucle si la fila está vacía
                     break
                 print(fecha_operacion_str)
+                # Cambiar el formato de las fechas a uno aceptado por la BD
                 fecha_operacion = convert_date(fecha_operacion_str)
                 fecha_vigencia = convert_date(fecha_vigencia_str)
                 fecha_alta_op = fecha_alta_op_str.strftime("%Y-%m-%d")
-                # Verificar si el número de orden cambió (crea un movimiento por c/nro de orden)
+
                 # Verificar si el número de orden cambió (crea un movimiento por c/nro de orden)
                 if nro_orden != numero_orden_actual:
                     # Guardar el movimiento anterior si existe
@@ -740,12 +741,12 @@ class DetalleFlotaView(View):
                         cobertura_importado = 0
                         cobertura_nacional = 0
                 if suma_aseg == 0:
-                    prima_rc_anual = 0
-                    precio = 0
-                    tasa = 0
-                    derecho_emision = 0
-                    cobertura_importado = 0
-                    cobertura_nacional = 0
+                   prima_rc_anual = 0
+                   precio = 0
+                   tasa = 0
+                   derecho_emision = 0
+                   cobertura_importado = 0
+                   cobertura_nacional = 0
                     
                     
                 precio = Decimal(str(precio))
@@ -787,7 +788,7 @@ class DetalleFlotaView(View):
 
                 premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / cien)
                 premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / cien)
-                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva) / cien) + ((premio_vigente_sin_iva * iva_rg_3337) / cien)
+                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / cien) + ((premio_vigente_sin_iva * iva) / cien)
                 
                 print(premio_vigente_sin_iva)
                 
@@ -1112,7 +1113,7 @@ class DetalleFlotaView(View):
     #def calcular_datos_con_access_token(self, access_token):
         
 # Tarifas flotas
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class DeleteAllTarifasFlotasView(View):
     def post(self, request, *args, **kwargs):
         try:
@@ -1125,7 +1126,7 @@ class DeleteAllTarifasFlotasView(View):
         
         return redirect('tarifas_flotas')
     
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class TarifasFlotasView(View):
     def get(self, request, *args, **kwargs):
 
@@ -1197,7 +1198,7 @@ class TarifasFlotasView(View):
         # Redirige a la página de flotas o realiza alguna otra acción que desees
         return redirect('tarifas_flotas')
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class DetalleTarifaFlotaView(View):
     def get(self, request, tarifa_id):
         tarifa = get_object_or_404(TarifaFlota, id=tarifa_id)
@@ -1239,7 +1240,7 @@ class DetalleTarifaFlotaView(View):
             messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
         return redirect('tarifas_flotas')
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class EliminarTarifaFlotaView(View):
     def get(self, request, tarifa_id):
         tarifa = get_object_or_404(TarifaFlota, id=tarifa_id)
@@ -1265,7 +1266,7 @@ class EliminarTarifaFlotaView(View):
 
 
 # Cobranzas
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class CobranzasView(View):
     def get(self, request, *args, **kwargs):
          # Obtén el mes seleccionado desde la URL
@@ -1361,7 +1362,7 @@ class CobranzasView(View):
                     )
 
 # Vencimientos
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class VencimientosView(View):
     def get(self, request, *args, **kwargs):
          # Obtén el mes seleccionado desde la URL
@@ -1457,7 +1458,7 @@ class VencimientosView(View):
                     )
                     
 # Localidades
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class LocalidadesView(View):
     def get(self, request, *args, **kwargs):
         localidades = Localidad.objects.all()
@@ -1515,13 +1516,13 @@ class LocalidadesView(View):
 
 # Buscar vehículo 
 
-@login_required
+@login_required(login_url='/login/')
 def autocomplete_marcas(request):
     term = request.GET.get('term', '')
     marcas = MarcaInfoAuto.objects.filter(nombre__icontains=term).values('id', 'nombre')
     return JsonResponse(list(marcas), safe=False)
 
-@login_required
+@login_required(login_url='/login/')
 def obtener_vehiculos_por_marca(request, marca_id):
     # Lógica para obtener vehículos por marca (ajusta esto según tus modelos)
     vehiculos = VehiculoInfoAuto.objects.filter(marca__id=marca_id).values('id', 'descripcion')
@@ -1529,7 +1530,7 @@ def obtener_vehiculos_por_marca(request, marca_id):
     # Devuelve la lista de vehículos en formato JSON
     return JsonResponse(list(vehiculos), safe=False)
 
-@login_required
+@login_required(login_url='/login/')
 def obtener_datos_vehiculo(request, vehiculo_id):
         
         try:
@@ -1557,7 +1558,7 @@ def obtener_datos_vehiculo(request, vehiculo_id):
         except VehiculoInfoAuto.DoesNotExist:
             return JsonResponse({'error': 'Vehículo no encontrado'}, status=404)
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class BuscarVehiculoView(View):
     def get(self, request, *args, **kwargs):
         marcas = MarcaInfoAuto.objects.order_by('nombre')
@@ -1568,7 +1569,7 @@ class BuscarVehiculoView(View):
         return render(request, 'info_auto/buscar_vehiculo.html', context)
 
 # Vehículos info auto
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required(login_url='/login/'), name='dispatch')   
 class VehiculosInfoAutoView(View):
     def get(self, request, *args, **kwargs):
         vehiculos = VehiculoInfoAuto.objects.order_by('marca__nombre')
