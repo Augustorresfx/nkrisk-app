@@ -100,7 +100,7 @@ def handle_renovacion_alta_items(data, movimiento):
     vehiculo = VehiculoFlota(
         created=data['created'],
         cod=data['codia'],
-
+        flota = data['flota'],
         marca=data['marca'],
         modelo=data['modelo'],
         movimiento=movimiento,

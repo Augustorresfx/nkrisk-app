@@ -503,16 +503,7 @@ class DetalleFlotaView(View):
                 vehiculos = VehiculoFlota.history.none()
         else:
             
-            # Subconsulta para obtener la última fecha de modificación de cada vehículo
-            subquery = VehiculoFlota.history.filter(
-                vehiculo_flota=OuterRef('pk')
-            ).order_by('-date_created').values('date_created')[:1]
-
-            # Consulta principal para obtener los últimos estados de todos los vehículos de la flota
-            vehiculos = VehiculoFlota.history.filter(
-                flota=flota,
-                date_created=Subquery(subquery)
-            )
+            vehiculos = VehiculoFlota.objects.filter(flota=flota)
         prima_tecnica_total = 0
         prima_pza_total = 0
         premio_sin_iva_total = 0
@@ -684,7 +675,8 @@ class DetalleFlotaView(View):
                     antiguedad_categoria = "6 A 10"
                 else:
                     antiguedad_categoria = "5"
-                    
+                
+                print(motivo_endoso)
                 # Buscar zona de riesgo mediante la localidad que este en el Excel
                 localidades_encontradas = Localidad.objects.filter(nombre_localidad=localidad_vehiculo)
                 if localidades_encontradas.exists():
@@ -887,11 +879,14 @@ class DetalleFlotaView(View):
                         'fecha_vigencia': fecha_vigencia,
                     }
                     motivo_endoso_handlers[motivo_endoso](existing_vehicle, data, nuevo_movimiento)
+                
                 elif not existing_vehicle and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS':
                     # Si no existe, crear un nuevo vehículo
+                    print(type(flota), flota)
                     handle_renovacion_alta_items({
                         'created': created,
                         'codia': codia,
+                        'flota': flota,
                         'nuevo_movimiento': nuevo_movimiento,
                         'marca': marca,
                         'modelo': modelo,
