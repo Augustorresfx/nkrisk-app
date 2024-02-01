@@ -109,6 +109,7 @@ class Movimiento(models.Model):
 class VehiculoFlota(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     cod = models.IntegerField(null=True, blank=True)
+    flota = models.ForeignKey(Flota, on_delete=models.CASCADE)
     movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE)
     marca = models.CharField(max_length=100, blank=True, null=True)
     modelo = models.CharField(max_length=100, blank=True, null=True)
@@ -129,8 +130,8 @@ class VehiculoFlota(models.Model):
     suma_asegurada = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     valor_actual = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     tipo_cobertura = models.CharField(max_length=100, blank=True, null=True)
-    tasa = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    prima_rc = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    tasa = models.DecimalField(decimal_places=3, max_digits=100, null=True, blank=True)
+    prima_rc = models.DecimalField(decimal_places=3, max_digits=100, null=True, blank=True)
     tiene_accesorios = models.CharField(max_length=100, blank=True, null=True)
     suma_asegurada_accesorios = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     observacion = models.CharField(max_length=100, blank=True, null=True)

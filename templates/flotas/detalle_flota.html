@@ -36,17 +36,17 @@
               
           <div class="col">
             <h2> 
-              Agregar movimiento
+              Agregar endoso
             </h2>
             <div class="card mb-3 p-4" style="max-width: 540px;">
               
               <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-3">
-                  <label for="nombre_movimiento" class="form-label">Nombre de movimiento: </label>
+                  <label for="nombre_movimiento" class="form-label">Número de endoso: </label>
                   <input name="nombre_movimiento" type="text" class="form-control" placeholder="Ejemplo: 'Endoso 0'" aria-label="Ejemplo: 'Endoso 0'" aria-describedby="basic-addon1">
                 </div>
-                <div class="mb-3">
+                {% comment %} <div class="mb-3">
                     <label for="tipo_movimiento" class="form-label">Tipo de movimiento: </label>
                     <select name="tipo_movimiento" class="form-select" aria-label="Default select example">
                       <option selected>Seleccionar tipo de movimiento</option>
@@ -58,7 +58,7 @@
                       <option value="3">Baja</option>
                      
                     </select>
-                  </div>
+                  </div> {% endcomment %}
                 <div class="mb-3">
                   
                   <label for="formFile" class="form-label">Excel de flota</label>
@@ -89,7 +89,7 @@
       <div class="">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
           <h2> 
-            Movimientos
+            Endosos
           </h2>
        
 
@@ -215,7 +215,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5 " id="exampleModalLabel">Agregar movimientos de flota</h1>
+          <h1 class="modal-title fs-5 " id="exampleModalLabel">Agregar endosos de flota</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form method="post" enctype="multipart/form-data">
@@ -252,7 +252,7 @@
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2">
                <!-- Button trigger modal -->
 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
-  Agregar varios movimientos
+  Agregar varios endosos
 </button>
 
        
