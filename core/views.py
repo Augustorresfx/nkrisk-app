@@ -487,11 +487,11 @@ class DetalleFlotaView(View):
         selected_month = request.GET.get("month")
         # Obtener la flota
         flota = Flota.objects.get(id=flota_id)
-
         # Obtener todos los movimientos vinculados a esa flota
         movimientos = Movimiento.objects.filter(flota=flota).order_by('fecha_alta_op')
 
         if movimiento_id:
+
             # Si hay un movimiento_id específico, obtener ese movimiento
             movimiento = Movimiento.objects.filter(id=movimiento_id).first()
 
@@ -502,8 +502,10 @@ class DetalleFlotaView(View):
                 # Si el movimiento no existe, establecer vehículos como vacío
                 vehiculos = VehiculoFlota.history.none()
         else:
-            
-            vehiculos = VehiculoFlota.objects.filter(flota=flota)
+
+            # Obtener los vehículos vinculados al primer movimiento si existe
+            primer_movimiento = movimientos.first()
+            vehiculos = VehiculoFlota.history.filter(movimiento=primer_movimiento) if primer_movimiento else VehiculoFlota.history.none()
         prima_tecnica_total = 0
         prima_pza_total = 0
         premio_sin_iva_total = 0
