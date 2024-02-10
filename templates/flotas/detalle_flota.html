@@ -35,12 +35,12 @@
           <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
               
           <div class="col">
-            <h2> 
-              Agregar endoso
-            </h2>
-            <div class="card mb-3 p-4" style="max-width: 540px;">
-              
-              <form method="post" enctype="multipart/form-data">
+            
+            <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
+              <h2 > 
+                Agregar endoso
+              </h2>
+              <form class="pt-3" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-3">
                   <label for="nombre_movimiento" class="form-label">Número de endoso: </label>
@@ -76,22 +76,20 @@
       -->
       <div class="">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
-          <h2> 
-            Endosos
-          </h2>
+
        
 
       </div>
         <!-- Menú scrollable con movimientos -->
-        <div class="list-group overflow-auto d-none d-lg-block" style="max-height: 440px;">
+        <div class="list-group overflow-auto d-none d-lg-block shadow-sm" style="max-height: 414px;">
           <!-- Loop sobre los movimientos -->
           {% for movimiento in movimientos %}
-            <div  class="list-group-item">
+            <div  class="list-group-item border-top-0 border-end-0 border-start-0">
               <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">{{movimiento.numero_endoso}}</h5>
                 <div>
                   <a class="shadow-sm w-10 btn btn-sm btn-link mx-1 " href="{% url 'detalle_flota_con_movimiento' flota.id movimiento.id%}">
-                    <span class="material-icons-outlined">
+                    <span class="material-icons-outlined align-middle">
                       visibility
                       </span>
                   </a>
@@ -99,7 +97,7 @@
                   <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
                     {% csrf_token %}
                   <button type="submit" class="shadow-sm w-10 btn btn-sm link-success exportar-excel mx-1">
-                    <span class="material-icons-outlined">
+                    <span class="material-icons-outlined align-middle">
                       file_download
                       </span>
                       
@@ -107,7 +105,7 @@
                 </form>
 
                 <button type="button" class="shadow-sm w-10 btn btn-sm link-danger eliminar-elemento confirmar-eliminar mx-1" data-url="{% url 'delete_movimiento' flota.id movimiento.id %}">
-                  <span class="material-icons-outlined">
+                  <span class="material-icons-outlined align-middle">
                     delete
                     </span>
                     
@@ -124,15 +122,16 @@
           {% endfor %}
           
         </div>
-        <div class="list-group overflow-auto  d-block d-lg-none" style="max-height: 486px;">
+        <div class="list-group overflow-auto  d-block d-lg-none shadow-sm" style="max-height: 458px;">
           <!-- Loop sobre los movimientos -->
+          
           {% for movimiento in movimientos %}
-            <div  class="list-group-item">
+            <div  class="list-group-item border-top-0 border-end-0 border-start-0">
               <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">{{movimiento.numero_endoso}}</h5>
                 <div>
                   <a class="btn btn-sm shadow-sm btn-link mx-1" href="{% url 'detalle_flota_con_movimiento' flota.id movimiento.id%}">
-                    <span class="material-icons-outlined">
+                    <span class="material-icons-outlined align-middle">
                       visibility
                     </span>
                   </a>
@@ -140,7 +139,7 @@
                   <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
                     {% csrf_token %}
                   <button type="submit" class="w-10 btn shadow-sm btn-sm link-success exportar-excel mx-1 ">
-                    <span class="material-icons-outlined">
+                    <span class="material-icons-outlined align-middle">
                       file_download
                     </span>
                       
@@ -148,7 +147,7 @@
                 </form>
 
                 <button type="button" class=" shadow-sm w-10 btn btn-sm link-danger eliminar-elemento confirmar-eliminar mx-1" data-url="{% url 'delete_movimiento' flota.id movimiento.id %}">
-                  <span class="material-icons-outlined ">
+                  <span class="material-icons-outlined align-middle">
                     delete
                     </span>
                     
@@ -248,7 +247,7 @@
          <div class="row">
             <div class="table-responsive mb-2">
             
-                <table class="table table-bordered table-striped bg-white rounded shadow-sm">
+                <table class="table bg-white rounded shadow-sm">
                     <thead>
                       <tr>
                         <th scope="col">Código info auto</th>
@@ -324,12 +323,16 @@
                           <td>
                             <a class="w-10 btn btn-sm btn-primary" href="#">
                               <span data-feather="edit"></span>
-                              Editar
+                              <span class="material-icons-outlined align-middle">
+                                edit
+                              </span>
                             </a>
                           </td>
                           <td>
                             <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="#">
-                              Eliminar
+                              <span class="material-icons-outlined align-middle">
+                                delete
+                              </span>
                             </button>
                        
                           
