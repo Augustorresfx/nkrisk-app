@@ -343,56 +343,70 @@ class ExportarMovimientoView(View):
         # Obtener movimiento
         movimiento = get_object_or_404(Movimiento, id=movimiento_id)
         # Nombre del archivo modelo
-        file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
-        
-        # Cargar el archivo Excel modelo
-        workbook = openpyxl.load_workbook(file_path)
-        sheet = workbook.active
+        file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'exportar_ult_estado.xlsx')
+    
         # Obtener los vehículos del movimiento
         vehiculos = VehiculoFlota.objects.filter(movimiento_id=movimiento_id)
-        # Crear una copia del archivo Excel
-        duplicated_workbook = openpyxl.Workbook()
-        duplicated_sheet = duplicated_workbook.active
+        # Cargar el archivo Excel existente
+        workbook = openpyxl.load_workbook(file_path)
+        sheet = workbook.active
 
-        # Iterar sobre las celdas de la primera fila y copiar los estilos relevantes
-        for row in sheet.iter_rows(min_row=1, max_row=1):
-            for cell in row:
-                # Crear una nueva celda en la hoja de cálculo duplicada
-                nueva_celda = duplicated_sheet.cell(row=1, column=cell.column, value=cell.value)
-
-                # Copiar los estilos relevantes
-                nueva_celda.fill = copy(cell.fill)  # Copiar el estilo de fondo (relleno)
-                nueva_celda.border = copy(cell.border)  # Copiar los bordes
-        # Iterar sobre los vehículos y llenar el archivo Excel duplicado
-        for index, vehiculo in enumerate(vehiculos, start=2):
-
-            duplicated_row = [None] * sheet.max_column  # Crear una lista para la nueva fila duplicada
-
-            duplicated_row[0] = vehiculo.marca
-            duplicated_row[1] = vehiculo.modelo
-            duplicated_row[2] = vehiculo.tipo_vehiculo
-            duplicated_row[3] = vehiculo.patente
-            duplicated_row[4] = vehiculo.anio
-            duplicated_row[5] = vehiculo.okm
-            duplicated_row[6] = vehiculo.zona
-            duplicated_row[7] = vehiculo.vigencia_desde.strftime('%d/%m/%Y')
-            duplicated_row[8] = vehiculo.vigencia_hasta.strftime('%d/%m/%Y')
-            duplicated_row[9] = vehiculo.estado
-            duplicated_row[10] = vehiculo.tipo_cobertura
-            duplicated_row[11] = vehiculo.suma_asegurada
-            duplicated_row[12] = vehiculo.prima_tecnica
-            duplicated_row[13] = vehiculo.prima_pza
-            duplicated_row[14] = vehiculo.premio_sin_iva
-            duplicated_row[15] = vehiculo.premio_con_iva
-
-            # Agregar más celdas según las columnas en tu archivo Excel
-
-            # Agregar la nueva fila duplicada al archivo Excel duplicado
-            duplicated_sheet.append(duplicated_row)
+        # Estilos
+        font = Font(name="Calibri", size=11, bold=False)
+        font_bold = Font(name="Calibri", size=12, bold=True)
+        relleno = PatternFill(start_color="FBE4D5", end_color="FBE4D5", fill_type="solid")
+        bordes = Border(left=Side(border_style='thin', color='000000'),
+                right=Side(border_style='thin', color='000000'),
+                top=Side(border_style='thin', color='000000'),
+                bottom=Side(border_style='thin', color='000000'))  # Bordes finos y negro
+        
+        # Obtener el número de la próxima fila disponible
+        next_row = 10
+        num_vehiculo = 1
+        
+        # Agregar "encabezado"
+        sheet.cell(row=2, column=1, value=movimiento.flota.cliente.nombre_cliente).font = font_bold
+        sheet.cell(row=4, column=1, value="POLIZA").font = font_bold
+        sheet.cell(row=7, column=1, value='Endoso '+movimiento.numero_endoso).font = font_bold
+        
+        sheet.cell(row=4, column=2, value=movimiento.flota.poliza).font = font_bold
+        sheet.cell(row=7, column=2, value=movimiento.motivo_endoso).font = font_bold
+        premio_sin_iva_total = 0
+        premio_con_iva_total = 0
+        # Iterar sobre los vehículos y agregar la información al archivo Excel existente
+        for vehiculo in vehiculos:
+            
+            sheet.cell(row=next_row, column=1, value=num_vehiculo).font = font
+            sheet.cell(row=next_row, column=2, value=vehiculo.marca).font = font
+            sheet.cell(row=next_row, column=3, value=vehiculo.descripcion).font = font
+            sheet.cell(row=next_row, column=4, value=vehiculo.anio).font = font
+            sheet.cell(row=next_row, column=5, value=vehiculo.patente).font = font
+            sheet.cell(row=next_row, column=6, value=vehiculo.premio_sin_iva).font = font
+            sheet.cell(row=next_row, column=7, value=vehiculo.premio_con_iva).font = font
+            
+            # Aplicar color de relleno 
+            sheet.cell(row=next_row, column=6).fill = relleno
+            sheet.cell(row=next_row, column=7).fill = relleno
+            
+            # Aplicar bordes
+            for col in range(1, 8):
+                sheet.cell(row=next_row, column=col).border = bordes
+            
+            next_row += 1
+            num_vehiculo += 1
+            premio_sin_iva_total += vehiculo.premio_sin_iva
+            premio_con_iva_total += vehiculo.premio_con_iva
+            
+        sheet.cell(row=next_row+1, column=6, value=premio_sin_iva_total).font = font
+        sheet.cell(row=next_row+1, column=7, value=premio_con_iva_total).font = font
+        sheet.cell(row=next_row+1, column=6).fill = relleno
+        sheet.cell(row=next_row+1, column=7).fill = relleno
+        sheet.cell(row=next_row+1, column=6).border = bordes
+        sheet.cell(row=next_row+1, column=7).border = bordes
         # Crear una respuesta HTTP con el archivo Excel duplicado adjunto
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename={movimiento.numero_endoso}.xlsx'
-        duplicated_workbook.save(response)
+        workbook.save(response)
         workbook.close()
 
         return response
@@ -435,7 +449,8 @@ class ExportarUltimoEstadoFlotaView(View):
         sheet.cell(row=4, column=1, value="POLIZA").font = font_bold
         
         sheet.cell(row=4, column=2, value=flota.poliza).font = font_bold
-        
+        premio_sin_iva_total = 0
+        premio_con_iva_total = 0
         # Iterar sobre los vehículos y agregar la información al archivo Excel existente
         for vehiculo in vehiculos:
             
@@ -457,6 +472,15 @@ class ExportarUltimoEstadoFlotaView(View):
             
             next_row += 1
             num_vehiculo += 1
+            premio_sin_iva_total += vehiculo.premio_sin_iva
+            premio_con_iva_total += vehiculo.premio_con_iva
+            
+        sheet.cell(row=next_row+1, column=6, value=premio_sin_iva_total).font = font
+        sheet.cell(row=next_row+1, column=7, value=premio_con_iva_total).font = font
+        sheet.cell(row=next_row+1, column=6).fill = relleno
+        sheet.cell(row=next_row+1, column=7).fill = relleno
+        sheet.cell(row=next_row+1, column=6).border = bordes
+        sheet.cell(row=next_row+1, column=7).border = bordes
         # Crear una respuesta HTTP con el archivo Excel duplicado adjunto
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename={flota.cliente.nombre_cliente}.xlsx'
