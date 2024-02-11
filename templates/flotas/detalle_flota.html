@@ -241,6 +241,15 @@
 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
   Agregar varios endosos
 </button>
+<form method="POST" class="d-inline" action="{% url 'exportar_ult_estado' flota.id %}">
+  {% csrf_token %}
+<button type="submit" class="btn btn-success mb-3 d-flex align-items-center">
+  <span class="material-icons-outlined mr-2">
+    file_download 
+    </span>
+    Exportar ult. estado
+  </button>
+</form>
 
        
       </div>

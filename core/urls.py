@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-from .views import HomeView, VehiculosInfoAutoView, obtener_datos_vehiculo, autocomplete_marcas, obtener_vehiculos_por_marca, BuscarVehiculoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
+from .views import HomeView, VehiculosInfoAutoView, ExportarUltimoEstadoFlotaView, obtener_datos_vehiculo, autocomplete_marcas, obtener_vehiculos_por_marca, BuscarVehiculoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
 from django.conf.urls import handler404
 from .views import pagina_no_encontrada
 
@@ -27,7 +27,7 @@ urlpatterns = [
     path('flotas/<int:flota_id>/eliminar/', EliminarFlotaView.as_view(), name='delete_flota'),
     path('flotas/<int:flota_id>/', DetalleFlotaView.as_view(), name='detalle_flota'),
     path('flotas/<int:flota_id>/<int:movimiento_id>/', DetalleFlotaView.as_view(), name='detalle_flota_con_movimiento'),
-
+    path('flotas/<int:flota_id>/exportar_ult_estado/', ExportarUltimoEstadoFlotaView.as_view(), name='exportar_ult_estado'),
     path('vehiculos/', VehiculosInfoAutoView.as_view(), name='vehiculos'),
     path('buscar_vehiculo/', BuscarVehiculoView.as_view(), name='buscar_vehiculo'),
     path('tarifas_flotas/', TarifasFlotasView.as_view(), name='tarifas_flotas'),
