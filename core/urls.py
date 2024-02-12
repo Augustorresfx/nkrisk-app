@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-from .views import HomeView, VehiculosInfoAutoView, ExportarUltimoEstadoFlotaView, obtener_datos_vehiculo, autocomplete_marcas, obtener_vehiculos_por_marca, BuscarVehiculoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
+from .views import HomeView, VehiculosInfoAutoView, EditarDatosMovimientoView, ObtenerDatosMovimientoView, ExportarUltimoEstadoFlotaView, obtener_datos_vehiculo, autocomplete_marcas, obtener_vehiculos_por_marca, BuscarVehiculoView, InicioView, FlotasView, EliminarMovimientoView, ExportarMovimientoView, ClientesView, LocalidadesView, DetalleClienteView, EliminarClienteView, DetalleFlotaView, EliminarFlotaView ,DetalleTarifaFlotaView, DeleteAllTarifasFlotasView, EliminarTarifaFlotaView,TarifasFlotasView, VencimientosView, CobranzasView, SignInView, SignOutView
 from django.conf.urls import handler404
 from .views import pagina_no_encontrada
 
@@ -21,6 +21,8 @@ urlpatterns = [
     path('clientes/', ClientesView.as_view(), name='clientes'),
     path('clientes/<int:cliente_id>/', DetalleClienteView.as_view(), name='detalle_cliente'),
     path('clientes/<int:cliente_id>/eliminar/', EliminarClienteView.as_view(), name='delete_cliente'),
+    path('obtener_datos_movimiento/<int:movimiento_id>/', ObtenerDatosMovimientoView.as_view(), name='obtener_datos_movimiento'),
+    path('editar_movimiento/<int:flota_id>/<int:movimiento_id>/', EditarDatosMovimientoView.as_view(), name='editar_movimiento'),
     path('movimientos/<int:flota_id>/<int:movimiento_id>/eliminar/', EliminarMovimientoView.as_view(), name='delete_movimiento'),
     path('movimientos/<int:flota_id>/<int:movimiento_id>/exportar/', ExportarMovimientoView.as_view(), name='exportar_movimiento'),
     path('flotas/', FlotasView.as_view(), name='flotas'),
@@ -34,6 +36,7 @@ urlpatterns = [
     path('tarifas_flotas/<int:tarifa_id>/', DetalleTarifaFlotaView.as_view(), name='detalle_tarifa_flota'),
     path('tarifas_flotas/<int:tarifa_id>/eliminar/', EliminarTarifaFlotaView.as_view(), name='delete_tarifa'),
     path('autocomplete_marcas/', autocomplete_marcas, name='autocomplete_marcas'),
+    
     path('obtener_vehiculos/<int:marca_id>/', obtener_vehiculos_por_marca, name='obtener_vehiculos_por_marca'),
     path('obtener_datos_vehiculo/<int:vehiculo_id>/', obtener_datos_vehiculo, name='obtener_datos_vehiculo'),
 ]

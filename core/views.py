@@ -321,7 +321,44 @@ class EliminarClienteView(View):
         
         return redirect('clientes')
 # Movimientos
-
+@method_decorator(login_required, name='dispatch')   
+class ObtenerDatosMovimientoView(View):
+    def get(self, request, movimiento_id):
+        movimiento = Movimiento.objects.get(id=movimiento_id)
+        datos_movimiento = {
+            'movimiento_id': movimiento_id,
+            'numero_endoso': movimiento.numero_endoso,
+            'motivo_endoso': movimiento.motivo_endoso,
+            'numero_orden': movimiento.numero_orden,
+            'fecha_alta_op': movimiento.fecha_alta_op,
+            # Agrega otros campos del movimiento según sea necesario
+        }
+        return JsonResponse(datos_movimiento)
+    
+@method_decorator(login_required, name='dispatch')   
+class EditarDatosMovimientoView(View):
+    def post(self, request, flota_id, movimiento_id):
+        movimiento = get_object_or_404(Movimiento, id=movimiento_id)
+        numero_endoso = request.POST.get('numero_endoso')
+        motivo_endoso = request.POST.get('motivo_endoso')
+        numero_orden = request.POST.get('numero_orden')
+        fecha_alta_op = request.POST.get('fecha_alta_op')
+        
+        movimiento.numero_endoso = numero_endoso
+        movimiento.motivo_endoso = motivo_endoso
+        movimiento.numero_orden = numero_orden
+        movimiento.fecha_alta_op = fecha_alta_op
+        
+        try:
+            # Intenta guardar
+            movimiento.save()
+            messages.success(request, 'El elemento se actualizó exitosamente.')
+        except Exception as e:
+            # Si hay un error captura la excepción
+            messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
+        
+        return redirect('detalle_flota', flota_id=flota_id)
+        
 @method_decorator(login_required, name='dispatch')   
 class EliminarMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
@@ -791,6 +828,28 @@ class DetalleFlotaView(View):
                 response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
                 return response
+        if "editar_movimiento" in request.POST:
+            movimiento_id = request.POST.get('movimiento_id')
+            movimiento = get_object_or_404(Movimiento, id=movimiento_id)
+            
+            numero_endoso = request.POST.get('numero_endoso')
+            motivo_endoso = request.POST.get('motivo_endoso')
+            numero_orden = request.POST.get('numero_orden')
+            fecha_alta_op = request.POST.get('fecha_alta_op')
+            
+            movimiento.numero_endoso = numero_endoso
+            movimiento.motivo_endoso = motivo_endoso
+            movimiento.numero_orden = numero_orden
+            movimiento.fecha_alta_op = fecha_alta_op
+            
+            try:
+                # Intenta guardar
+                movimiento.save()
+                messages.success(request, 'El elemento se actualizó exitosamente.')
+            except Exception as e:
+                # Si hay un error captura la excepción
+                messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
+            return redirect('detalle_flota', flota_id = flota_id)
         
         if "calcular_excel" in request.POST:
             created = datetime.now()
