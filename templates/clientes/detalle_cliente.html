@@ -65,19 +65,25 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="tasa">RF:</label>
+                        <label for="rf">RF:</label>
                         <input type="number" step="0.001" min="0" name="rf" id="rf" value="{{recargo_financiero_formatted}}"
                         class="form-control" placeholder="RF">
                     </div>
 
                     <div class="mb-3">
-                        <label for="tasa">SELLA./ IMPUESTOS:</label>
-                        <input type="number" step="0.001" min="0" name="sellados_impuestos" id="sellados_impuestos" value="{{sellado_impuestos_formatted}}"
-                        class="form-control" placeholder="SELLA./ IMPUESTOS">
+                        <label for="impuestos">Impuestos:</label>
+                        <input type="number" step="0.001" min="0" name="impuestos" id="impuestos" value="{{impuestos_formatted}}"
+                        class="form-control" placeholder="Impuestos">
                     </div>
 
                     <div class="mb-3">
-                        <label for="tasa">IVA:</label>
+                        <label for="sellados">Sellados:</label>
+                        <input type="number" step="0.001" min="0" name="sellados" id="sellados" value="{{sellados_formatted}}"
+                        class="form-control" placeholder="Sellados">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="iva">IVA:</label>
                         <input type="number" step="0.001" min="0" name="iva" id="iva" value="{{iva_formatted}}"
                         class="form-control" placeholder="IVA">
                     </div>

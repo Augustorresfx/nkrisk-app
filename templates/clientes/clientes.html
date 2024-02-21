@@ -80,8 +80,12 @@
                     <input name="recargo_financiero" type="number" class="form-control" step="0.01" min="0" placeholder="Recargo financiero" aria-label="Recargo financiero" aria-describedby="basic-addon1">
                   </div>
                   <div class="mb-3">
-                    <label for="sellado_impuestos" class="form-label">SELLA./ IMPUESTOS: </label>
-                    <input name="sellado_impuestos" type="number" class="form-control" step="0.01" min="0" placeholder="SELLA./ IMPUESTOS" aria-label="SELLA./ IMPUESTOS" aria-describedby="basic-addon1">
+                    <label for="impuestos" class="form-label">Impuestos: </label>
+                    <input name="impuestos" type="number" class="form-control" step="0.01" min="0" placeholder="Impuestos" aria-label="Impuestos" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="mb-3">
+                    <label for="sellados" class="form-label">Sellados: </label>
+                    <input name="sellados" type="number" class="form-control" step="0.01" min="0" placeholder="Sellados" aria-label="Sellados" aria-describedby="basic-addon1">
                   </div>
                   <div class="mb-3">
                     <label for="iva" class="form-label">IVA: </label>
@@ -124,7 +128,8 @@
                         <th scope="col">Teléfono</th>
                         <th scope="col">Email</th>
                         <th scope="col">RF</th>
-                        <th scope="col">SELLA./ IMPUESTOS </th>
+                        <th scope="col">Impuestos</th>
+                        <th scope="col">Sellados</th>
                         <th scope="col">IVA</th>
 
       
@@ -146,12 +151,13 @@
                           <td>{{ cliente.telefono }}</td>
                           <td>{{ cliente.email }}</td>
                           <td>{{ cliente.recargo_financiero }}</td>
-                          <td>{{ cliente.sellado_impuestos }}</td>
+                          <td>{{ cliente.impuestos }}</td>
+                          <td>{{ cliente.sellados }}</td>
                           <td>{{ cliente.iva }}</td>
 
                           <td>
                             <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_cliente' cliente.id %}">
-                              <span class="material-icons-outlined align-middle">
+                              <span class="material-icons align-middle">
                                 edit
                                 </span>
                             </a>
@@ -159,7 +165,7 @@
                           <td>
                        
                             <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="{% url 'delete_cliente' cliente.id %}">
-                              <span class="material-icons-outlined align-middle">
+                              <span class="material-icons align-middle">
                                 delete
                                 </span>
                             </button>

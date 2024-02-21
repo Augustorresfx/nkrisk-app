@@ -42,10 +42,7 @@
               </h2>
               <form class="pt-3" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="mb-3">
-                  <label for="nombre_movimiento" class="form-label">Número de endoso: </label>
-                  <input name="nombre_movimiento" type="text" class="form-control" placeholder="Ejemplo: 'Endoso 0'" aria-label="Ejemplo: 'Endoso 0'" aria-describedby="basic-addon1">
-                </div>
+
 
                 <div class="mb-3">
                   
@@ -88,28 +85,26 @@
               <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">{{movimiento.numero_endoso}}</h5>
                 <div>
-                  <a class="shadow-sm w-10 btn btn-sm btn-link mx-1 " href="{% url 'detalle_flota_con_movimiento' flota.id movimiento.id%}">
-                    <span class="material-icons-outlined align-middle">
+                  <a class="shadow-sm w-10 btn btn-sm mx-1 " href="{% url 'detalle_flota_con_movimiento' flota.id movimiento.id%}">
+                    <span class="material-icons-primary align-middle">
                       visibility
                       </span>
                   </a>
                   <button type="button" class="btn btn-sm shadow-sm editar-movimiento-btn" data-bs-toggle="modal" data-bs-target="#modalMovimiento" data-movimiento-id="{{ movimiento.id }}">
-                    <span class="material-icons-outlined align-middle">
+                    <span class="material-icons-dark align-middle">
                       edit
                     </span>
                   </button>
                   <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
                     {% csrf_token %}
-                  <button type="submit" class="shadow-sm w-10 btn btn-sm link-success exportar-excel mx-1">
-                    <span class="material-icons-outlined align-middle">
-                      file_download
-                      </span>
+                  <button type="submit" class="shadow-sm w-10 btn btn-sm exportar-excel mx-1">
+                    <img class="material-icons align-middle" src="{% static 'svg/file_download_success.svg' %}" alt="Descargar archivo">
                       
                   </button>
                 </form>
 
                 <button type="button" class="shadow-sm w-10 btn btn-sm link-danger eliminar-elemento confirmar-eliminar mx-1" data-url="{% url 'delete_movimiento' flota.id movimiento.id %}">
-                  <span class="material-icons-outlined align-middle">
+                  <span class="material-icons-danger align-middle">
                     delete
                     </span>
                     
@@ -135,13 +130,13 @@
               <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">{{movimiento.numero_endoso}}</h5>
                 <div>
-                  <a class="btn btn-sm shadow-sm btn-link mx-1" href="{% url 'detalle_flota_con_movimiento' flota.id movimiento.id%}">
-                    <span class="material-icons-outlined align-middle">
+                  <a class="btn btn-sm shadow-sm mx-1" href="{% url 'detalle_flota_con_movimiento' flota.id movimiento.id%}">
+                    <span class="material-icons-primary align-middle">
                       visibility
                     </span>
                   </a>
                   <button type="button" class="btn btn-sm shadow-sm editar-movimiento-btn" data-bs-toggle="modal" data-bs-target="#modalMovimiento" data-movimiento-id="{{ movimiento.id }}">
-                    <span class="material-icons-outlined align-middle">
+                    <span class="material-icons-dark align-middle">
                       edit
                     </span>
                   </button>
@@ -149,15 +144,13 @@
                   <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
                     {% csrf_token %}
                   <button type="submit" class="w-10 btn shadow-sm btn-sm link-success exportar-excel mx-1 ">
-                    <span class="material-icons-outlined align-middle">
-                      file_download
-                    </span>
+                    <img class="material-icons align-middle" src="{% static 'svg/file_download_success.svg' %}" alt="Descargar archivo">
                       
                   </button>
                 </form>
 
                 <button type="button" class=" shadow-sm w-10 btn btn-sm link-danger eliminar-elemento confirmar-eliminar mx-1" data-url="{% url 'delete_movimiento' flota.id movimiento.id %}">
-                  <span class="material-icons-outlined align-middle">
+                  <span class="material-icons-danger align-middle">
                     delete
                     </span>
                     
@@ -291,15 +284,13 @@
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2">
                <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
+{% comment %} <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
   Agregar varios endosos
-</button>
+</button> {% endcomment %}
 <form method="POST" class="d-inline" action="{% url 'exportar_ult_estado' flota.id %}">
   {% csrf_token %}
 <button type="submit" class="btn btn-success mb-3 d-flex align-items-center">
-  <span class="material-icons-outlined mr-2">
-    file_download 
-    </span>
+    <img class="material-icons" src="{% static 'svg/file_download.svg' %}" alt="Descargar archivo">
     Exportar reporte
   </button>
 </form>
@@ -384,15 +375,15 @@
       
                           <td>
                             <a class="w-10 btn btn-sm btn-primary" href="#">
-                              <span data-feather="edit"></span>
-                              <span class="material-icons-outlined align-middle">
+                           
+                              <span class="material-icons align-middle">
                                 edit
                               </span>
                             </a>
                           </td>
                           <td>
                             <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="#">
-                              <span class="material-icons-outlined align-middle">
+                              <span class="material-icons align-middle">
                                 delete
                               </span>
                             </button>
