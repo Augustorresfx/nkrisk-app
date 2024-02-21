@@ -40,7 +40,12 @@
               <label for="formFile" class="form-label">Excel a importar</label>
               <input name="file1" class="form-control" type="file" id="formFile">
             </div>
-            
+            <label for="formato">Seleccionar tipo de archivo:</label>
+          <select class="form-select" name="formato" id="formato">
+            <option value="csv">CSV</option>
+            <option value="xlsx">XLSX</option>
+            <!-- Agrega el rango de años que necesites -->
+          </select>
             <button name="importar_excel" class="btn btn-primary mt-3" type="submit">Importar datos</button>
       
             
@@ -97,14 +102,14 @@
                           <td>
                             <a class="w-10 btn btn-sm btn-primary" href="#">
                               <span data-feather="edit"></span>
-                              <span class="material-icons-outlined align-middle">
+                              <span class="material-icons align-middle">
                                 edit
                               </span>
                             </a>
                           </td>
                           <td>
                             <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="#">
-                              <span class="material-icons-outlined align-middle">
+                              <span class="material-icons align-middle">
                                 delete
                               </span>
                             </button>

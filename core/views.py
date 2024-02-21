@@ -3,7 +3,7 @@ from django.views.generic import View
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
@@ -29,6 +29,7 @@ from django.db.models import OuterRef, Subquery
 from io import TextIOWrapper
 from django.db import transaction
 from django.http import HttpResponseNotFound
+from django.urls import reverse_lazy
 
 # Importe de formularios
 
@@ -48,7 +49,19 @@ from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
 
+# Roles y permisos
+def is_staff_user(user):
+    return user.is_staff
 
+def permiso_basico(user):
+    return user.groups.filter(name='PermisoBasico').exists()
+
+def permiso_avanzado(user):
+    return user.groups.filter(name='PermisoAvanzado').exists()
+
+staff_required = user_passes_test(is_staff_user, login_url=reverse_lazy('signin'))
+
+# 404 page
 def pagina_no_encontrada(request, exception):
     print("Error 404 ocurrido")
     return HttpResponseNotFound(render(request, '404.html'))
@@ -61,7 +74,8 @@ class HomeView(View):
         return redirect('login')
 
 # Inicio
-@method_decorator(login_required, name='dispatch')    
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class InicioView(View):
     def get(self, request, *args, **kwargs):
         
@@ -193,6 +207,7 @@ class InicioView(View):
 
 # Clientes
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class ClientesView(View):
     def get(self, request, *args, **kwargs):
         clientes = Cliente.objects.all()
@@ -219,7 +234,8 @@ class ClientesView(View):
         telefono = request.POST.get('telefono')
         email = request.POST.get('email')
         recargo_financiero = request.POST.get('recargo_financiero')
-        sellado_impuestos = request.POST.get('sellado_impuestos')
+        impuestos = request.POST.get('impuestos')
+        sellados = request.POST.get('sellados')
         iva = request.POST.get('iva')
         
 
@@ -235,7 +251,8 @@ class ClientesView(View):
             telefono=telefono,
             email=email,
             recargo_financiero=recargo_financiero,
-            sellado_impuestos=sellado_impuestos,
+            impuestos=impuestos,
+            sellados=sellados,
             iva=iva,
             
         )
@@ -250,19 +267,32 @@ class ClientesView(View):
         # Redirige, incluyendo los mensajes en el contexto
         return HttpResponseRedirect(request.path_info)
     
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class DetalleClienteView(View):
     def get(self, request, cliente_id):
         cliente = get_object_or_404(Cliente, id=cliente_id)
         # Formatear los decimales para poder mostrarlos
-        recargo_financiero_formatted = "{:.3f}".format(cliente.recargo_financiero).replace(',', '.')
-        sellado_impuestos_formatted = "{:.3f}".format(cliente.sellado_impuestos).replace(',', '.')
+        if cliente.recargo_financiero:
+            recargo_financiero_formatted = "{:.3f}".format(cliente.recargo_financiero).replace(',', '.')
+        else:
+            recargo_financiero_formatted = 0
+        if cliente.impuestos:
+            impuestos_formatted = "{:.3f}".format(cliente.impuestos).replace(',', '.')
+        else:
+            impuestos_formatted = 0
+        if cliente.sellados:
+            sellados_formatted = "{:.3f}".format(cliente.sellados).replace(',', '.')
+        else:
+            sellados_formatted = 0
+        
         iva_formatted = "{:.3f}".format(cliente.iva).replace(',', '.')
     
         context = {
             'cliente': cliente,
             'recargo_financiero_formatted': recargo_financiero_formatted,
-            'sellado_impuestos_formatted': sellado_impuestos_formatted,
+            'impuestos_formatted': impuestos_formatted,
+            'sellados_formatted': sellados_formatted,
             'iva_formatted': iva_formatted,
         }
         return render(request, 'clientes/detalle_cliente.html', context)
@@ -278,6 +308,10 @@ class DetalleClienteView(View):
         direccion = request.POST.get('direccion')
         telefono = request.POST.get('telefono')
         email = request.POST.get('email')
+        recargo_financiero = request.POST.get('rf')
+        impuestos = request.POST.get('impuestos')
+        sellados = request.POST.get('sellados')
+        iva = request.POST.get('iva')
         
         # Actualiza los campos de la tarifa con los datos del formulario
         cliente.nombre_cliente = nombre
@@ -288,6 +322,11 @@ class DetalleClienteView(View):
         cliente.direccion = direccion
         cliente.telefono = telefono
         cliente.email = email
+        cliente.recargo_financiero = recargo_financiero
+        cliente.impuestos = impuestos
+        cliente.sellados = sellados
+        cliente.iva = iva
+        
         try:
             # Intenta guardar la actualización del elemento
             cliente.save()
@@ -297,7 +336,8 @@ class DetalleClienteView(View):
             messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
         return redirect('clientes')
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class EliminarClienteView(View):
     def get(self, request, cliente_id):
         cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -321,7 +361,8 @@ class EliminarClienteView(View):
         
         return redirect('clientes')
 # Movimientos
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class ObtenerDatosMovimientoView(View):
     def get(self, request, movimiento_id):
         movimiento = Movimiento.objects.get(id=movimiento_id)
@@ -335,7 +376,8 @@ class ObtenerDatosMovimientoView(View):
         }
         return JsonResponse(datos_movimiento)
     
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class EditarDatosMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         movimiento = get_object_or_404(Movimiento, id=movimiento_id)
@@ -359,7 +401,8 @@ class EditarDatosMovimientoView(View):
         
         return redirect('detalle_flota', flota_id=flota_id)
         
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class EliminarMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         
@@ -374,7 +417,8 @@ class EliminarMovimientoView(View):
         
         return redirect('detalle_flota', flota_id=flota_id)
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class ExportarMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         # Obtener movimiento
@@ -487,6 +531,7 @@ class ExportarMovimientoView(View):
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class ExportarUltimoEstadoFlotaView(View):
     def post(self, request, flota_id):
         # Obtener flota y sus vehiculos
@@ -680,9 +725,8 @@ class ExportarUltimoEstadoFlotaView(View):
         
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class FlotasView(View):
-    
-
     def get(self, request, *args, **kwargs):
         # Obtener el mes seleccionado desde la URL
         selected_month = request.GET.get("month")
@@ -737,7 +781,8 @@ class FlotasView(View):
         
         return redirect('flotas')
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class EliminarFlotaView(View):
     def get(self, request, flota_id):
         flota = get_object_or_404(Flota, id=flota_id)
@@ -762,6 +807,7 @@ class EliminarFlotaView(View):
 
 # Flotas
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class DetalleFlotaView(View):
     def get(self, request, flota_id, movimiento_id=None, *args, **kwargs):
         selected_month = request.GET.get("month")
@@ -771,7 +817,6 @@ class DetalleFlotaView(View):
         movimientos = Movimiento.objects.filter(flota=flota).order_by('fecha_alta_op')
 
         if movimiento_id:
-
             # Si hay un movimiento_id específico, obtener ese movimiento
             movimiento = Movimiento.objects.filter(id=movimiento_id).first()
 
@@ -1027,7 +1072,7 @@ class DetalleFlotaView(View):
                 
                 # Impuestos
                 recargo_financiero = cliente.recargo_financiero
-                imp_y_sellados = cliente.sellado_impuestos
+                imp_y_sellados = cliente.impuestos + cliente.sellados
                 iva = cliente.iva
                 
                 # Constantes
@@ -1105,8 +1150,9 @@ class DetalleFlotaView(View):
                 
                 # Calcular premio sin iva y con iva
                 premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / CIEN)
-                premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / CIEN)
-                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * imp_y_sellados) / CIEN) + ((premio_vigente_sin_iva * iva) / CIEN)
+                base_imponible = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / CIEN)
+                premio_vigente_sin_iva = base_imponible + ((base_imponible * imp_y_sellados) / CIEN)
+                premio_vigente_con_iva = premio_vigente_sin_iva + ((prima_pza_vigente * iva) / CIEN)
                 
                 print("Premio sin iva: ", premio_vigente_sin_iva)
                 
@@ -1267,6 +1313,7 @@ class DetalleFlotaView(View):
         
 # Tarifas flotas
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class DeleteAllTarifasFlotasView(View):
     def post(self, request, *args, **kwargs):
         try:
@@ -1280,6 +1327,7 @@ class DeleteAllTarifasFlotasView(View):
         return redirect('tarifas_flotas')
     
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class TarifasFlotasView(View):
     def get(self, request, *args, **kwargs):
 
@@ -1351,7 +1399,9 @@ class TarifasFlotasView(View):
         # Redirige a la página de flotas o realiza alguna otra acción que desees
         return redirect('tarifas_flotas')
 
+
 @method_decorator(login_required, name='dispatch')   
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class DetalleTarifaFlotaView(View):
     def get(self, request, tarifa_id):
         tarifa = get_object_or_404(TarifaFlota, id=tarifa_id)
@@ -1393,7 +1443,8 @@ class DetalleTarifaFlotaView(View):
             messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
         return redirect('tarifas_flotas')
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class EliminarTarifaFlotaView(View):
     def get(self, request, tarifa_id):
         tarifa = get_object_or_404(TarifaFlota, id=tarifa_id)
@@ -1420,6 +1471,7 @@ class EliminarTarifaFlotaView(View):
 
 # Cobranzas
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoAvanzado').exists() or user.is_staff), name='dispatch')
 class CobranzasView(View):
     def get(self, request, *args, **kwargs):
          # Obtén el mes seleccionado desde la URL
@@ -1516,6 +1568,7 @@ class CobranzasView(View):
 
 # Vencimientos
 @method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoAvanzado').exists() or user.is_staff), name='dispatch')
 class VencimientosView(View):
     def get(self, request, *args, **kwargs):
          # Obtén el mes seleccionado desde la URL
@@ -1611,7 +1664,8 @@ class VencimientosView(View):
                     )
                     
 # Localidades
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoAvanzado').exists() or user.is_staff), name='dispatch')
 class LocalidadesView(View):
     def get(self, request, *args, **kwargs):
         localidades = Localidad.objects.all()
@@ -1711,7 +1765,8 @@ def obtener_datos_vehiculo(request, vehiculo_id):
         except VehiculoInfoAuto.DoesNotExist:
             return JsonResponse({'error': 'Vehículo no encontrado'}, status=404)
 
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class BuscarVehiculoView(View):
     def get(self, request, *args, **kwargs):
         marcas = MarcaInfoAuto.objects.order_by('nombre')
@@ -1722,7 +1777,8 @@ class BuscarVehiculoView(View):
         return render(request, 'info_auto/buscar_vehiculo.html', context)
 
 # Vehículos info auto
-@method_decorator(login_required, name='dispatch')   
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoAvanzado').exists() or user.is_staff), name='dispatch')
 class VehiculosInfoAutoView(View):
     def get(self, request, *args, **kwargs):
         vehiculos = VehiculoInfoAuto.objects.order_by('marca__nombre')
@@ -1744,54 +1800,66 @@ class VehiculosInfoAutoView(View):
         }
         if 'delete_data' in request.POST:
             VehiculoInfoAuto.objects.all().delete()
+            MarcaInfoAuto.objects.all().delete()
             return redirect('vehiculos')
         if 'importar_excel' in request.POST:
 
-            file1 = request.FILES.get('file1')
-            archivo_csv_texto = TextIOWrapper(file1, encoding='utf-8')
-            datos_csv = csv.reader(islice(archivo_csv_texto, 3, None))
+            archivo = request.FILES.get('file1')
+            formato = request.POST.get('formato')
+            
+            if formato == 'csv':
+                datos = TextIOWrapper(archivo, encoding='utf-8')
+                datos_csv = csv.reader(datos)
+            elif formato == 'xlsx':
+                datos = BytesIO(archivo.read())
+                libro_excel = openpyxl.load_workbook(datos)
+                hoja_activa = libro_excel.active
+                datos_excel = hoja_activa.iter_rows(values_only=True)
+            else:
+                # Manejar error si el formato no es válido
+                return HttpResponse("Formato de archivo no válido")
 
-            # Itera sobre las filas del CSV
-            for fila in datos_csv:
-                
-                cod =fila[0]
-                marca =fila[1]
-                descripcion =fila[2]
-                nacionalidad =fila[3]
+            for index, fila in enumerate(datos_csv, start=1) if formato == 'csv' else enumerate(datos_excel, start=1):
+                if index < 4:
+                    continue
+                cod = fila[0]
+                marca = fila[1]
+                descripcion = fila[2]
+                nacionalidad = fila[3]
                 tipo = fila[4]
-                okm =fila[5]
-                # Si la marca ya fue creada lo guardo en marca
-                marca, created = MarcaInfoAuto.objects.get_or_create(nombre=marca)
+                okm = fila[5]
                 print(cod)
                 print(marca)
                 print(descripcion)
                 print(tipo)
                 print(okm)
-                # Crear el objeto VehiculoInfoauto
+                marca, created = MarcaInfoAuto.objects.get_or_create(nombre=marca)
+                
                 vehiculo = VehiculoInfoAuto.objects.create(
                     codigo=cod,
                     marca=marca,
                     descripcion=descripcion,
                     nacionalidad=nacionalidad,
                     tipo_vehiculo=tipo,
-
                 )
-                if okm != '':
-                    okm_decimal = Decimal(okm.replace(',', '.'))  # Reemplaza ',' con '.' para manejar decimales
-                    print("0km decimal: ", okm_decimal)
+                
+                if okm:
+                    if formato == 'xlsx':
+                        okm_decimal = Decimal(okm) if okm != '' or okm != None else 0
+                    else:
+                        okm_decimal = Decimal(okm.replace(',', '.')) if okm != '' or okm != None else 0
                     vehiculo.precio_okm = okm_decimal
                     vehiculo.save()
-                # Iterar a través de los años y asignar precios si hay información
-               
-               
+                
                 for i, year in enumerate(range(2024, 2003, -1)):
                     precio_str = fila[i + 6] if i + 6 < len(fila) else None
-                    if precio_str is not None and precio_str != '':
-                        precio_decimal = Decimal(precio_str.replace(',', '.'))  # Reemplaza ',' con '.' para manejar decimales
-                        print("Precio: ", precio_decimal)
+                    if precio_str and precio_str != '':
+                        if formato == 'xlsx':
+                            precio_decimal = Decimal(precio_str)
+                        else:
+                            precio_decimal = Decimal(precio_str.replace(',', '.'))
                         PrecioAnual.objects.create(vehiculo=vehiculo, anio=year, precio=precio_decimal)
-                       
-                
+        
         return redirect('vehiculos')
 # Autenticación
 class SignOutView(View):
