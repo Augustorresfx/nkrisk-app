@@ -1833,15 +1833,23 @@ class VehiculosInfoAutoView(View):
                 print(descripcion)
                 print(tipo)
                 print(okm)
-                marca, created = MarcaInfoAuto.objects.get_or_create(nombre=marca)
+                marca, marca_created = MarcaInfoAuto.objects.get_or_create(nombre=marca)
                 
-                vehiculo = VehiculoInfoAuto.objects.create(
-                    codigo=cod,
-                    marca=marca,
-                    descripcion=descripcion,
-                    nacionalidad=nacionalidad,
-                    tipo_vehiculo=tipo,
-                )
+                vehiculo_created = VehiculoInfoAuto.objects.filter(codigo = cod)
+                
+                # Buscar o crear el vehiculo
+                if vehiculo_created.exists():
+                    vehiculo = vehiculo_created.first()
+                else:
+                    vehiculo = VehiculoInfoAuto.objects.create(
+                        codigo=cod,
+                        marca=marca,
+                        descripcion=descripcion,
+                        nacionalidad=nacionalidad,
+                        tipo_vehiculo=tipo,
+                    )
+                
+                print(type(vehiculo), vehiculo)
                 
                 if okm:
                     if formato == 'xlsx':
@@ -1858,7 +1866,16 @@ class VehiculosInfoAutoView(View):
                             precio_decimal = Decimal(precio_str)
                         else:
                             precio_decimal = Decimal(precio_str.replace(',', '.'))
-                        PrecioAnual.objects.create(vehiculo=vehiculo, anio=year, precio=precio_decimal)
+                        # Buscar todos los precios anuales existentes para el vehículo y el año dado
+                        precios_anuales = PrecioAnual.objects.filter(vehiculo=vehiculo, anio=year)
+                        
+                        # Actualizar o crear precios anuales según sea necesario
+                        if precios_anuales.exists():
+                            for precio_anual in precios_anuales:
+                                precio_anual.precio = precio_decimal
+                                precio_anual.save()
+                        else:
+                            PrecioAnual.objects.create(vehiculo=vehiculo, anio=year, precio=precio_decimal)
         
         return redirect('vehiculos')
 # Autenticación
