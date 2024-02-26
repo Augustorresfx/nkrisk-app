@@ -1329,6 +1329,7 @@ class DeleteAllTarifasFlotasView(View):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class TarifasFlotasView(View):
+    
     def get(self, request, *args, **kwargs):
 
         tarifas = TarifaFlota.objects.all()
@@ -1343,6 +1344,113 @@ class TarifasFlotasView(View):
 
         }
         return render(request, 'tarifas_flotas/tarifas_flotas.html', context)
+    def obtener_datos_por_rango(self, pagina, inicio, fin):
+        datos = []
+        for row in range(inicio, fin + 1):
+            fila = []
+            for col in range(1, pagina.max_column + 1):
+                valor = pagina.cell(row=row, column=col).value
+                fila.append(valor)
+            datos.append((row, fila))  # Se añade el número de fila junto con los datos
+        return datos
+    
+    def obtener_antiguedad_y_tipo_vehiculo(self, titulo):
+        mapeo_vehiculos = {
+            'Autos hasta 5 años de antigüedad': ('5', 'AUTO'),
+            'Autos de 6 a 10 años de antigüedad': ('6 A 10', 'AUTO'),
+            'Autos de mas de 10 años de antigüedad': ('MÁS DE 10', 'AUTO'),
+            'Pick ups Clase A hasta 5 años de antigüedad': ('5', 'PICK UP CLASE A'),
+            'Pick ups Clase A de 6 a 10 años de antigüedad': ('6 A 10', 'PICK UP CLASE A'),
+            'Pick ups Clase A de mas de 10 años de antigüedad': ('MÁS DE 10', 'PICK UP CLASE A'),
+            'Pick ups 4x4 hasta 5 años de antigüedad': ('5', 'PICK UP 4X4'),
+            'Pick ups 4x4 de 6 a 10 años de antigüedad': ('6 A 10', 'PICK UP 4X4'),
+            'Pick ups 4x4 de mas de 10 años de antigüedad': ('MÁS DE 10', 'PICK UP 4X4'),
+            'Pick ups Clase B hasta 5 años de antigüedad': ('5', 'PICK UP CLASE B'),
+            'Pick ups Clase B de 6 a 10 años de antigüedad': ('6 A 10', 'PICK UP CLASE B'),
+            'Pick ups Clase B de mas de 10 años de antigüedad': ('MÁS DE 10', 'PICK UP CLASE B')
+        }
+        return mapeo_vehiculos.get(titulo, (None, None))  # Si el título no está en el diccionario, devuelve None
+
+    def mapear_nombre_zona(self, nombre_zona):
+        zonas = {
+            'ZONA CAPITAL FEDERAL, ZONA NORTE (Florida, Olivos, San Fdo, San Isidro, Tigre, Vte Lopez)': 'ZONA CAPITAL FEDERAL, ZONA NORTE',
+            'ZONA SUR (Villa Dominico, Burzaco, Adrogue, Banfield, Bernal, Burzaco, Lanus, Monte Grande, Quilmes, Luis Guillon, Lomas de Zamora, San Justo)': 'ZONA SUR',
+            'ZONA OESTE (Ramos Mejia, Moreno, Castelar, Ituzaingo)': 'ZONA OESTE',
+            'ZONA LA PLATA (La Plata, Berisso)': 'ZONA LA PLATA',
+            'ZONA CORDOBA (Capital)/ Catamarca/ La Rioja / San Juan / San Luis / Santiago del Estero / Formosa / Jujuy / Salta / Tucumán': 'ZONA CORDOBA',
+            'ZONA MENDOZA (Capital) Neuquén / La Pampa / Chubut / Río Negro / Santa Cruz': 'ZONA MENDOZA',
+            'ZONA SANTA FE (Capital) / Chaco / Entre Ríos / Corrientes / Misiones': 'ZONA SANTA FE',
+            'ZONA ROSARIO': 'ZONA ROSARIO',
+            'ZONA MAR DEL PLATA': 'ZONA MAR DEL PLATA'
+        }
+        return zonas.get(nombre_zona, nombre_zona)  # Si el nombre de la zona no está en el diccionario, devuelve el nombre original
+
+    def guardar_datos_por_condicion(self, datos, nombre_zona):
+        for num_fila, fila in datos:
+            titulo = fila[0]
+        
+            antiguedad, tipo_vehiculo = self.obtener_antiguedad_y_tipo_vehiculo(titulo)
+            zona = self.mapear_nombre_zona(nombre_zona)
+            # Cobertura básica
+            tasa = fila[1]
+            prima_rc = fila[2]
+            tipo_cobertura = 'COB BASICA'
+            # Guardar en la BD
+            tarifa = TarifaFlota(
+                titulo=titulo,
+                antiguedad=antiguedad,
+                tipo_vehiculo=tipo_vehiculo,
+                zona=zona,
+                tasa=tasa,
+                prima_rc_anual=prima_rc,
+                tipo_cobertura=tipo_cobertura,
+            )
+            tarifa.save()
+            # Cobertura clásica
+            tasa = fila[3]
+            prima_rc = fila[4]
+            tipo_cobertura = 'COB CLASICA'
+            # Guardar en la BD
+            tarifa = TarifaFlota(
+                titulo=titulo,
+                antiguedad=antiguedad,
+                tipo_vehiculo=tipo_vehiculo,
+                zona=zona,
+                tasa=tasa,
+                prima_rc_anual=prima_rc,
+                tipo_cobertura=tipo_cobertura,
+            )
+            tarifa.save()
+            # Cobertura póliza 10
+            tasa = fila[5]
+            prima_rc = fila[6]
+            tipo_cobertura = 'COB POLIZA 10'
+            # Guardar en la BD
+            tarifa = TarifaFlota(
+                titulo=titulo,
+                antiguedad=antiguedad,
+                tipo_vehiculo=tipo_vehiculo,
+                zona=zona,
+                tasa=tasa,
+                prima_rc_anual=prima_rc,
+                tipo_cobertura=tipo_cobertura,
+            )
+            tarifa.save()
+            # Cobertura todo riesgo
+            tasa = fila[7]
+            prima_rc = fila[8]
+            tipo_cobertura = 'COB TODO AUTO'
+            # Guardar en la BD
+            tarifa = TarifaFlota(
+                titulo=titulo,
+                antiguedad=antiguedad,
+                tipo_vehiculo=tipo_vehiculo,
+                zona=zona,
+                tasa=tasa,
+                prima_rc_anual=prima_rc,
+                tipo_cobertura=tipo_cobertura,
+            )
+            tarifa.save()
     def post(self, request, *args, **kwargs):
         
         if "delete_data" in request.POST:
@@ -1350,23 +1458,75 @@ class TarifasFlotasView(View):
             return redirect('tarifas_flotas')
         if "importar_excel" in request.POST:
             file1 = request.FILES.get('file1')
-            workbook = openpyxl.load_workbook(file1)
-            sheet = workbook.active
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                titulo, zona, tipo_vehiculo, antiguedad, tipo_cobertura, tasa, prima_rc_anual = row
-                # Convierte las comas a puntos en los campos de tasa y prima_rc_anual
-                #tasa = tasa.replace(',', '.') if tasa is not None else None
-                #prima_rc_anual = prima_rc_anual.replace(',', '.') if prima_rc_anual is not None else None
-                TarifaFlota.objects.create(
-                    titulo = titulo,
-                    zona = zona,
-                    tipo_vehiculo = tipo_vehiculo,
-                    antiguedad = antiguedad,
-                    tipo_cobertura = tipo_cobertura,
-                    tasa = tasa,
-                    prima_rc_anual = prima_rc_anual
-                )
+            wb = openpyxl.load_workbook(file1)
             
+            primer_pagina = wb.active
+            
+            primer_pagina = wb['Table 1']
+            segunda_pagina = wb['Table 2']
+            tercer_pagina = wb['Table 3']
+            cuarta_pagina = wb['Table 4']
+            quinta_pagina = wb['Table 5']
+
+            # Obtener información de zonas
+            zona1 = primer_pagina['B1':'I1']
+            zona2 = primer_pagina['B17':'I17']
+            zona3 = segunda_pagina['B1':'I1']
+            zona4 = segunda_pagina['B16':'I16']
+            zona5 = tercer_pagina['B1':'I1']
+            zona6 = tercer_pagina['B16':'I16']
+            zona7 = cuarta_pagina['B1':'I1']
+            zona8 = cuarta_pagina['B16':'I16']
+            zona9 = quinta_pagina['B1':'I1']
+            
+            # Guardar nombres de zonas
+            nombre_zona1 = [celda.value for fila in zona1 for celda in fila]
+            nombre_zona2 = [celda.value for fila in zona2 for celda in fila]
+            nombre_zona3 = [celda.value for fila in zona3 for celda in fila]
+            nombre_zona4 = [celda.value for fila in zona4 for celda in fila]
+            nombre_zona5 = [celda.value for fila in zona5 for celda in fila]
+            nombre_zona6 = [celda.value for fila in zona6 for celda in fila]
+            nombre_zona7 = [celda.value for fila in zona7 for celda in fila]
+            nombre_zona8 = [celda.value for fila in zona8 for celda in fila]
+            nombre_zona9 = [celda.value for fila in zona9 for celda in fila]
+            
+            # Guardar datos de zona 1
+            datos_zona_1 = self.obtener_datos_por_rango(primer_pagina, 5, 16)
+            self.guardar_datos_por_condicion(datos_zona_1, nombre_zona1[0])
+            
+            # Guardar datos de zona 2
+            datos_zona_2 = self.obtener_datos_por_rango(primer_pagina, 20, 31)
+            self.guardar_datos_por_condicion(datos_zona_2, nombre_zona2[0])
+            
+            # Guardar datos de zona 3
+            datos_zona_3 = self.obtener_datos_por_rango(segunda_pagina, 4, 15)
+            self.guardar_datos_por_condicion(datos_zona_3, nombre_zona3[0])
+            
+            # Guardar datos de zona 4
+            datos_zona_4 = self.obtener_datos_por_rango(segunda_pagina, 19, 30)
+            self.guardar_datos_por_condicion(datos_zona_4, nombre_zona4[0])
+
+            # Guardar datos de zona 5
+            datos_zona_5 = self.obtener_datos_por_rango(tercer_pagina, 4, 15)
+            self.guardar_datos_por_condicion(datos_zona_5, nombre_zona5[0])
+            
+            # Guardar datos de zona 6
+            datos_zona_6 = self.obtener_datos_por_rango(tercer_pagina, 19, 30)
+            self.guardar_datos_por_condicion(datos_zona_6, nombre_zona6[0])
+            
+            # Guardar datos de zona 7
+            datos_zona_7 = self.obtener_datos_por_rango(cuarta_pagina, 4, 15)
+            self.guardar_datos_por_condicion(datos_zona_7, nombre_zona7[0])
+            
+            # Guardar datos de zona 8
+            datos_zona_8 = self.obtener_datos_por_rango(cuarta_pagina, 19, 30)
+            self.guardar_datos_por_condicion(datos_zona_8, nombre_zona8[0])
+            
+            # Guardar datos de zona 9
+            datos_zona_9 = self.obtener_datos_por_rango(quinta_pagina, 4, 15)
+            self.guardar_datos_por_condicion(datos_zona_9, nombre_zona9[0])
+
+                
         # Obtén los datos del formulario directamente desde request.POST
         titulo = request.POST.get('titulo')
         zona = request.POST.get('zona')
