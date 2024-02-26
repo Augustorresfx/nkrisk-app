@@ -172,8 +172,8 @@
 
         {% endblock content %}
         </main>
-        <div class="container">
-        <footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 my-5 border-top">
+        <div class="container px-4">
+        <footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 border-top">
           <div class="col mb-3">
             <h4 class="fw-bold">Nkrisk</h3>
             <p class="text-body-secondary">© 2024</p>
@@ -204,17 +204,19 @@
               <li class="nav-item"><a href="/vehiculos/" class="nav-link text-body-secondary p-0">Base de datos de vehículos</a></li>
               
           </div>
-      
+          {% endif %}
+          {% endif %}
           <div class="col mb-3">
-
+  
             <ul class="nav flex-column">
               
               <li class="nav-item"><a href="/logout/" class="nav-link text-body-secondary p-0">Cerrar sesión</a></li>
-            {% else %}
+              
+              {% else %}
+            
             <ul class="nav flex-column">
               <li class="nav-item"><a href="/login/" class="nav-link text-body-secondary p-0">Iniciar sesión</a></li>
-            {% endif %}
-            {% endif %}
+            
             {% endif %}
             </ul>
           </div>
