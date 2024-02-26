@@ -185,22 +185,22 @@
       
           <div class="col mb-3">
           {% if user.is_authenticated %}
-
+          {% if is_permiso_basico or is_staff %}
             <ul class="nav flex-column">
+              <li class="nav-item"><a href="/inicio/" class="nav-link text-body-secondary p-0">Inicio</a></li>
               <li class="nav-item"><a href="/clientes/" class="nav-link text-body-secondary p-0">Clientes</a></li>
               <li class="nav-item"><a href="/flotas/" class="nav-link text-body-secondary p-0">Flotas</a></li>
               <li class="nav-item"><a href="/buscar_vehiculo/" class="nav-link text-body-secondary p-0">Buscar un vehículo</a></li>
               <li class="nav-item"><a href="/tarifas_flotas/" class="nav-link text-body-secondary p-0">Tarifas de flotas</a></li>
-              <li class="nav-item"><a href="/localidades/" class="nav-link text-body-secondary p-0">Localidades</a></li>
           </div>
-
+          {% if is_staff %}
           <div class="col mb-3">
          
 
             <ul class="nav flex-column">
-              <li class="nav-item"><a href="/inicio/" class="nav-link text-body-secondary p-0">Inicio</a></li>
               <li class="nav-item"><a href="/vencimientos/" class="nav-link text-body-secondary p-0">Vencimientos</a></li>
               <li class="nav-item"><a href="/cobranzas/" class="nav-link text-body-secondary p-0">Cobranzas</a></li>
+              <li class="nav-item"><a href="/localidades/" class="nav-link text-body-secondary p-0">Localidades</a></li>
               <li class="nav-item"><a href="/vehiculos/" class="nav-link text-body-secondary p-0">Base de datos de vehículos</a></li>
               
           </div>
@@ -213,6 +213,8 @@
             {% else %}
             <ul class="nav flex-column">
               <li class="nav-item"><a href="/login/" class="nav-link text-body-secondary p-0">Iniciar sesión</a></li>
+            {% endif %}
+            {% endif %}
             {% endif %}
             </ul>
           </div>
