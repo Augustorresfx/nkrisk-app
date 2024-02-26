@@ -2,10 +2,8 @@
 {% load static %}
 {% block content %}
 
-<div class="container col-xxl-12 py-5">
-  <h1 class=" my-5"> 
-    Funciones 
-  </h1>
+<div class="container col-xxl-12 ">
+
   {% if errores %}
                 <div class="alert alert-danger mt-3">
                   
@@ -16,6 +14,58 @@
                   </ul>
                 </div>
   {% endif %}
+<div class="pt-5 d-md-none d-lg-none"></div>
+  <div class="min-vh-100 d-flex">
+    <div class="container align-self-center">
+      <div class="row ">
+        <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
+          <div class="lc-block py-sm-4 py-md-5 py-lg-5">
+            <div editable="rich">
+  
+              <h5><a class="text-body text-decoration-none" href="/clientes/"><strong>&gt; VER CLIENTES</strong></a></h5>
+                <p>Accede para ver, crear, eliminar o modificar clientes y mantener la base de datos actualizada y organizada</p>
+            </div>
+          </div><!-- /lc-block -->
+  
+          <div class="lc-block  py-sm-4 py-md-5 py-lg-5">
+            <div editable="rich">
+  
+              <h5><a class="text-body text-decoration-none" href="/flotas/"><strong>&gt; VER FLOTAS</strong></a></h5>
+              <p>Administrá y supervisá las flotas de vehículos. Accedé a información detallada sobre los cambios en la composición de las flotas.</p>
+            </div>
+          </div><!-- /lc-block -->
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 align-center ">
+  
+          <div class="lc-block" style="width:100%">
+            <img alt="" class="img-fluid" src="{% static 'images/toma-decisiones.png' %}">
+          </div>
+  
+  
+  
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 ">
+          <div class="lc-block  py-sm-0 py-md-5 py-lg-5">
+            <div editable="rich">
+  
+              <h5><a class="text-body text-decoration-none" href="/buscar_vehiculo/"><strong>&gt; BUSCAR UN VEHICULO</strong></a></h5>
+              <p>Encontrá rápidamente vehículos específicos dentro de la base de datos.</p>
+            </div>
+          </div><!-- /lc-block -->
+  
+          <div class="lc-block py-sm-0 py-md-5 py-lg-5">
+            <div editable="rich">
+  
+              <h5><a class="text-body text-decoration-none" href="/tarifas_flotas/"><strong>&gt; VER TARIFAS</strong></a></h5>
+              <p>Consulta las tarifas y cotizaciones para seguros de vehículos.</p>
+            </div>
+          </div><!-- /lc-block -->
+        </div>
+      </div>
+    </div>
+  </div> 
+   
+{% comment %}     
   <div class="row row-cols-1 row-cols-md-2 g-4">
     <div class="col">
       <div class="card mb-3 border-0 shadow-sm" style="max-width: 540px;">
@@ -91,5 +141,6 @@
 
 
     </div>
-  </div>
+ {% endcomment %}
+</div> 
 {% endblock %}
