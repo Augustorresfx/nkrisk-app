@@ -172,7 +172,7 @@
 
         {% endblock content %}
         </main>
-        <div class="container px-4">
+        <div class="container mt-2 px-4">
         <footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 border-top">
           <div class="col mb-3">
             <h4 class="fw-bold">Nkrisk</h3>
@@ -195,14 +195,11 @@
           </div>
           {% if is_staff %}
           <div class="col mb-3">
-         
-
             <ul class="nav flex-column">
               <li class="nav-item"><a href="/vencimientos/" class="nav-link text-body-secondary p-0">Vencimientos</a></li>
               <li class="nav-item"><a href="/cobranzas/" class="nav-link text-body-secondary p-0">Cobranzas</a></li>
               <li class="nav-item"><a href="/localidades/" class="nav-link text-body-secondary p-0">Localidades</a></li>
               <li class="nav-item"><a href="/vehiculos/" class="nav-link text-body-secondary p-0">Base de datos de vehículos</a></li>
-              
           </div>
           {% endif %}
           {% endif %}
@@ -252,8 +249,20 @@
             $('#table-body').empty();
             $('#table-head').empty();
             // Inicialización de Select2 para la marca
-            $('#Marcas').select2();
-    
+            $('#Marcas').select2({
+              language: {
+                  noResults: function() {
+                      return "No se encontraron resultados";
+                  }
+              }
+            });
+            $('#Vehiculos').select2({
+              language: {
+                  noResults: function() {
+                      return "No se encontraron resultados";
+                  }
+              }
+            });
             // Manejo del cambio en el select de la marca
             $('#Marcas').on('change', function() {
                 var marca_id = $(this).val();
