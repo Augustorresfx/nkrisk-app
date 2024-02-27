@@ -6,10 +6,10 @@
 {% block content %}
     
     <main class="mt-5 pt-3">
-        <div class="row">
-            <div class="col-md-4 offset-md-4 mt-5">
-                <form method="POST" class="card card-body ">
-                    <h1 class="text-center">
+        <div class="row align-items-center justify-content-center">
+            <div class="col-md-12 mt-5">
+                <form method="POST" class="">
+                    <h1 class="">
                         Editar cliente
                     </h1>
 
@@ -27,70 +27,73 @@
                         <input type="text" name="cuit" id="cuit" value="{{cliente.cuit}}"
                         class="form-control" placeholder="Cuit">
                     </div>
+                    <div class="row g-3">
+                        <div class="col-sm mb-3">
+                            <label for="nacionalidad">Nacionalidad:</label>
+                            <input type="text" name="nacionalidad" id="nacionalidad" value="{{cliente.nacionalidad}}"
+                            class="form-control" placeholder="Nacionalidad">
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="nacionalidad">Nacionalidad:</label>
-                        <input type="text" name="nacionalidad" id="nacionalidad" value="{{cliente.nacionalidad}}"
-                        class="form-control" placeholder="Nacionalidad">
+                        <div class="col-sm-7 mb-3">
+                            <label for="provincia">Provincia:</label>
+                            <input type="text" name="provincia" id="provincia" value="{{cliente.provincia}}"
+                            class="form-control" placeholder="Provincia">
+                        </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="provincia">Provincia:</label>
-                        <input type="text" name="provincia" id="provincia" value="{{cliente.provincia}}"
-                        class="form-control" placeholder="Provincia">
+                    <div class="row g-3">
+                        <div class="col-sm mb-3">
+                            <label for="localidad">Localidad:</label>
+                            <input type="text" name="localidad" id="localidad" value="{{cliente.localidad}}"
+                            class="form-control" placeholder="Localidad">
+                        </div>
+                        
+                        <div class="col-sm-8 mb-3">
+                            <label for="direccion">Dirección:</label>
+                            <input type="text" name="direccion" id="direccion" value="{{cliente.direccion}}"
+                            class="form-control" placeholder="Dirección">
+                        </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="localidad">Localidad:</label>
-                        <input type="text" name="localidad" id="localidad" value="{{cliente.localidad}}"
-                        class="form-control" placeholder="Localidad">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="direccion">Dirección:</label>
-                        <input type="text" name="direccion" id="direccion" value="{{cliente.direccion}}"
-                        class="form-control" placeholder="Dirección">
-                    </div>
-
-                    <div class="mb-3">
+                    <div class="row g-3">
+                    <div class="col-sm mb-3">
                         <label for="telefono">Teléfono:</label>
                         <input type="text" name="telefono" id="telefono" value="{{cliente.telefono}}"
                         class="form-control" placeholder="Teléfono">
                     </div>
 
-                    <div class="mb-3">
+                    <div class="col-sm mb-3">
                         <label for="email">E-mail:</label>
                         <input type="email" name="email" id="email" value="{{cliente.email}}"
                         class="form-control" placeholder="E-mail">
                     </div>
-
-                    <div class="mb-3">
+                    </div>
+                    <div class="row g-3">
+                    <div class="col-sm mb-3">
                         <label for="rf">RF:</label>
                         <input type="number" step="0.001" min="0" name="rf" id="rf" value="{{recargo_financiero_formatted}}"
                         class="form-control" placeholder="RF">
                     </div>
 
-                    <div class="mb-3">
+                    <div class="col-sm mb-3">
                         <label for="impuestos">Impuestos:</label>
                         <input type="number" step="0.001" min="0" name="impuestos" id="impuestos" value="{{impuestos_formatted}}"
                         class="form-control" placeholder="Impuestos">
                     </div>
 
-                    <div class="mb-3">
+                    <div class="col-sm mb-3">
                         <label for="sellados">Sellados:</label>
                         <input type="number" step="0.001" min="0" name="sellados" id="sellados" value="{{sellados_formatted}}"
                         class="form-control" placeholder="Sellados">
                     </div>
 
-                    <div class="mb-3">
+                    <div class="col-sm mb-3">
                         <label for="iva">IVA:</label>
                         <input type="number" step="0.001" min="0" name="iva" id="iva" value="{{iva_formatted}}"
                         class="form-control" placeholder="IVA">
                     </div>
-
-                    <button type="submit" class="btn btn-primary">
-                        Editar
-                    </button>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary rounded-1 btn-lg"
+              style="padding-left: 2.5rem; padding-right: 2.5rem;">Editar</button>
                 </form>
             </div>
         </div>
