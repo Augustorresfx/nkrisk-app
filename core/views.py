@@ -1277,11 +1277,11 @@ class DetalleFlotaView(View):
             if nuevo_movimiento:
                 nuevo_movimiento.save()
             # Crear una respuesta HTTP con el archivo adjunto
-            response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
+            #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
             workbook.close()
             
-            return response
+            return redirect('detalle_flota', flota_id=flota_id)
                 
         flota = Flota.objects.get(id=flota_id)
         cod_infoauto = request.POST.get('cod_infoauto')
