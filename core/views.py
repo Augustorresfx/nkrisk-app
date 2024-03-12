@@ -1951,7 +1951,6 @@ class BuscarVehiculoView(View):
             'marcas': marcas,
         }
         return render(request, 'info_auto/buscar_vehiculo.html', context)
-
 # Vehículos info auto
 @method_decorator(login_required, name='dispatch')
 @method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoAvanzado').exists() or user.is_staff), name='dispatch')
@@ -1968,21 +1967,18 @@ class VehiculosInfoAutoView(View):
 
         }
         return render(request, 'info_auto/vehiculos_info_auto.html', context)
+
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        lista_errores = []
-        context = {
-            'errores': lista_errores
-        }
         if 'delete_data' in request.POST:
             VehiculoInfoAuto.objects.all().delete()
             MarcaInfoAuto.objects.all().delete()
             return redirect('vehiculos')
+        
         if 'importar_excel' in request.POST:
-
             archivo = request.FILES.get('file1')
             formato = request.POST.get('formato')
-            
+
             if formato == 'csv':
                 datos = TextIOWrapper(archivo, encoding='utf-8')
                 datos_csv = csv.reader(datos)
@@ -1992,67 +1988,50 @@ class VehiculosInfoAutoView(View):
                 hoja_activa = libro_excel.active
                 datos_excel = hoja_activa.iter_rows(values_only=True)
             else:
-                # Manejar error si el formato no es válido
                 return HttpResponse("Formato de archivo no válido")
+
+            lista_vehiculos_nuevos = []
+            lista_precios_anuales = []
+
+            # Obtener todas las marcas existentes
+            marcas = {marca.nombre: marca for marca in MarcaInfoAuto.objects.all()}
 
             for index, fila in enumerate(datos_csv, start=1) if formato == 'csv' else enumerate(datos_excel, start=1):
                 if index < 4:
                     continue
-                cod = fila[0]
-                marca = fila[1]
-                descripcion = fila[2]
-                nacionalidad = fila[3]
-                tipo = fila[4]
-                okm = fila[5]
-                print(cod)
-                print(marca)
-                print(descripcion)
-                print(tipo)
-                print(okm)
-                marca, marca_created = MarcaInfoAuto.objects.get_or_create(nombre=marca)
-                
-                vehiculo_created = VehiculoInfoAuto.objects.filter(codigo = cod)
-                
-                # Buscar o crear el vehiculo
-                if vehiculo_created.exists():
-                    vehiculo = vehiculo_created.first()
-                else:
-                    vehiculo = VehiculoInfoAuto.objects.create(
-                        codigo=cod,
-                        marca=marca,
-                        descripcion=descripcion,
-                        nacionalidad=nacionalidad,
-                        tipo_vehiculo=tipo,
-                    )
-                
-                print(type(vehiculo), vehiculo)
-                
-                if okm:
-                    if formato == 'xlsx':
-                        okm_decimal = Decimal(okm) if okm != '' or okm != None else 0
-                    else:
-                        okm_decimal = Decimal(okm.replace(',', '.')) if okm != '' or okm != None else 0
-                    vehiculo.precio_okm = okm_decimal
-                    vehiculo.save()
-                
+
+                cod, marca_nombre, descripcion, nacionalidad, tipo, okm, *precios = fila
+
+                marca = marcas.get(marca_nombre)
+
+                if not marca:
+                    marca, _ = MarcaInfoAuto.objects.get_or_create(nombre=marca_nombre)
+                    marcas[marca_nombre] = marca
+
+                vehiculo = VehiculoInfoAuto(
+                    codigo=cod,
+                    marca=marca,
+                    descripcion=descripcion,
+                    nacionalidad=nacionalidad,
+                    tipo_vehiculo=tipo,
+                    precio_okm=Decimal(okm.replace(',', '.')) if okm else 0
+                )
+
+                lista_vehiculos_nuevos.append(vehiculo)
+
+                # Agregar precios anuales
                 for i, year in enumerate(range(2024, 2003, -1)):
-                    precio_str = fila[i + 6] if i + 6 < len(fila) else None
+                    precio_str = precios[i] if i < len(precios) else None
                     if precio_str and precio_str != '':
-                        if formato == 'xlsx':
-                            precio_decimal = Decimal(precio_str)
-                        else:
-                            precio_decimal = Decimal(precio_str.replace(',', '.'))
-                        # Buscar todos los precios anuales existentes para el vehículo y el año dado
-                        precios_anuales = PrecioAnual.objects.filter(vehiculo=vehiculo, anio=year)
-                        
-                        # Actualizar o crear precios anuales según sea necesario
-                        if precios_anuales.exists():
-                            for precio_anual in precios_anuales:
-                                precio_anual.precio = precio_decimal
-                                precio_anual.save()
-                        else:
-                            PrecioAnual.objects.create(vehiculo=vehiculo, anio=year, precio=precio_decimal)
-        
+                        precio_decimal = Decimal(precio_str.replace(',', '.'))
+                        lista_precios_anuales.append(PrecioAnual(vehiculo=vehiculo, anio=year, precio=precio_decimal))
+
+            # Crear vehículos en lotes
+            VehiculoInfoAuto.objects.bulk_create(lista_vehiculos_nuevos)
+
+            # Crear precios anuales en lotes
+            PrecioAnual.objects.bulk_create(lista_precios_anuales)
+
         return redirect('vehiculos')
 # Autenticación
 class SignOutView(View):
