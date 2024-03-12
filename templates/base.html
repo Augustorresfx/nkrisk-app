@@ -232,8 +232,11 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <!-- Select2 -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+        
+        
         <script>
           // In your Javascript (external .js resource or <script> tag)
+            
         $(document).ready(function() {
             $('#Marcas').select2({
               
@@ -242,9 +245,56 @@
               }
             });
         });
+// Manejo de la búsqueda por código
+    $('#codia').on('change', function() {
+      var codigo = $(this).val();
+      var url = '/buscar_vehiculo_por_codigo/' + codigo;
 
+      // Realiza la solicitud AJAX al servidor
+      $.ajax({
+          url: url,
+          type: 'GET',
+          dataType: 'json',
+          success: function(data) {
+              $('#table-body').empty();
+              $('#table-head').empty();
+              var precios = data.precios;  
+
+              // Actualiza la tabla con los datos del vehículo encontrado
+              $('#table-head').append('<th>Código</th> <th>Marca</th> <th>Nombre</th> <th>Tipo</th> <th>Nacionalidad</th>');
+              var fila = '<tr><td>' + data.codigo + '</td><td>' + data.marca + '</td><td>' + data.descripcion + '</td><td>' + data.tipo + '</td><td>' + data.nacionalidad + '</td>';
+
+              // Agrega precio 0km si existe
+              if (data.okm) {
+                  $('#table-head').append('<th>Precio 0km</th>');
+                  fila += '<td>' + data.okm + '</td>';
+              }
+
+              if (data.precios) {
+                  for (var i = 0; i < data.precios.length; i++) {
+                      $('#table-head').append('<th>' + data.precios[i].anio + '</th>');
+                  }
+              }
+
+              // Cierra la etiqueta de la fila
+              fila += '</tr>';
+
+              // Agrega la fila completa a la tabla
+              $('#table-body').append(fila);
+
+              // Agrega precios adicionales si existen
+              for (var i = 0; i < precios.length; i++) {
+                  $('#table-body tr:last').append('<td>' + precios[i].precio + '</td>');
+              }
+          },
+          error: function(error) {
+              console.log(error);
+          }
+      });
+  });
       </script>
       <script>
+
         $(document).ready(function() {
             $('#table-body').empty();
             $('#table-head').empty();
@@ -290,6 +340,7 @@
                     }
                 });
             });
+            
             // Manejo del cambio en el select del vehículo
       $('#Vehiculos').on('change', function() {
         var vehiculo_id = $(this).val();
@@ -307,13 +358,13 @@
           var precios = data.precios;  
           // Actualiza la tabla con los datos del vehículo seleccionado
           
-          $('#table-head').append('<th>Código</th> <th>Marca</th> <th>Nombre</th> <th>Nacionalidad</th>');
+          $('#table-head').append('<th>Código</th> <th>Marca</th> <th>Nombre</th> <th>Tipo</th> <th>Nacionalidad</th>');
           // Agrega años al encabezado
           
           
 
           // Agrega datos del vehículo a la fila
-          var fila = '<tr><td>' + data.codigo + '</td><td>' + data.marca + '</td><td>' + data.descripcion + '</td><td>' + data.nacionalidad + '</td>';
+          var fila = '<tr><td>' + data.codigo + '</td><td>' + data.marca + '</td><td>' + data.descripcion + '</td><td>' + data.tipo + '</td><td>' + data.nacionalidad + '</td>';
 
           // Agrega precio 0km si existe
           if (data.okm) {
@@ -344,6 +395,7 @@
       
         });  
           });
+          
     </script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
