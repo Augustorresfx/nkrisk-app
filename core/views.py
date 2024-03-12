@@ -1020,7 +1020,7 @@ class DetalleFlotaView(View):
                 
                 # Mapeo de antigüedad a categoría
                 if antiguedad_vehiculo > 10:
-                    antiguedad_categoria = "MÁS DE 10	"
+                    antiguedad_categoria = "MÁS DE 10"
                 elif 6 <= antiguedad_vehiculo <= 10:
                     antiguedad_categoria = "6 A 10"
                 else:
