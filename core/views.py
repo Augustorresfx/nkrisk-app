@@ -822,7 +822,7 @@ class DetalleFlotaView(View):
 
             if movimiento:
                 # Obtener todos los vehículos vinculados a ese movimiento a lo largo de su historial
-                vehiculos = VehiculoFlota.history.filter(movimiento=movimiento)
+                vehiculos = VehiculoFlota.history.filter(movimiento=movimiento).reverse()
             else:
                 # Si el movimiento no existe, establecer vehículos como vacío
                 vehiculos = VehiculoFlota.history.none()
@@ -830,7 +830,7 @@ class DetalleFlotaView(View):
 
             # Obtener los vehículos en su último estado
             primer_movimiento = movimientos.first()
-            vehiculos = VehiculoFlota.objects.filter(flota=flota)
+            vehiculos = VehiculoFlota.objects.filter(flota=flota).reverse()
 
         prima_tecnica_total = 0
         prima_pza_total = 0
@@ -1020,7 +1020,7 @@ class DetalleFlotaView(View):
                 
                 # Mapeo de antigüedad a categoría
                 if antiguedad_vehiculo > 10:
-                    antiguedad_categoria = "MÁS DE 10"
+                    antiguedad_categoria = "MÁS DE 10	"
                 elif 6 <= antiguedad_vehiculo <= 10:
                     antiguedad_categoria = "6 A 10"
                 else:
@@ -1029,6 +1029,10 @@ class DetalleFlotaView(View):
                 print(motivo_endoso)
                 # Buscar zona de riesgo mediante la localidad que este en el Excel
                 localidades_encontradas = Localidad.objects.filter(nombre_localidad=localidad_vehiculo)
+
+                # Si no se encuentra ninguna coincidencia por nombre de localidad, buscar por nombre de provincia
+                if not localidades_encontradas.exists():
+                    localidades_encontradas = Localidad.objects.filter(nombre_provincia=localidad_vehiculo)
                 if localidades_encontradas.exists():
                     localidad = localidades_encontradas.first()
                     print(f"Localidad encontrada: {localidad.nombre_localidad}")
@@ -1038,6 +1042,8 @@ class DetalleFlotaView(View):
                     error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
                     print(error_message)
                     lista_errores.append(error_message)
+                    
+                
                     
                 # Buscar la tarifa
                 try:
@@ -1052,19 +1058,8 @@ class DetalleFlotaView(View):
                     print(error_message)
                     lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
                 
-                # Si hay tasa en el excel y no es cero usar esa
-                if tasa_excel and tasa_excel != 0.00:
-                    tasa = tasa_excel
-                # Si no hay tasa en el excel usar la de la tarifa encontrada
-                else:
-                    tasa = tarifa.tasa
-                
-                # Si hay prima_rc en el excel y no es cero usar esa
-                if prima_rc_excel and prima_rc_excel != 0.00:
-                    prima_rc_anual = prima_rc_excel
-                # Si no hay prima rc en el excel usar la de la tarifa encontrada
-                else:
-                    prima_rc_anual = tarifa.prima_rc_anual
+                tasa = tarifa.tasa
+                prima_rc_anual = tarifa.prima_rc_anual
                 
                 print(tasa)
                 print(tasa/1000)
@@ -1075,6 +1070,8 @@ class DetalleFlotaView(View):
                 imp_y_sellados = cliente.impuestos + cliente.sellados
                 iva = cliente.iva
                 
+   
+                
                 # Constantes
                 CIEN = Decimal('100')
                 MIL = Decimal('1000')
@@ -1082,8 +1079,8 @@ class DetalleFlotaView(View):
                 COBERTURA_IMPORTADO = 112500
                 RECARGO_ADMINISTRATIVO = Decimal('10.5')
                 IVA_RG_3337 = Decimal('3')
-                DERECHO_EMISION = 2400
-                
+                DERECHO_EMISION = 2500
+                 
                 if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
                     # Si el motivo es aumento de suma y es diferente a la anterior, usar la tasa anterior, la prima rc se cobra una única vez
                     if suma_aseg != vehiculo_anterior.suma_asegurada:
@@ -1109,17 +1106,11 @@ class DetalleFlotaView(View):
                 precio = Decimal(str(precio))
                 tasa = Decimal(str(tasa))
                 prima_rc_anual = Decimal(str(prima_rc_anual))
-                print(type(precio), precio)
-                print(type(tasa), tasa)
-                print(type(prima_rc_anual), prima_rc_anual)
                 
-                print("Tasa divido mil: ", tasa/MIL)
                 # Calcular prima tecnica y prima póliza anual
-                prima_tecnica_anual = (precio) * (tasa / MIL) + prima_rc_anual 
-                print(prima_tecnica_anual)
+                prima_tecnica_anual = (precio) * (tasa / MIL) + prima_rc_anual
                 prima_por_recargo_administrativo = (prima_tecnica_anual * RECARGO_ADMINISTRATIVO) / CIEN
                 prima_pza_anual = prima_tecnica_anual + prima_por_recargo_administrativo + DERECHO_EMISION
-                print("Prima 10,5%: ",prima_por_recargo_administrativo)
 
                 # Determinar si el año siguiente es bisiesto
                 dias_totales = 366 if calendar.isleap(anio_a_calcular) else 365
@@ -1130,33 +1121,21 @@ class DetalleFlotaView(View):
                 # Cambiar el tipo de datos a Decimal para evitar errores en los cálculos
                 dias_vigencia = Decimal(str(dias_vigencia))
                 dias_totales = Decimal(str(dias_totales))
-                print(type(dias_vigencia), dias_vigencia)
-                print(type(dias_totales), dias_totales)
-                print("Dias vigencia / dias totales:",dias_vigencia/dias_totales)
+                print(dias_vigencia)
+                print(dias_totales)
                 dias_calculado = dias_vigencia/dias_totales
-                
-                print(type(dias_calculado), dias_calculado)
-                # Calcular prima tecnica y prima póliza por la vigencia
+
+                # Calcular prima tecnica y prima póliza por vigencia
                 prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
                 prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
-                print(patente)
-                print(prima_tecnica_vigente)
-                print(prima_pza_vigente)
+                
                 # Determinar la cobertura según si la unidad es importada o no
                 cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
-                print(type(recargo_financiero), recargo_financiero)
-                print(type(imp_y_sellados), imp_y_sellados)
-                print(type(iva), iva)
-                
+
                 # Calcular premio sin iva y con iva
-                premio_anual = prima_pza_anual + cobertura + ((prima_pza_anual * recargo_financiero) / CIEN)
                 base_imponible = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / CIEN)
                 premio_vigente_sin_iva = base_imponible + ((base_imponible * imp_y_sellados) / CIEN)
                 premio_vigente_con_iva = premio_vigente_sin_iva + ((prima_pza_vigente * iva) / CIEN)
-                
-                print("Premio sin iva: ", premio_vigente_sin_iva)
-                
-                print("Premio con iva: ", premio_vigente_con_iva)
 
                 
                 # Redondear valores
@@ -1164,14 +1143,20 @@ class DetalleFlotaView(View):
                 prima_pza_vigente = round(prima_pza_vigente, 2)
                 premio_vigente_sin_iva = round(premio_vigente_sin_iva, 2)
                 premio_vigente_con_iva = round(premio_vigente_con_iva, 2)
-
+                
                 # Si el movimiento es una baja los valores serán negativos
                 if tipo_string == "Baja":
                     prima_tecnica_vigente = -prima_tecnica_vigente
                     prima_pza_vigente = -prima_pza_vigente
                     premio_vigente_sin_iva = -premio_vigente_sin_iva
                     premio_vigente_con_iva = -premio_vigente_con_iva
+                print("Prima tecnica: ", prima_tecnica_vigente)
                 
+                print("Prima vigente: ", prima_pza_vigente)
+                
+                print("Premio sin iva: ", premio_vigente_sin_iva)
+                
+                print("Premio con iva: ", premio_vigente_con_iva)
                 # Actualizar los valores en las columnas existentes
                 """"
                 sheet.cell(row=row_number, column=sheet.max_column - 3, value=prima_tecnica_vigente)  # Actualizar la columna de Prima Anual
@@ -1850,11 +1835,14 @@ class LocalidadesView(View):
         if 'normalizar_nombres' in request.POST:
             localidades = Localidad.objects.all()
             for localidad in localidades:
-                # Cambiar nombre a mayúsculas y sin tilde
-                nombre_normalizado = unidecode(localidad.nombre_localidad.upper())
-    
-                # Actualiza el nombre de la localidad en la base de datos
-                localidad.nombre_localidad = nombre_normalizado
+                # Cambiar nombres a mayúsculas y sin tilde
+                nombre_localidad_normalizado = unidecode(localidad.nombre_localidad.upper())
+                nombre_municipio_normalizado = unidecode(localidad.nombre_municipio.upper())
+                nombre_provincia_normalizado = unidecode(localidad.nombre_provincia.upper())
+                # Actualiza los nombres de la localidad, municipio y provincia en la base de datos
+                localidad.nombre_localidad = nombre_localidad_normalizado
+                localidad.nombre_municipio = nombre_municipio_normalizado
+                localidad.nombre_provincia = nombre_provincia_normalizado
                 localidad.save()
         if 'importar_excel' in request.POST:
             file1 = request.FILES.get('file1')
@@ -1898,6 +1886,33 @@ def obtener_vehiculos_por_marca(request, marca_id):
     return JsonResponse(list(vehiculos), safe=False)
 
 @login_required
+def buscar_vehiculo_por_codigo(request, codigo):
+    if request.method == 'GET':
+      
+        vehiculo = VehiculoInfoAuto.objects.get(codigo=codigo)
+        precios = PrecioAnual.objects.filter(vehiculo=vehiculo)
+        # Obtener precios del vehículo
+        precios = PrecioAnual.objects.filter(vehiculo=vehiculo).order_by('-anio')
+
+        # Crear una lista de años y precios para enviar en la respuesta JSON
+        anios_precios = [{'anio': precio.anio, 'precio': precio.precio} for precio in precios]
+
+        data = {
+                'codigo': vehiculo.codigo,
+                'marca': vehiculo.marca.nombre,
+                'descripcion': vehiculo.descripcion,
+                'tipo': vehiculo.tipo_vehiculo,
+                'nacionalidad': vehiculo.nacionalidad,
+                'precios': anios_precios,
+                
+                # ... otros campos que quieras incluir ...
+            }
+        if vehiculo.precio_okm:
+            data['okm'] = vehiculo.precio_okm
+
+        return JsonResponse(data)
+
+@login_required
 def obtener_datos_vehiculo(request, vehiculo_id):
         
         try:
@@ -1913,6 +1928,7 @@ def obtener_datos_vehiculo(request, vehiculo_id):
                 'codigo': vehiculo.codigo,
                 'marca': vehiculo.marca.nombre,
                 'descripcion': vehiculo.descripcion,
+                'tipo': vehiculo.tipo_vehiculo,
                 'nacionalidad': vehiculo.nacionalidad,
                 'precios': anios_precios,
                 

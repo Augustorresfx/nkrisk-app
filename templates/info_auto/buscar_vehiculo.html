@@ -55,7 +55,6 @@
                 </select>
               </div>
               
-            
       
             <!-- Agrega el script de inicialización de Select2 -->
       
@@ -63,16 +62,32 @@
            
 
         </form>
-      
-  
-        
-        
-  
-          </div>
         </div>
+        </div>
+        <div class="col">
+          <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
+            <h4 class="h4 ">Buscar por código</h4>
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="mb-3">
+                
+                
+              </div>
 
-
-      
+                
+               <div class="mb-3">
+                <label for="codia" class="form-label">Código info auto: </label>
+                <input name="codia" id="codia" type="text" class="form-control" placeholder="Código info auto" aria-label="Código info auto" aria-describedby="basic-addon1"> 
+              </div>
+              
+              <!-- Agrega el script de inicialización de Select2 -->
+        
+                 
+             
+  
+          </form>
+          </div>
+          </div>
       </div>
 
          
@@ -85,6 +100,7 @@
                         <th scope="col">Código</th>
                         <th scope="col">Marca</th>
                         <th scope="col">Nombre</th>
+                        <th scope="col">Tipo</th>
                         <th scope="col">Nacionalidad</th>
     
                       </tr>
@@ -95,6 +111,7 @@
                       <tr>
                           <td>{{ vehiculo.codigo }}</td>
                           <td>{{ vehiculo.marca }}</td>
+                          <td>{{ vehiculo.tipo }}</td>
                           <td>{{ vehiculo.descripcion }}</td>
                           <td>{{ vehiculo.nacionalidad }}</td>
 
