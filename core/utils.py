@@ -2,8 +2,29 @@ from datetime import datetime
 
 from datetime import datetime
 
-from .models import VehiculoFlota
+from .models import VehiculoFlota, TarifaFlota
 from decimal import Decimal
+from collections import defaultdict
+
+def get_tarifas():
+    # Consultar todas las tarifas necesarias
+    tarifas = TarifaFlota.objects.all()
+    
+    # Crear un diccionario para almacenar las tarifas
+    tarifas_dict = defaultdict(dict)
+    
+    for tarifa in tarifas:
+        zona = tarifa.zona
+        tipo_vehiculo = tarifa.tipo_vehiculo
+        antiguedad = tarifa.antiguedad
+        tipo_cobertura = tarifa.tipo_cobertura
+        tasa = tarifa.tasa
+        prima_rc_anual = tarifa.prima_rc_anual
+        
+        # Almacenar la tarifa en el diccionario
+        tarifas_dict[zona][(tipo_vehiculo, antiguedad, tipo_cobertura)] = {'tasa': tasa, 'prima_rc_anual': prima_rc_anual}
+    
+    return tarifas_dict
 
 def convert_date(fecha_str):
     try:

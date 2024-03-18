@@ -30,7 +30,8 @@ from io import TextIOWrapper
 from django.db import transaction
 from django.http import HttpResponseNotFound
 from django.urls import reverse_lazy
-
+import time
+from collections import defaultdict
 # Importe de formularios
 
 # Importe de modelos
@@ -47,7 +48,7 @@ from unidecode import unidecode
 # Importe de funciones
 from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
-from .utils import get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
+from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
 
 # Roles y permisos
 def is_staff_user(user):
@@ -897,6 +898,10 @@ class DetalleFlotaView(View):
             return redirect('detalle_flota', flota_id = flota_id)
         
         if "calcular_excel" in request.POST:
+            start_time = time.time()
+            # Llama a la función para obtener el diccionario de tarifas
+            tarifas_dict = get_tarifas()
+            
             created = datetime.now()
             api_manager = ApiManager()
             nombre_movimiento = request.POST.get('nombre_movimiento')
@@ -970,8 +975,8 @@ class DetalleFlotaView(View):
                 # Usar el precio de vehiculo que este en el Excel
                 if fuente_datos == "excel":
                     precio = Decimal(suma_aseg)
-                    vehiculo = VehiculoInfoAuto.objects.get(codigo=codia)
-                    tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
+                    # Consultar solo el tipo de vehículo
+                    vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
                     # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
                     if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
                         vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
@@ -1042,24 +1047,19 @@ class DetalleFlotaView(View):
                     error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
                     print(error_message)
                     lista_errores.append(error_message)
-                    
-                
-                    
-                # Buscar la tarifa
-                try:
-                    tarifa = TarifaFlota.objects.get(
-                        tipo_vehiculo=tipo_vehiculo,
-                        antiguedad=antiguedad_categoria,
-                        zona=localidad.zona,
-                        tipo_cobertura=tipo_de_cobertura,
-                    )
-                except:
+
+                # Buscar la tarifa en el diccionario
+                tarifa_info = tarifas_dict.get(localidad.zona, {}).get((tipo_vehiculo, antiguedad_categoria, tipo_de_cobertura), None)
+
+                # Verificar si se encontró la tarifa
+                if tarifa_info:
+                    tasa = tarifa_info['tasa']
+                    prima_rc_anual = tarifa_info['prima_rc_anual']
+                else:
+                    # Manejar el caso en el que no se encuentra la tarifa
                     error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {tipo_de_cobertura}"
                     print(error_message)
-                    lista_errores.append(error_message)  # Agregar el mensaje a una lista de errores
-                
-                tasa = tarifa.tasa
-                prima_rc_anual = tarifa.prima_rc_anual
+                    lista_errores.append(error_message)
                 
                 print(tasa)
                 print(tasa/1000)
@@ -1069,8 +1069,6 @@ class DetalleFlotaView(View):
                 recargo_financiero = cliente.recargo_financiero
                 imp_y_sellados = cliente.impuestos + cliente.sellados
                 iva = cliente.iva
-                
-   
                 
                 # Constantes
                 CIEN = Decimal('100')
@@ -1133,9 +1131,9 @@ class DetalleFlotaView(View):
                 cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
 
                 # Calcular premio sin iva y con iva
-                base_imponible = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / CIEN)
-                premio_vigente_sin_iva = base_imponible + ((base_imponible * imp_y_sellados) / CIEN)
-                premio_vigente_con_iva = premio_vigente_sin_iva + ((prima_pza_vigente * iva) / CIEN)
+                premio_vigente_sin_iva = prima_pza_vigente + ((prima_pza_vigente * recargo_financiero) / CIEN)
+                
+                premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * iva) / CIEN) + ((premio_vigente_sin_iva * imp_y_sellados) / CIEN)
 
                 
                 # Redondear valores
@@ -1265,7 +1263,9 @@ class DetalleFlotaView(View):
             #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
             workbook.close()
-            
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"Tiempo de ejecución: {execution_time} segundos")
             return redirect('detalle_flota', flota_id=flota_id)
                 
         flota = Flota.objects.get(id=flota_id)
@@ -1833,6 +1833,7 @@ class LocalidadesView(View):
             Localidad.objects.all().delete()
             return redirect('localidades')
         if 'normalizar_nombres' in request.POST:
+            start_time = time.time()
             localidades = Localidad.objects.all()
             for localidad in localidades:
                 # Cambiar nombres a mayúsculas y sin tilde
@@ -1844,7 +1845,11 @@ class LocalidadesView(View):
                 localidad.nombre_municipio = nombre_municipio_normalizado
                 localidad.nombre_provincia = nombre_provincia_normalizado
                 localidad.save()
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"Tiempo de ejecución, {execution_time} segundos")
         if 'importar_excel' in request.POST:
+            start_time = time.time()
             file1 = request.FILES.get('file1')
 
             # Envuelve el archivo en un TextIOWrapper para manejar la codificación
@@ -1867,6 +1872,9 @@ class LocalidadesView(View):
                     nombre_provincia=provincia,
                     zona=zona
                 )
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"Tiempo de ejecución, {execution_time} segundos")
         return redirect('localidades')
 
 # Buscar vehículo 

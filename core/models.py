@@ -25,9 +25,9 @@ class RefreshToken(models.Model):
         get_latest_by = 'expiracion'
         
 class Localidad(models.Model):
-    nombre_localidad = models.CharField(null=True, blank=True, max_length=100)
+    nombre_localidad = models.CharField(null=True, blank=True, max_length=100, db_index=True)
     nombre_municipio = models.CharField(null=True, blank=True, max_length=100)
-    nombre_provincia = models.CharField(null=True, blank=True, max_length=100)
+    nombre_provincia = models.CharField(null=True, blank=True, max_length=100, db_index=True)
     zona = models.CharField(null=True, blank=True, max_length=100)
     
 class Vencimiento(models.Model):
