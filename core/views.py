@@ -2004,6 +2004,11 @@ class VehiculosInfoAutoView(View):
             # Obtener todas las marcas existentes
             marcas = {marca.nombre: marca for marca in MarcaInfoAuto.objects.all()}
 
+            # Obtener todos los vehículos existentes y sus precios anuales
+            vehiculos_existentes = {vehiculo.codigo: vehiculo for vehiculo in VehiculoInfoAuto.objects.all()}
+            precios_anuales_existentes = {vehiculo.id: {precio.anio: precio.precio for precio in PrecioAnual.objects.filter(vehiculo_id=vehiculo.id)} for vehiculo in vehiculos_existentes.values()}
+            vehiculos_creados = []
+
             for index, fila in enumerate(datos_csv, start=1) if formato == 'csv' else enumerate(datos_excel, start=1):
                 if index < 4:
                     continue
@@ -2031,23 +2036,47 @@ class VehiculosInfoAutoView(View):
                         'precio_okm': precio_okm,
                     }
                 )
+                 # Actualizar atributos del vehículo si ha cambiado
+                if not created:
+                    if vehiculo.descripcion != descripcion or vehiculo.nacionalidad != nacionalidad or vehiculo.tipo_vehiculo != tipo or vehiculo.precio_okm != precio_okm:
+                        vehiculo.descripcion = descripcion
+                        vehiculo.nacionalidad = nacionalidad
+                        vehiculo.tipo_vehiculo = tipo
+                        vehiculo.precio_okm = precio_okm
+                        vehiculo.save()
+                
+                # Agregar precios anuales y actualizar los existentes si es necesario
+                for i, year in enumerate(range(2024, 2003, -1)):
+                    precio_str = precios[i] if i < len(precios) else None
+                    if precio_str and precio_str != '':
+                        # Convertir precio_str a Decimal
+                        precio_decimal = Decimal(str(precio_str).replace(',', '.')) if precio_str else Decimal(0)
 
-                # Agregar precios anuales solo si el vehículo es nuevo o fue creado en esta iteración
-                if created or vehiculo in lista_vehiculos_nuevos:
-                    for i, year in enumerate(range(2024, 2003, -1)):
-                        precio_str = precios[i] if i < len(precios) else None
-                        if precio_str and precio_str != '':
-                            # Verificar si precio_str es un entero
-                            if isinstance(precio_str, int):
-                                # Convertir precio_str a cadena y reemplazar comas por puntos
-                                precio_str = str(precio_str)
-                            
-                            # Convertir precio_str a Decimal
-                            precio_decimal = Decimal(precio_str.replace(',', '.')) if precio_str else Decimal(0)
+                        # Verificar si hay un precio anual existente para este año y vehículo
+                        if vehiculo.id in precios_anuales_existentes and year in precios_anuales_existentes[vehiculo.id]:
+                            # Obtener el precio anual existente
+                            precio_anual_existente = precios_anuales_existentes[vehiculo.id][year]
+
+                            # Verificar si el precio ha cambiado
+                            if precio_anual_existente != precio_decimal:
+                                # Actualizar el precio anual existente en la base de datos
+                                precio_anual_obj = PrecioAnual.objects.get(vehiculo=vehiculo, anio=year)
+                                precio_anual_obj.precio = precio_decimal
+                                precio_anual_obj.save()
+                        else:
+                            # Crear un nuevo precio anual si no existe
                             lista_precios_anuales.append(PrecioAnual(vehiculo=vehiculo, anio=year, precio=precio_decimal))
 
-            # Crear vehículos en lotes
-            VehiculoInfoAuto.objects.bulk_create(lista_vehiculos_nuevos)
+
+            # Obtener los códigos de vehículos existentes en la base de datos
+            # codigos_existente = {vehiculo.codigo for vehiculo in VehiculoInfoAuto.objects.all()}
+
+            # Filtrar los vehículos nuevos que no están en la base de datos
+            # vehiculos_nuevos = [vehiculo for vehiculo in lista_vehiculos_nuevos if vehiculo.codigo not in codigos_existente]
+
+            # Crear los vehículos nuevos
+            # VehiculoInfoAuto.objects.bulk_create(vehiculos_nuevos)
+
 
             # Crear precios anuales en lotes
             PrecioAnual.objects.bulk_create(lista_precios_anuales)
