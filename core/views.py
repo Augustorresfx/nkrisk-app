@@ -2004,60 +2004,60 @@ class VehiculosInfoAutoView(View):
             lista_precios_anuales = []
             vehiculos_actualizar = []
 
-            with transaction.atomic():
-                marcas = {marca.nombre: marca for marca in MarcaInfoAuto.objects.all()}
-                vehiculos_existentes = {vehiculo.codigo: vehiculo for vehiculo in VehiculoInfoAuto.objects.all()}
-                precios_anuales_existentes = {vehiculo.id: {precio.anio: precio for precio in PrecioAnual.objects.filter(vehiculo_id=vehiculo.id)} for vehiculo in vehiculos_existentes.values()}
+            
+            marcas = {marca.nombre: marca for marca in MarcaInfoAuto.objects.all()}
+            vehiculos_existentes = {vehiculo.codigo: vehiculo for vehiculo in VehiculoInfoAuto.objects.all()}
+            precios_anuales_existentes = {vehiculo.id: {precio.anio: precio for precio in PrecioAnual.objects.filter(vehiculo_id=vehiculo.id)} for vehiculo in vehiculos_existentes.values()}
 
-                for index, fila in enumerate(datos_csv, start=1) if formato == 'csv' else enumerate(datos_excel, start=1):
-                    if index < 4:
-                        continue
+            for index, fila in enumerate(datos_csv, start=1) if formato == 'csv' else enumerate(datos_excel, start=1):
+                if index < 4:
+                    continue
 
-                    cod, marca_nombre, descripcion, nacionalidad, tipo, okm, *precios = fila
+                cod, marca_nombre, descripcion, nacionalidad, tipo, okm, *precios = fila
 
-                    marca = marcas.get(marca_nombre)
-                    if not marca:
-                        marca, _ = MarcaInfoAuto.objects.get_or_create(nombre=marca_nombre)
-                        marcas[marca_nombre] = marca
+                marca = marcas.get(marca_nombre)
+                if not marca:
+                    marca, _ = MarcaInfoAuto.objects.get_or_create(nombre=marca_nombre)
+                    marcas[marca_nombre] = marca
 
-                    if isinstance(okm, str) and okm.isdigit():
-                        precio_okm = Decimal(okm.replace(',', '.'))
-                    else:
-                        precio_okm = Decimal(0)
+                if isinstance(okm, str) and okm.isdigit():
+                    precio_okm = Decimal(okm.replace(',', '.'))
+                else:
+                    precio_okm = Decimal(0)
 
-                    vehiculo, created = VehiculoInfoAuto.objects.get_or_create(
-                        codigo=cod,
-                        defaults={
-                            'marca': marca,
-                            'descripcion': descripcion,
-                            'nacionalidad': nacionalidad,
-                            'tipo_vehiculo': tipo,
-                            'precio_okm': precio_okm,
-                        }
-                    )
+                vehiculo, created = VehiculoInfoAuto.objects.get_or_create(
+                    codigo=cod,
+                    defaults={
+                        'marca': marca,
+                        'descripcion': descripcion,
+                        'nacionalidad': nacionalidad,
+                        'tipo_vehiculo': tipo,
+                        'precio_okm': precio_okm,
+                    }
+                )
 
-                    if not created:
-                        if vehiculo.descripcion != descripcion or vehiculo.nacionalidad != nacionalidad or vehiculo.tipo_vehiculo != tipo or vehiculo.precio_okm != precio_okm:
-                            vehiculo.descripcion = descripcion
-                            vehiculo.nacionalidad = nacionalidad
-                            vehiculo.tipo_vehiculo = tipo
-                            vehiculo.precio_okm = precio_okm
-                            vehiculos_actualizar.append(vehiculo)
+                if not created:
+                    if vehiculo.descripcion != descripcion or vehiculo.nacionalidad != nacionalidad or vehiculo.tipo_vehiculo != tipo or vehiculo.precio_okm != precio_okm:
+                        vehiculo.descripcion = descripcion
+                        vehiculo.nacionalidad = nacionalidad
+                        vehiculo.tipo_vehiculo = tipo
+                        vehiculo.precio_okm = precio_okm
+                        vehiculos_actualizar.append(vehiculo)
 
-                    for i, year in enumerate(range(2024, 2003, -1)):
-                        precio_str = precios[i] if i < len(precios) else None
-                        if precio_str and precio_str != '':
-                            precio_decimal = Decimal(str(precio_str).replace(',', '.'))
-                            if vehiculo.id in precios_anuales_existentes and year in precios_anuales_existentes[vehiculo.id]:
-                                precio_anual_existente = precios_anuales_existentes[vehiculo.id][year]
-                                if precio_anual_existente.precio != precio_decimal:
-                                    precio_anual_existente.precio = precio_decimal
-                                    precio_anual_existente.save()
-                            else:
-                                lista_precios_anuales.append(PrecioAnual(vehiculo=vehiculo, anio=year, precio=precio_decimal))
+                for i, year in enumerate(range(2024, 2003, -1)):
+                    precio_str = precios[i] if i < len(precios) else None
+                    if precio_str and precio_str != '':
+                        precio_decimal = Decimal(str(precio_str).replace(',', '.'))
+                        if vehiculo.id in precios_anuales_existentes and year in precios_anuales_existentes[vehiculo.id]:
+                            precio_anual_existente = precios_anuales_existentes[vehiculo.id][year]
+                            if precio_anual_existente.precio != precio_decimal:
+                                precio_anual_existente.precio = precio_decimal
+                                precio_anual_existente.save()
+                        else:
+                            lista_precios_anuales.append(PrecioAnual(vehiculo=vehiculo, anio=year, precio=precio_decimal))
 
-                VehiculoInfoAuto.objects.bulk_update(vehiculos_actualizar, ['descripcion', 'nacionalidad', 'tipo_vehiculo', 'precio_okm'])
-                PrecioAnual.objects.bulk_create(lista_precios_anuales)
+            VehiculoInfoAuto.objects.bulk_update(vehiculos_actualizar, ['descripcion', 'nacionalidad', 'tipo_vehiculo', 'precio_okm'])
+            PrecioAnual.objects.bulk_create(lista_precios_anuales)
             end_time = time.time()
             execution_time = end_time - start_time
             print(execution_time)
