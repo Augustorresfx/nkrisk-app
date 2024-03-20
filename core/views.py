@@ -32,6 +32,7 @@ from django.http import HttpResponseNotFound
 from django.urls import reverse_lazy
 import time
 from collections import defaultdict
+from django.db.models import F
 # Importe de formularios
 
 # Importe de modelos
@@ -2000,7 +2001,7 @@ class VehiculosInfoAutoView(View):
 
             lista_vehiculos_nuevos = []
             lista_precios_anuales = []
-
+            vehiculos_actualizar = []
             # Obtener todas las marcas existentes
             marcas = {marca.nombre: marca for marca in MarcaInfoAuto.objects.all()}
 
@@ -2043,7 +2044,7 @@ class VehiculosInfoAutoView(View):
                         vehiculo.nacionalidad = nacionalidad
                         vehiculo.tipo_vehiculo = tipo
                         vehiculo.precio_okm = precio_okm
-                        vehiculo.save()
+                        vehiculos_actualizar.append(vehiculo)
                 
                 # Agregar precios anuales y actualizar los existentes si es necesario
                 for i, year in enumerate(range(2024, 2003, -1)):
@@ -2077,7 +2078,16 @@ class VehiculosInfoAutoView(View):
             # Crear los vehículos nuevos
             # VehiculoInfoAuto.objects.bulk_create(vehiculos_nuevos)
 
+            # Obtener los campos que necesitan ser actualizados en forma de diccionario
+            campos_actualizados = {
+                'descripcion': F('descripcion'),
+                'nacionalidad': F('nacionalidad'),
+                'tipo_vehiculo': F('tipo_vehiculo'),
+                'precio_okm': F('precio_okm'),
+            }
 
+            # Actualizar los vehículos en la base de datos utilizando bulk_update()
+            VehiculoInfoAuto.objects.bulk_update(vehiculos_actualizar, list(campos_actualizados.keys()))
             # Crear precios anuales en lotes
             PrecioAnual.objects.bulk_create(lista_precios_anuales)
 
