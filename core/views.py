@@ -977,7 +977,6 @@ class DetalleFlotaView(View):
                     precio = Decimal(suma_aseg)
                     # Consultar solo el tipo de vehículo
                     vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
-                    tipo_vehiculo = get_vehicle_type(vehiculo_info)
                     # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
                     if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
                         vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
@@ -1207,7 +1206,7 @@ class DetalleFlotaView(View):
                         'created': created,
                         'codia': codia,
                         'nuevo_movimiento': nuevo_movimiento,
-                        'tipo_vehiculo': vehiculo_info, # Tipo de vehiculo de info auto
+                        'tipo_vehiculo': vehiculo.tipo_vehiculo,
                         'motor': motor,
                         'chasis': chasis,
                         'fecha_operacion': fecha_operacion,
@@ -1226,7 +1225,7 @@ class DetalleFlotaView(View):
                         'marca': marca,
                         'modelo': modelo,
                         'descripcion': descripcion,
-                        'tipo_vehiculo': vehiculo_info, # Tipo de vehiculo de info auto
+                        'tipo_vehiculo': vehiculo.tipo_vehiculo,
                         'usuario_item': usuario_item,
                         'patente': patente,
                         'anio': anio,
@@ -2016,24 +2015,36 @@ class VehiculosInfoAutoView(View):
                 if not marca:
                     marca, _ = MarcaInfoAuto.objects.get_or_create(nombre=marca_nombre)
                     marcas[marca_nombre] = marca
+                    
+                if isinstance(okm, str) and okm.isdigit():
+                    precio_okm = Decimal(okm.replace(',', '.'))
+                else:
+                    precio_okm = Decimal(0)
 
-                vehiculo = VehiculoInfoAuto(
+                vehiculo, created = VehiculoInfoAuto.objects.get_or_create(
                     codigo=cod,
-                    marca=marca,
-                    descripcion=descripcion,
-                    nacionalidad=nacionalidad,
-                    tipo_vehiculo=tipo,
-                    precio_okm=Decimal(okm.replace(',', '.')) if okm else 0
+                    defaults={
+                        'marca': marca,
+                        'descripcion': descripcion,
+                        'nacionalidad': nacionalidad,
+                        'tipo_vehiculo': tipo,
+                        'precio_okm': precio_okm,
+                    }
                 )
 
-                lista_vehiculos_nuevos.append(vehiculo)
-
-                # Agregar precios anuales
-                for i, year in enumerate(range(2024, 2003, -1)):
-                    precio_str = precios[i] if i < len(precios) else None
-                    if precio_str and precio_str != '':
-                        precio_decimal = Decimal(precio_str.replace(',', '.'))
-                        lista_precios_anuales.append(PrecioAnual(vehiculo=vehiculo, anio=year, precio=precio_decimal))
+                # Agregar precios anuales solo si el vehículo es nuevo o fue creado en esta iteración
+                if created or vehiculo in lista_vehiculos_nuevos:
+                    for i, year in enumerate(range(2024, 2003, -1)):
+                        precio_str = precios[i] if i < len(precios) else None
+                        if precio_str and precio_str != '':
+                            # Verificar si precio_str es un entero
+                            if isinstance(precio_str, int):
+                                # Convertir precio_str a cadena y reemplazar comas por puntos
+                                precio_str = str(precio_str)
+                            
+                            # Convertir precio_str a Decimal
+                            precio_decimal = Decimal(precio_str.replace(',', '.')) if precio_str else Decimal(0)
+                            lista_precios_anuales.append(PrecioAnual(vehiculo=vehiculo, anio=year, precio=precio_decimal))
 
             # Crear vehículos en lotes
             VehiculoInfoAuto.objects.bulk_create(lista_vehiculos_nuevos)
