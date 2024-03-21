@@ -3,25 +3,50 @@
 {% load static %}
 
 {% block content %}
-<section class="h-100 gradient-custom mt-5 pt-5 mb-0">
-  <div class="container pt-5 h-100">
+<section class="h-100 gradient-custom  mt-md-5 pt-md-5 mt-sm-0 pt-sm-0 mb-0">
+  <div class="container pt-4 h-100">
     <div class="row d-flex justify-content-center align-items-center h-100">
       <div class="col-md-9 col-lg-6 col-xl-5">
-        <img  src="{% static "images/login2.png" %}"
-          class="img-fluid" alt="Sample image">
+        <img src="{% static 'images/login2.png' %}" class="img-fluid" alt="Sample image">
       </div>
       <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-        <form action="/login/" method="POST">
+        <!-- Formulario para dispositivos de tamaño pequeño -->
+        <form action="/login/" method="POST" class="d-block d-sm-none">
             {{error}}
             {% csrf_token %}
           <div class="d-flex flex-row align-items-center justify-content-start justify-content-lg-start">
-
-        
-
-          <div class="divider d-flex align-items-center my-4">
-            <h2 class="text-center fw-bold mb-0 text-sm-">Iniciar sesión</h2>
+            <div class="divider d-flex align-items-center my-2">
+              <h2 class="text-center fw-bold mb-0 text-sm-">Iniciar sesión</h2>
+            </div>
           </div>
-        </div>
+          <!-- Email input -->
+          <div class="form-outline mb-1">
+            <input type="text" id="username" name="username" class="form-control form-control-md rounded-0"
+              placeholder="Ingrese su nombre de usuario" />
+            <label class="form-label" for="form3Example3">Nombre de usuario</label>
+          </div>
+
+          <!-- Password input -->
+          <div class="form-outline mb-1">
+            <div class="input-group">
+              <input type="password" id="password" name="password" class="form-control form-control-md rounded-0"
+                placeholder="Ingrese su contraseña" />
+            </div>
+            <label class="form-label" for="form3Example4">Contraseña</label>
+          </div>
+          <div class="text-start text-lg-start ">
+            <button type="submit" class="btn btn-dark mb-4 rounded-0 btn-md" style="padding-left: 2.5rem; padding-right: 2.5rem;">Ingresar</button>
+          </div>
+        </form>
+        <!-- Formulario para dispositivos de tamaño mediano y grande -->
+        <form action="/login/" method="POST" class="d-none d-sm-block">
+            {{error}}
+            {% csrf_token %}
+          <div class="d-flex flex-row align-items-center justify-content-start justify-content-lg-start">
+            <div class="divider d-flex align-items-center my-3">
+              <h2 class="text-center fw-bold mb-0 text-sm-">Iniciar sesión</h2>
+            </div>
+          </div>
           <!-- Email input -->
           <div class="form-outline mb-4">
             <input type="text" id="username" name="username" class="form-control form-control-lg rounded-0"
@@ -30,34 +55,21 @@
           </div>
 
           <!-- Password input -->
-
           <div class="form-outline mb-3">
             <div class="input-group">
-            <input type="password" id="password" name="password" class="form-control form-control-lg rounded-0"
-              placeholder="Ingrese su contraseña" />
-              <!--<button type="button" id="showPassword" class="btn btn-secondary btn-sm">
-                <i class="bi bi-eye"></i>
-            </button>-->
+              <input type="password" id="password" name="password" class="form-control form-control-lg rounded-0"
+                placeholder="Ingrese su contraseña" />
             </div>
             <label class="form-label" for="form3Example4">Contraseña</label>
           </div>
-          
-
-        
-
-
-          <div class="text-start text-lg-start mt-4 pt-2">
-            <button type="submit" class="btn btn-dark rounded-0 btn-lg"
-              style="padding-left: 2.5rem; padding-right: 2.5rem;">Ingresar</button>
-            
+          <div class="text-start text-lg-start ">
+            <button type="submit" class="btn btn-dark rounded-0 btn-lg" style="padding-left: 2.5rem; padding-right: 2.5rem;">Ingresar</button>
           </div>
-
         </form>
       </div>
     </div>
   </div>
 </section>
-
 
 <script src="{% static 'js/showPassword.js' %}"></script>
 {% endblock content %}
