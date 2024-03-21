@@ -978,6 +978,7 @@ class DetalleFlotaView(View):
                     precio = Decimal(suma_aseg)
                     # Consultar solo el tipo de vehículo
                     vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
+                    tipo_vehiculo = get_vehicle_type(vehiculo_info)
                     # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
                     if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
                         vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
@@ -1207,7 +1208,7 @@ class DetalleFlotaView(View):
                         'created': created,
                         'codia': codia,
                         'nuevo_movimiento': nuevo_movimiento,
-                        'tipo_vehiculo': vehiculo.tipo_vehiculo,
+                        'tipo_vehiculo': vehiculo_info,
                         'motor': motor,
                         'chasis': chasis,
                         'fecha_operacion': fecha_operacion,
@@ -1226,7 +1227,7 @@ class DetalleFlotaView(View):
                         'marca': marca,
                         'modelo': modelo,
                         'descripcion': descripcion,
-                        'tipo_vehiculo': vehiculo.tipo_vehiculo,
+                        'tipo_vehiculo': vehiculo_info,
                         'usuario_item': usuario_item,
                         'patente': patente,
                         'anio': anio,
