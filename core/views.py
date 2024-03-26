@@ -1268,6 +1268,7 @@ class DetalleFlotaView(View):
             end_time = time.time()
             execution_time = end_time - start_time
             print(f"Tiempo de ejecución: {execution_time} segundos")
+            messages.success(request, 'El elemento se importó exitosamente.')
             return redirect('detalle_flota', flota_id=flota_id)
                 
         flota = Flota.objects.get(id=flota_id)

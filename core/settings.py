@@ -12,6 +12,21 @@ SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Cross-site request forgery (CSRF) protection
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SECURE_SSL_REDIRECT = True
+
+# Cross-site Scripting (XSS)
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Man in the middle, etc (HTTP Strict Transport Security)
+SECURE_HSTS_SECONDS = 86400
+SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
 # Configuración del servidor y puerto SMTP
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Cambia esto al servidor SMTP que estés utilizando
@@ -26,7 +41,7 @@ EMAIL_HOST_PASSWORD = SMTP_PASSWORD # Cambia esto a tu contraseña de correo
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
+SECRET_KEY = os.environ.get('SECRET_KEY', default='pQu!}YDjXfF~%+b,P]SxC[=EdM5z:VscK^W9HTq6g@7e3_yL{ak@UDh>m}uX<9*NrLQB7nZ:$;KG48a]Pw5sE,J6C?WYqVR/3pe+e3XdJYNDFuRqZ2K+[ybw`kEP@vM-c5r;t9{CBz.,%p]>A4T=/:DT&c^:[9wB<H?]Ep`7;zbs5dQ+agCt4-_*u.RKr>m~%!Z6Xv$FPf~6F5s8`LraDyu%b<k,2];XR*V:ve&_7>9SgGMEKw{?.nx^/4')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'RENDER' not in os.environ
