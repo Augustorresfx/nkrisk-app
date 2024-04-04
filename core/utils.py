@@ -45,7 +45,7 @@ def get_vehicle_type(tipo_vehiculo):
     "PKA": "PICK UP CLASE A",
     "FUA": "PICK UP CLASE A",
     "WA4": "AUTO",
-    "WAG": "AUTO",
+    "WAG": "PICK UP CLASE B",
     "RUR": "AUTO",
     "PKB": "PICK UP CLASE B",
     "PB4": "PICK UP CLASE B",
