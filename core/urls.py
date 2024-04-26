@@ -10,7 +10,7 @@ from .views import pagina_no_encontrada
 handler404 = pagina_no_encontrada
 
 urlpatterns = [
-    path('administrar_usuarios/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('login/', SignInView.as_view(), name="login"),
     path('logout/', SignOutView.as_view(), name="logout"),
     path('', HomeView.as_view(), name='home'),

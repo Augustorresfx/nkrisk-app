@@ -934,7 +934,7 @@ class DetalleFlotaView(View):
             if fuente_datos == 'info_auto':
                 access_token = api_manager.get_valid_access_token()
 
-            for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, endoso, motivo_endoso, fecha_operacion_str, fecha_vigencia_str, prima, premio, estado, vigencia_desde, vigencia_hasta, clau_ajuste, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_excel, prima_total, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op_str) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+            for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, endoso, motivo_endoso, fecha_operacion_str, fecha_vigencia_str, prima, premio, estado, vigencia_desde, vigencia_hasta, clau_ajuste, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_excel, prima_total, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op_str, tasa, prima_rc_anual) in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
                 row_values = sheet.cell(row=row_number, column=1).value
                 if row_values is None:
                     # Salir del bucle si la fila está vacía
@@ -1025,15 +1025,6 @@ class DetalleFlotaView(View):
                 # Usa el año actual para calcular, si el año de la fecha de vigencia es distinto usa ese
                 anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else fecha_vigencia.year
                 
-                # Mapeo de antigüedad a categoría
-                if antiguedad_vehiculo > 10:
-                    antiguedad_categoria = "MÁS DE 10"
-                elif 6 <= antiguedad_vehiculo <= 10:
-                    antiguedad_categoria = "6 A 10"
-                else:
-                    antiguedad_categoria = "5"
-                
-                print(motivo_endoso)
                 # Buscar zona de riesgo mediante la localidad que este en el Excel
                 localidades_encontradas = Localidad.objects.filter(nombre_localidad=localidad_vehiculo)
 
@@ -1049,6 +1040,19 @@ class DetalleFlotaView(View):
                     error_message = f"No se encontró zona para la localidad: {localidad_vehiculo}"
                     print(error_message)
                     lista_errores.append(error_message)
+                
+                """  
+                # Código para buscar la tarifa
+                
+                # Mapeo de antigüedad a categoría
+                if antiguedad_vehiculo > 10:
+                    antiguedad_categoria = "MÁS DE 10"
+                elif 6 <= antiguedad_vehiculo <= 10:
+                    antiguedad_categoria = "6 A 10"
+                else:
+                    antiguedad_categoria = "5"
+                
+                print(motivo_endoso)
 
                 # Buscar la tarifa en el diccionario
                 tarifa_info = tarifas_dict.get(localidad.zona, {}).get((tipo_vehiculo, antiguedad_categoria, tipo_de_cobertura), None)
@@ -1062,6 +1066,8 @@ class DetalleFlotaView(View):
                     error_message = f"No se encontró tarifa para {tipo_vehiculo}, {antiguedad_categoria}, {localidad.zona}, {tipo_de_cobertura}"
                     print(error_message)
                     lista_errores.append(error_message)
+                
+                """
                 
                 print(tasa)
                 print(tasa/1000)
