@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-SECURE_SSL_REDIRECT = True
+# SECURE_SSL_REDIRECT = True
 
 # Cross-site Scripting (XSS)
 SECURE_BROWSER_XSS_FILTER = True
@@ -29,13 +29,13 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 # Configuración del servidor y puerto SMTP
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Cambia esto al servidor SMTP que estés utilizando
-EMAIL_PORT = 587  # Cambia esto al puerto de tu servidor SMTP
-EMAIL_USE_TLS = True  # Puedes usar TLS (True) o SSL (False)
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
 # Configuración de autenticación SMTP (usuario y contraseña)
-EMAIL_HOST_USER = SMTP_USER  # Cambia esto a tu dirección de correo
-EMAIL_HOST_PASSWORD = SMTP_PASSWORD # Cambia esto a tu contraseña de correo
+EMAIL_HOST_USER = SMTP_USER
+EMAIL_HOST_PASSWORD = SMTP_PASSWORD
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/

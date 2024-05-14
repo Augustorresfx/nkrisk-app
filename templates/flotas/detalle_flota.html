@@ -39,9 +39,12 @@
               <h2 > 
                 Agregar endoso
               </h2>
+              
               <form class="pt-3" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-
+                <p class="text-danger">
+                  Verificar que los endosos esten ordenados de forma ascendente!
+                </p>
 
                 <div class="mb-3">
                   
@@ -57,7 +60,7 @@
                       <option value="base_datos">Datos de la base de datos propia</option>
                   </select>
               </div>
-                
+
               <button name="calcular_excel" class="btn btn-primary mb-2" type="submit">Agregar</button>
 
                 
