@@ -380,7 +380,7 @@ class ObtenerDatosMovimientoView(View):
         return JsonResponse(datos_movimiento)
     
 @method_decorator(login_required, name='dispatch')
-@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoAvanzado').exists() or user.is_staff), name='dispatch')
 class EditarDatosMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         movimiento = get_object_or_404(Movimiento, id=movimiento_id)
@@ -388,12 +388,12 @@ class EditarDatosMovimientoView(View):
         motivo_endoso = request.POST.get('motivo_endoso')
         numero_orden = request.POST.get('numero_orden')
         fecha_alta_op = request.POST.get('fecha_alta_op')
-        
+
         movimiento.numero_endoso = numero_endoso
         movimiento.motivo_endoso = motivo_endoso
         movimiento.numero_orden = numero_orden
         movimiento.fecha_alta_op = fecha_alta_op
-        
+
         try:
             # Intenta guardar
             movimiento.save()
@@ -401,9 +401,9 @@ class EditarDatosMovimientoView(View):
         except Exception as e:
             # Si hay un error captura la excepción
             messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
-        
+
         return redirect('detalle_flota', flota_id=flota_id)
-        
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
 class EliminarMovimientoView(View):
@@ -425,16 +425,17 @@ class EliminarMovimientoView(View):
 class ExportarMovimientoView(View):
     def post(self, request, flota_id, movimiento_id):
         # Obtener movimiento
+        flota = get_object_or_404(Flota, id=flota_id)
         movimiento = get_object_or_404(Movimiento, id=movimiento_id)
         # Nombre del archivo modelo
         file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'exportar_ult_estado.xlsx')
     
         # Obtener los vehículos del movimiento
-        vehiculos = VehiculoFlota.objects.filter(movimiento_id=movimiento_id)
+        vehiculos = VehiculoFlota.history.filter(flota=flota, movimiento=movimiento)
         # Crear nuevo archivo Excel
         workbook = openpyxl.Workbook()
         sheet = workbook.active
-
+        print(vehiculos)
         # Estilos
         font = Font(name="Calibri", size=11, bold=False)
         font_bold = Font(name="Calibri", size=12, bold=True)
@@ -456,7 +457,6 @@ class ExportarMovimientoView(View):
         sheet.column_dimensions['E'].width = 20
         sheet.column_dimensions['F'].width = 30
         sheet.column_dimensions['G'].width = 30
-
         
         # Agregar "encabezado"
         sheet.cell(row=2, column=1, value=movimiento.flota.cliente.nombre_cliente).font = font_bold
@@ -469,7 +469,6 @@ class ExportarMovimientoView(View):
         sheet.cell(row=9, column=5, value='PATENTE').font = font_header
         sheet.cell(row=9, column=6, value='Premio sin IVA').font = font_header
         sheet.cell(row=9, column=7, value='Premio con IVA').font = font_header
-        
         
         sheet.cell(row=4, column=2, value=movimiento.flota.poliza).font = font_bold
         sheet.cell(row=7, column=2, value=movimiento.motivo_endoso).font = font_bold
@@ -528,10 +527,8 @@ class ExportarMovimientoView(View):
         return response
         
         return redirect('detalle_flota', flota_id=flota_id)
-    
 
 # Flotas
-
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')

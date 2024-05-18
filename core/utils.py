@@ -222,9 +222,10 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
                 # Si la suma asegurada es distinta el precio será la diferencia entre sumas
                 if suma_aseg != vehiculo_anterior.suma_asegurada:
                     precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
-                # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero
+                # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y la prima rc)
                 else:
                     precio = 0
+
         # Usar los datos de vehiculo de info auto
         elif fuente_datos == 'info_auto':
             precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
@@ -322,7 +323,7 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
         COBERTURA_IMPORTADO = 112500
         RECARGO_ADMINISTRATIVO = Decimal('10.5')
         IVA_RG_3337 = Decimal('3')
-        DERECHO_EMISION = 2500
+        DERECHO_EMISION = 2400
             
         if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
             # Si el motivo es aumento de suma y es diferente a la anterior, usar la tasa anterior, la prima rc se cobra una única vez
@@ -568,9 +569,10 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
                 # Si la suma asegurada es distinta el precio será la diferencia entre sumas
                 if suma_aseg != vehiculo_anterior.suma_asegurada:
                     precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
-                # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero
+                # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y prima rc)
                 else:
                     precio = 0
+
         # Usar los datos de vehiculo de info auto
         elif fuente_datos == 'info_auto':
             precios_vehiculo = api_manager.get_vehicle_price(access_token, codia)
@@ -581,12 +583,12 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
             # Obtener el valor 'price' del último año
             precio = ultimo_ano['price']
             precio = None
-            
+
             for precio_anual in precios_vehiculo:
                 if precio_anual['year'] == anio_vehiculo:
                     precio = precio_anual['price']
                     break
-                
+
             # Si no se encuentra el precio para el año asignar 0 como valor
             if precio is None:
                 precio = 0
@@ -601,13 +603,13 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
                 precio = 0
                 
             tipo_vehiculo = get_vehicle_type(vehiculo.tipo_vehiculo)
-                    
+
         # Calcula la antiguedad del vehiculo
         antiguedad_vehiculo = anio_actual - anio_vehiculo
-        
+
         # Usa el año actual para calcular, si el año de la fecha de vigencia es distinto usa ese
         anio_a_calcular = anio_actual if fecha_vigencia.year == anio_actual else fecha_vigencia.year
-        
+
         # Buscar zona de riesgo mediante la localidad que este en el Excel
         localidades_encontradas = Localidad.objects.filter(nombre_localidad=localidad_vehiculo)
 
@@ -624,7 +626,7 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
             print(error_message)
             lista_errores.append(error_message)
         
-        """  
+        """
         # Código para buscar la tarifa
         
         # Mapeo de antigüedad a categoría
@@ -668,7 +670,7 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
         COBERTURA_IMPORTADO = 112500
         RECARGO_ADMINISTRATIVO = Decimal('10.5')
         IVA_RG_3337 = Decimal('3')
-        DERECHO_EMISION = 2500
+        DERECHO_EMISION = 2400
             
         if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
             # Si el motivo es aumento de suma y es diferente a la anterior, usar la tasa anterior, la prima rc se cobra una única vez
@@ -686,7 +688,6 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
         if suma_aseg == 0:
             precio = 0
             tasa = 0
-            
         
         # Si el motivo es renovación o alta de items hay que tener en cuenta la suma aseg de los accesorios en el total
         if accesorios == 'SI' and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS':

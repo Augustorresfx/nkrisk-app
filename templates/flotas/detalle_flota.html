@@ -92,11 +92,13 @@
                       visibility
                       </span>
                   </a>
+                  {% if is_staff %}
                   <button type="button" class="btn btn-sm shadow-sm editar-movimiento-btn" data-bs-toggle="modal" data-bs-target="#modalMovimiento" data-movimiento-id="{{ movimiento.id }}">
                     <span class="material-icons-dark align-middle">
                       edit
                     </span>
                   </button>
+                  {% endif %}
                   <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
                     {% csrf_token %}
                   <button type="submit" class="shadow-sm w-10 btn btn-sm exportar-excel mx-1">
@@ -109,7 +111,6 @@
                   <span class="material-icons-danger align-middle">
                     delete
                     </span>
-                    
                 </button>
 
 
@@ -137,12 +138,13 @@
                       visibility
                     </span>
                   </a>
+                  {% if is_staff %}
                   <button type="button" class="btn btn-sm shadow-sm editar-movimiento-btn" data-bs-toggle="modal" data-bs-target="#modalMovimiento" data-movimiento-id="{{ movimiento.id }}">
                     <span class="material-icons-dark align-middle">
                       edit
                     </span>
                   </button>
-
+                  {% endif %}
                   <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
                     {% csrf_token %}
                   <button type="submit" class="w-10 btn shadow-sm btn-sm link-success exportar-excel mx-1 ">
