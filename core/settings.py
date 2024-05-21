@@ -16,7 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# SECURE_SSL_REDIRECT = True
+# -> Esto da error si no se desactiva en desarrollo
+SECURE_SSL_REDIRECT = True
 
 # Cross-site Scripting (XSS)
 SECURE_BROWSER_XSS_FILTER = True
