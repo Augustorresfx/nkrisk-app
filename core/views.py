@@ -811,6 +811,7 @@ class EliminarFlotaView(View):
 class DetalleFlotaView(View):
     def get(self, request, flota_id, movimiento_id=None, *args, **kwargs):
         selected_month = request.GET.get("month")
+        patente = request.GET.get("patente")
         # Obtener la flota
         flota = Flota.objects.get(id=flota_id)
         # Obtener todos los movimientos vinculados a esa flota
@@ -832,6 +833,10 @@ class DetalleFlotaView(View):
             primer_movimiento = movimientos.first()
             vehiculos = VehiculoFlota.objects.filter(flota=flota).reverse()
 
+         # Filtrar los vehículos por patente si se proporciona
+        if patente:
+            vehiculos = vehiculos.filter(patente__icontains=patente)
+            
         prima_tecnica_total = 0
         prima_pza_total = 0
         premio_sin_iva_total = 0

@@ -718,7 +718,8 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
 
         # Calcular prima tecnica y prima póliza por vigencia
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
-        prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
+        prima_por_recargo_administrativo_vigente = (prima_tecnica_vigente * RECARGO_ADMINISTRATIVO) / CIEN
+        prima_pza_vigente = prima_tecnica_vigente + prima_por_recargo_administrativo_vigente + DERECHO_EMISION
         
         # Determinar la cobertura según si la unidad es importada o no
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
