@@ -50,7 +50,7 @@ from unidecode import unidecode
 from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
-from .utils import importar_datos_roemmers_saicf, importar_datos_rofina_saicf
+from .utils import importar_datos_roemmers_saicf, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel
 
 # Roles y permisos
 def is_staff_user(user):
@@ -951,6 +951,8 @@ class DetalleFlotaView(View):
                 importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente)
             elif cliente.nombre_cliente == 'ROFINA SAICF' or cliente.nombre_cliente == 'ROEMMERS ALBERTO GUILLERMO':
                 importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente)
+            elif cliente.nombre_cliente == 'Ganadera Santa Isabel':
+                importar_datos_ganadera_santa_isabel(workbook, flota_id,fuente_datos, cliente)
             # Crear una respuesta HTTP con el archivo adjunto
             #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
