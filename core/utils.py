@@ -164,9 +164,13 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
     lista_errores = []
     flota = Flota.objects.get(pk=flota_id)
    
+    # Variables para la creación de movimientos
     numero_orden_actual = None
     nuevo_movimiento = None
-    
+    prima_tec_total = 0
+    prima_pza_total = 0
+    premio_sin_iva_total = 0
+    premio_con_iva_total = 0
     if fuente_datos == 'info_auto':
         access_token = api_manager.get_valid_access_token()
     
@@ -196,9 +200,18 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
                 numero_orden=nro_orden,
                 vigencia_desde=fecha_operacion,
                 vigencia_hasta=fecha_vigencia,
-                fecha_alta_op=fecha_alta_op
+                fecha_alta_op=fecha_alta_op,
+                prima_tec_total = prima_tec_total,
+                prima_pza_total = prima_pza_total,
+                premio_sin_iva_total = premio_sin_iva_total,
+                premio_con_iva_total = premio_con_iva_total,
+                
             )
             nuevo_movimiento.save()
+            prima_tec_total = 0
+            prima_pza_total = 0
+            premio_sin_iva_total = 0
+            premio_con_iva_total = 0
 
         # Actualizar el número de orden actual
         numero_orden_actual = nro_orden
@@ -382,6 +395,12 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
         premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * iva) / CIEN) + ((premio_vigente_sin_iva * imp_y_sellados) / CIEN)
 
         
+        # Sumar valores para el total del movimiento
+        prima_tec_total += prima_tecnica_vigente
+        prima_pza_total += prima_pza_vigente
+        premio_sin_iva_total += premio_vigente_sin_iva
+        premio_con_iva_total += premio_vigente_con_iva
+        
         # Redondear valores
         prima_tecnica_vigente = round(prima_tecnica_vigente, 2)
         prima_pza_vigente = round(prima_pza_vigente, 2)
@@ -511,8 +530,13 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
     lista_errores = []
     flota = Flota.objects.get(pk=flota_id)
    
+    # Variables para la creación de movimientos
     numero_orden_actual = None
     nuevo_movimiento = None
+    prima_tec_total = 0
+    prima_pza_total = 0
+    premio_sin_iva_total = 0
+    premio_con_iva_total = 0
     
     if fuente_datos == 'info_auto':
         access_token = api_manager.get_valid_access_token()
@@ -543,9 +567,18 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
                 numero_orden=nro_orden,
                 vigencia_desde=fecha_operacion,
                 vigencia_hasta=fecha_vigencia,
-                fecha_alta_op=fecha_alta_op
+                fecha_alta_op=fecha_alta_op,
+                prima_tec_total = prima_tec_total,
+                prima_pza_total = prima_pza_total,
+                premio_sin_iva_total = premio_sin_iva_total,
+                premio_con_iva_total = premio_con_iva_total,
             )
             nuevo_movimiento.save()
+            
+            prima_tec_total = 0
+            prima_pza_total = 0
+            premio_sin_iva_total = 0
+            premio_con_iva_total = 0
 
         # Actualizar el número de orden actual
         numero_orden_actual = nro_orden
@@ -729,6 +762,12 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
         
         premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * iva) / CIEN) + ((premio_vigente_sin_iva * imp_y_sellados) / CIEN)
 
+
+        # Sumar valores para el total del movimiento
+        prima_tec_total += prima_tecnica_vigente
+        prima_pza_total += prima_pza_vigente
+        premio_sin_iva_total += premio_vigente_sin_iva
+        premio_con_iva_total += premio_vigente_con_iva
         
         # Redondear valores
         prima_tecnica_vigente = round(prima_tecnica_vigente, 2)
@@ -845,6 +884,10 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
     # output.seek(0)
     # Guardar el último movimiento después de salir del bucle
     if nuevo_movimiento:
+        nuevo_movimiento.prima_tec_total = prima_tec_total
+        nuevo_movimiento.prima_pza_total = prima_pza_total
+        nuevo_movimiento.premio_sin_iva_total = premio_sin_iva_total
+        nuevo_movimiento.premio_con_iva_total = premio_con_iva_total
         nuevo_movimiento.save()
     # Crear una respuesta HTTP con el archivo adjunto
     #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -858,9 +901,16 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
     created = datetime.now()
     lista_errores = []
     flota = Flota.objects.get(pk=flota_id)
-   
+    
+    # Variables usadas para crear movimientos
     numero_orden_actual = None
     nuevo_movimiento = None
+    prima_tec_total = 0
+    prima_pza_total = 0
+    premio_sin_iva_total = 0
+    premio_con_iva_total = 0
+    
+    
     
     if fuente_datos == 'info_auto':
         access_token = api_manager.get_valid_access_token()
@@ -881,8 +931,12 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
         if nro_orden != numero_orden_actual:
             # Guardar el movimiento anterior si existe
             if nuevo_movimiento:
+                nuevo_movimiento.prima_tec_total = prima_tec_total
+                nuevo_movimiento.prima_pza_total = prima_pza_total
+                nuevo_movimiento.premio_sin_iva_total = premio_sin_iva_total
+                nuevo_movimiento.premio_con_iva_total = premio_con_iva_total
                 nuevo_movimiento.save()
-
+                
             nuevo_movimiento = Movimiento(
                 created=created,
                 numero_endoso=endoso,
@@ -891,9 +945,18 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
                 numero_orden=nro_orden,
                 vigencia_desde=fecha_operacion,
                 vigencia_hasta=fecha_vigencia,
-                fecha_alta_op=fecha_alta_op
+                fecha_alta_op=fecha_alta_op,
+                prima_tec_total = prima_tec_total,
+                prima_pza_total = prima_pza_total,
+                premio_sin_iva_total = premio_sin_iva_total,
+                premio_con_iva_total = premio_con_iva_total,
             )
             nuevo_movimiento.save()
+            
+            prima_tec_total = 0
+            prima_pza_total = 0
+            premio_sin_iva_total = 0
+            premio_con_iva_total = 0
 
         # Actualizar el número de orden actual
         numero_orden_actual = nro_orden
@@ -1076,6 +1139,11 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
         
         premio_vigente_con_iva = premio_vigente_sin_iva + ((premio_vigente_sin_iva * iva) / CIEN) + ((premio_vigente_sin_iva * imp_y_sellados) / CIEN)
 
+        # Sumar valores para el total del movimiento
+        prima_tec_total += prima_tecnica_vigente
+        prima_pza_total += prima_pza_vigente
+        premio_sin_iva_total += premio_vigente_sin_iva
+        premio_con_iva_total += premio_vigente_con_iva
         
         # Redondear valores
         prima_tecnica_vigente = round(prima_tecnica_vigente, 2)
@@ -1192,6 +1260,10 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
     # output.seek(0)
     # Guardar el último movimiento después de salir del bucle
     if nuevo_movimiento:
+        nuevo_movimiento.prima_tec_total = prima_tec_total
+        nuevo_movimiento.prima_pza_total = prima_pza_total
+        nuevo_movimiento.premio_sin_iva_total = premio_sin_iva_total
+        nuevo_movimiento.premio_con_iva_total = premio_con_iva_total
         nuevo_movimiento.save()
     # Crear una respuesta HTTP con el archivo adjunto
     #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

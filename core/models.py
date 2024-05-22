@@ -105,6 +105,11 @@ class Movimiento(models.Model):
     vigencia_desde = models.DateField(blank=True, null=True)
     vigencia_hasta = models.DateField(blank=True, null=True)
     fecha_alta_op = models.DateField(blank=True, null=True)
+    prima_tec_total = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    prima_pza_total = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    premio_sin_iva_total = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    premio_con_iva_total = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    
     
     
 class VehiculoFlota(models.Model):

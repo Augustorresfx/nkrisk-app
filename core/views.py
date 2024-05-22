@@ -498,7 +498,8 @@ class ExportarMovimientoView(View):
             sheet.cell(row=next_row, column=5, value=vehiculo.patente).font = font
             sheet.cell(row=next_row, column=6, value=vehiculo.premio_sin_iva).font = font
             sheet.cell(row=next_row, column=7, value=vehiculo.premio_con_iva).font = font
-            
+            sheet.cell(row=next_row, column=6).number_format = '#,##0'
+            sheet.cell(row=next_row, column=7).number_format = '#,##0'
             # Aplicar color de relleno 
             sheet.cell(row=next_row, column=6).fill = relleno
             sheet.cell(row=next_row, column=7).fill = relleno
@@ -518,6 +519,8 @@ class ExportarMovimientoView(View):
         sheet.cell(row=next_row+1, column=7).fill = relleno
         sheet.cell(row=next_row+1, column=6).border = bordes
         sheet.cell(row=next_row+1, column=7).border = bordes
+        sheet.cell(row=next_row+1, column=6).number_format = '#,##0'
+        sheet.cell(row=next_row+1, column=7).number_format = '#,##0'
         # Crear una respuesta HTTP con el archivo Excel duplicado adjunto
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename={movimiento.numero_endoso}.xlsx'
@@ -611,6 +614,8 @@ class ExportarUltimoEstadoFlotaView(View):
             sheet.cell(row=next_row, column=5, value=vehiculo.patente).font = font
             sheet.cell(row=next_row, column=6, value=vehiculo.premio_sin_iva).font = font
             sheet.cell(row=next_row, column=7, value=vehiculo.premio_con_iva).font = font
+            sheet.cell(row=next_row, column=6).number_format = '#,##0'
+            sheet.cell(row=next_row, column=7).number_format = '#,##0'
             
             # Aplicar color de relleno 
             sheet.cell(row=next_row, column=6).fill = relleno
@@ -631,6 +636,8 @@ class ExportarUltimoEstadoFlotaView(View):
         sheet.cell(row=next_row+1, column=7).fill = relleno
         sheet.cell(row=next_row+1, column=6).border = bordes
         sheet.cell(row=next_row+1, column=7).border = bordes
+        sheet.cell(row=next_row+1, column=6).number_format = '#,##0'
+        sheet.cell(row=next_row+1, column=7).number_format = '#,##0'
         # Iterar sobre los movimientos y crear una hoja para cada uno
         for movimiento in movimientos:
             hoja_movimiento = workbook.create_sheet(title=f'ENDOSO {movimiento.numero_endoso}')
@@ -680,7 +687,9 @@ class ExportarUltimoEstadoFlotaView(View):
             hoja_movimiento.cell(row=9, column=4).border = bordes
             hoja_movimiento.cell(row=9, column=5).border = bordes
             hoja_movimiento.cell(row=9, column=6).border = bordes
+            hoja_movimiento.cell(row=9, column=6).number_format = '#,##0'
             hoja_movimiento.cell(row=9, column=7).border = bordes
+            hoja_movimiento.cell(row=9, column=7).number_format = '#,##0'
             premio_sin_iva_total = 0
             premio_con_iva_total = 0
             # Iterar sobre los vehículos y agregar la información al archivo Excel existente
@@ -691,9 +700,11 @@ class ExportarUltimoEstadoFlotaView(View):
                 hoja_movimiento.cell(row=next_row, column=3, value=vehiculo.descripcion).font = font
                 hoja_movimiento.cell(row=next_row, column=4, value=vehiculo.anio).font = font
                 hoja_movimiento.cell(row=next_row, column=5, value=vehiculo.patente).font = font
-                hoja_movimiento.cell(row=next_row, column=6, value=vehiculo.premio_sin_iva).font = font
-                hoja_movimiento.cell(row=next_row, column=7, value=vehiculo.premio_con_iva).font = font
                 
+                hoja_movimiento.cell(row=next_row, column=6, value=vehiculo.premio_sin_iva).font = font
+                hoja_movimiento.cell(row=next_row, column=6).number_format = '#,##0'
+                hoja_movimiento.cell(row=next_row, column=7, value=vehiculo.premio_con_iva).font = font
+                hoja_movimiento.cell(row=next_row, column=7).number_format = '#,##0'
                 # Aplicar color de relleno 
                 hoja_movimiento.cell(row=next_row, column=6).fill = relleno
                 hoja_movimiento.cell(row=next_row, column=7).fill = relleno
@@ -708,7 +719,9 @@ class ExportarUltimoEstadoFlotaView(View):
                 premio_con_iva_total += vehiculo.premio_con_iva
                 
             hoja_movimiento.cell(row=next_row+1, column=6, value=premio_sin_iva_total).font = font
+            hoja_movimiento.cell(row=next_row+1, column=6).number_format = '#,##0'
             hoja_movimiento.cell(row=next_row+1, column=7, value=premio_con_iva_total).font = font
+            hoja_movimiento.cell(row=next_row+1, column=7).number_format = '#,##0'
             hoja_movimiento.cell(row=next_row+1, column=6).fill = relleno
             hoja_movimiento.cell(row=next_row+1, column=7).fill = relleno
             hoja_movimiento.cell(row=next_row+1, column=6).border = bordes
@@ -820,7 +833,11 @@ class DetalleFlotaView(View):
         if movimiento_id:
             # Si hay un movimiento_id específico, obtener ese movimiento
             movimiento = Movimiento.objects.filter(id=movimiento_id).first()
-
+            print("TOTALES DEL MOVIMIENTO: ")
+            print("PRIMA TEC TOTAL: ", movimiento.prima_tec_total)
+            print("PRIMA PZA TOTAL: ", movimiento.prima_pza_total)
+            print("PREMIO SIN IVA TOTAL: ", movimiento.premio_sin_iva_total)
+            print("PREMIO CON IVA TOTAL: ", movimiento.premio_con_iva_total)
             if movimiento:
                 # Obtener todos los vehículos vinculados a ese movimiento a lo largo de su historial
                 vehiculos = VehiculoFlota.history.filter(movimiento=movimiento).reverse()
@@ -828,7 +845,6 @@ class DetalleFlotaView(View):
                 # Si el movimiento no existe, establecer vehículos como vacío
                 vehiculos = VehiculoFlota.history.none()
         else:
-
             # Obtener los vehículos en su último estado
             primer_movimiento = movimientos.first()
             vehiculos = VehiculoFlota.objects.filter(flota=flota).reverse()
@@ -937,8 +953,6 @@ class DetalleFlotaView(View):
             if fuente_datos == 'info_auto':
                 access_token = api_manager.get_valid_access_token()
             
-            
-
             # Guardar la hoja de cálculo actualizada
             # output = BytesIO()
             # workbook.save(output)
