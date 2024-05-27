@@ -109,9 +109,10 @@ class Movimiento(models.Model):
     prima_pza_total = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     premio_sin_iva_total = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     premio_con_iva_total = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    prima_pza_porcentaje_diferencia = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+    premio_con_iva_porcentaje_diferencia = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     
-    
-    
+
 class VehiculoFlota(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     cod = models.IntegerField(null=True, blank=True)

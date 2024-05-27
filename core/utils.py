@@ -1,11 +1,11 @@
 from datetime import datetime
-
+import logging
 from datetime import datetime
 
 from .models import VehiculoFlota, TarifaFlota
 from decimal import Decimal
 from collections import defaultdict
-
+from decimal import Decimal
 from .api_manager import ApiManager
 from .api_auth import ApiAuthentication
 from .models import Movimiento, VehiculoFlota, VehiculoInfoAuto, Flota, PrecioAnual, Localidad, TarifaFlota
@@ -115,10 +115,10 @@ def handle_cambio_cobertura(existing_vehicle, data, movimiento):
 def handle_baja_items(existing_vehicle, data, movimiento):
     existing_vehicle.estado = data['estado']
     existing_vehicle.movimiento = movimiento
-    existing_vehicle.prima_tecnica = -data['prima_tecnica_vigente']
-    existing_vehicle.prima_pza = -data['prima_pza_vigente']
-    existing_vehicle.premio_sin_iva = -data['premio_vigente_sin_iva']
-    existing_vehicle.premio_con_iva = -data['premio_vigente_con_iva']
+    existing_vehicle.prima_tecnica = data['prima_tecnica_vigente']
+    existing_vehicle.prima_pza = data['prima_pza_vigente']
+    existing_vehicle.premio_sin_iva = data['premio_vigente_sin_iva']
+    existing_vehicle.premio_con_iva = data['premio_vigente_con_iva']
     existing_vehicle.save()
 
 def handle_renovacion_alta_items(data, movimiento):
@@ -158,19 +158,53 @@ def handle_renovacion_alta_items(data, movimiento):
     )
     vehiculo.save()
     
+def comparar_totales(workbook, flota_id, cliente):
+    # Obtener la flota
+    flota = Flota.objects.get(id=flota_id)
+    # Obtener todos los movimientos vinculados a esa flota
+    movimientos = Movimiento.objects.filter(flota=flota)
+
+    sheet = workbook.active
+    
+    for row_number, (orden, poliza, endoso, motivo_endoso, cliente_excel, aseguradora, riesgo, vig_op_desde_, vig_op_hasta, moneda, prima, premio, saldo) in enumerate(sheet.iter_rows(min_row=4, values_only=True), start=4):
+        row_values = sheet.cell(row=row_number, column=1).value
+        if row_values is None:
+            # Salir del bucle si la fila está vacía
+            break
+        try:
+            # Buscar el movimiento correspondiente
+            movimiento = movimientos.get(numero_orden = orden)
+            print(movimiento)
+            if motivo_endoso == 'ALTA DE ITEMS' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA' or motivo_endoso == 'RENOVACIÓN':
+                prima_diferencia = ((Decimal(prima) - movimiento.prima_tec_total) / movimiento.prima_tec_total) * 100 if movimiento.prima_pza_total else 0
+                premio_diferencia = ((Decimal(premio) - movimiento.premio_con_iva_total) / movimiento.premio_con_iva_total) * 100 if movimiento.premio_con_iva_total else 0
+            elif motivo_endoso == 'BAJA DE ITEMS':
+                prima_diferencia = ((Decimal(prima) + (movimiento.prima_tec_total*-1)) / movimiento.prima_tec_total) * 100 if movimiento.prima_pza_total else 0
+                premio_diferencia = ((Decimal(premio) + (movimiento.premio_con_iva_total*-1)) / movimiento.premio_con_iva_total) * 100 if movimiento.premio_con_iva_total else 0
+            movimiento.prima_pza_porcentaje_diferencia = prima_diferencia
+            movimiento.premio_con_iva_porcentaje_diferencia = premio_diferencia
+            
+            # Añadir logs para verificar valores
+            print(f"Orden: {orden} - Prima diferencia: {prima_diferencia}, Premio diferencia: {premio_diferencia}")
+            movimiento.save()
+        except Movimiento.DoesNotExist:
+            pass
+            
+    
 def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
     api_manager = ApiManager()
     created = datetime.now()
     lista_errores = []
     flota = Flota.objects.get(pk=flota_id)
    
-    # Variables para la creación de movimientos
+    # Variables usadas para crear movimientos
     numero_orden_actual = None
     nuevo_movimiento = None
     prima_tec_total = 0
     prima_pza_total = 0
     premio_sin_iva_total = 0
     premio_con_iva_total = 0
+    
     if fuente_datos == 'info_auto':
         access_token = api_manager.get_valid_access_token()
     
@@ -181,17 +215,22 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
         if row_values is None:
             # Salir del bucle si la fila está vacía
             break
-        
+
         fecha_operacion = convert_date(fecha_operacion_str)
         fecha_vigencia = convert_date(fecha_vigencia_str)
         fecha_alta_op = fecha_alta_op_str.strftime("%Y-%m-%d")
         created = datetime.now()
+        
         # Verificar si el número de orden cambió (crea un movimiento por c/nro de orden)
         if nro_orden != numero_orden_actual:
             # Guardar el movimiento anterior si existe
             if nuevo_movimiento:
+                nuevo_movimiento.prima_tec_total = prima_tec_total
+                nuevo_movimiento.prima_pza_total = prima_pza_total
+                nuevo_movimiento.premio_sin_iva_total = premio_sin_iva_total
+                nuevo_movimiento.premio_con_iva_total = premio_con_iva_total
                 nuevo_movimiento.save()
-
+                
             nuevo_movimiento = Movimiento(
                 created=created,
                 numero_endoso=endoso,
@@ -205,9 +244,9 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
                 prima_pza_total = prima_pza_total,
                 premio_sin_iva_total = premio_sin_iva_total,
                 premio_con_iva_total = premio_con_iva_total,
-                
             )
             nuevo_movimiento.save()
+            
             prima_tec_total = 0
             prima_pza_total = 0
             premio_sin_iva_total = 0
@@ -224,20 +263,20 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
         print("Tipo de cobertura: ", tipo_de_cobertura)
         
         # Usar el precio de vehiculo que este en el Excel
-        if fuente_datos == "excel":
-            precio = Decimal(suma_aseg)
-            # Consultar solo el tipo de vehículo
-            vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
-            tipo_vehiculo = get_vehicle_type(vehiculo_info)
-            # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
-            if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
-                vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
-                # Si la suma asegurada es distinta el precio será la diferencia entre sumas
-                if suma_aseg != vehiculo_anterior.suma_asegurada:
-                    precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
-                # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y la prima rc)
-                else:
-                    precio = 0
+
+        precio = Decimal(suma_aseg)
+        # Consultar solo el tipo de vehículo
+        vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
+        tipo_vehiculo = get_vehicle_type(vehiculo_info)
+        # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
+        if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
+            vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
+            # Si la suma asegurada es distinta el precio será la diferencia entre sumas
+            if suma_aseg != vehiculo_anterior.suma_asegurada:
+                precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
+            # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y la prima rc)
+            else:
+                precio = 0
 
         # Usar los datos de vehiculo de info auto
         elif fuente_datos == 'info_auto':
@@ -354,9 +393,9 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
         if suma_aseg == 0:
             precio = 0
             tasa = 0
-            
-        # Si el motivo es renovación o alta de items hay que tener en cuenta la suma aseg de los accesorios en el total                
-        if accesorios == 'SI' and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS':
+        
+        # Si el motivo es renovación o alta de items hay que tener en cuenta la suma aseg de los accesorios en el total
+        if accesorios == 'SI' and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS' or motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
             precio += suma_aseg_acc
         
         # Cambiar el tipo de datos a Decimal para evitar errores en los cálculos
@@ -384,7 +423,8 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
 
         # Calcular prima tecnica y prima póliza por vigencia
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
-        prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
+        prima_tecnica_vigente_recargo_administrativo = (prima_tecnica_vigente * RECARGO_ADMINISTRATIVO) / CIEN
+        prima_pza_vigente = prima_tecnica_vigente + prima_tecnica_vigente_recargo_administrativo + DERECHO_EMISION
         
         # Determinar la cobertura según si la unidad es importada o no
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
@@ -497,7 +537,7 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
                 'fecha_vigencia': fecha_vigencia,
                 'estado': estado,
                 'uso_vehiculo': uso_vehiculo,
-                'precio': precio,
+                'precio': suma_aseg,
                 'valor_actual': valor_actual,
                 'tipo_de_cobertura': tipo_cobertura,
                 'tasa': tasa,
@@ -516,6 +556,10 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
     # output.seek(0)
     # Guardar el último movimiento después de salir del bucle
     if nuevo_movimiento:
+        nuevo_movimiento.prima_tec_total = prima_tec_total
+        nuevo_movimiento.prima_pza_total = prima_pza_total
+        nuevo_movimiento.premio_sin_iva_total = premio_sin_iva_total
+        nuevo_movimiento.premio_con_iva_total = premio_con_iva_total
         nuevo_movimiento.save()
     # Crear una respuesta HTTP con el archivo adjunto
     #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -530,7 +574,7 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
     lista_errores = []
     flota = Flota.objects.get(pk=flota_id)
    
-    # Variables para la creación de movimientos
+    # Variables usadas para crear movimientos
     numero_orden_actual = None
     nuevo_movimiento = None
     prima_tec_total = 0
@@ -557,8 +601,12 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
         if nro_orden != numero_orden_actual:
             # Guardar el movimiento anterior si existe
             if nuevo_movimiento:
+                nuevo_movimiento.prima_tec_total = prima_tec_total
+                nuevo_movimiento.prima_pza_total = prima_pza_total
+                nuevo_movimiento.premio_sin_iva_total = premio_sin_iva_total
+                nuevo_movimiento.premio_con_iva_total = premio_con_iva_total
                 nuevo_movimiento.save()
-
+                
             nuevo_movimiento = Movimiento(
                 created=created,
                 numero_endoso=endoso,
@@ -591,20 +639,20 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
         print("Tipo de cobertura: ", tipo_de_cobertura)
         
         # Usar el precio de vehiculo que este en el Excel
-        if fuente_datos == "excel":
-            precio = Decimal(suma_aseg)
-            # Consultar solo el tipo de vehículo
-            vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
-            tipo_vehiculo = get_vehicle_type(vehiculo_info)
-            # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
-            if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
-                vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
-                # Si la suma asegurada es distinta el precio será la diferencia entre sumas
-                if suma_aseg != vehiculo_anterior.suma_asegurada:
-                    precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
-                # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y prima rc)
-                else:
-                    precio = 0
+
+        precio = Decimal(suma_aseg)
+        # Consultar solo el tipo de vehículo
+        vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
+        tipo_vehiculo = get_vehicle_type(vehiculo_info)
+        # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
+        if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
+            vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
+            # Si la suma asegurada es distinta el precio será la diferencia entre sumas
+            if suma_aseg != vehiculo_anterior.suma_asegurada:
+                precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
+            # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y prima rc)
+            else:
+                precio = 0
 
         # Usar los datos de vehiculo de info auto
         elif fuente_datos == 'info_auto':
@@ -723,7 +771,7 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
             tasa = 0
         
         # Si el motivo es renovación o alta de items hay que tener en cuenta la suma aseg de los accesorios en el total
-        if accesorios == 'SI' and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS':
+        if accesorios == 'SI' and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS' or motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
             precio += suma_aseg_acc
         
         # Cambiar el tipo de datos a Decimal para evitar errores en los cálculos
@@ -751,8 +799,8 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
 
         # Calcular prima tecnica y prima póliza por vigencia
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
-        prima_por_recargo_administrativo_vigente = (prima_tecnica_vigente * RECARGO_ADMINISTRATIVO) / CIEN
-        prima_pza_vigente = prima_tecnica_vigente + prima_por_recargo_administrativo_vigente + DERECHO_EMISION
+        prima_tecnica_vigente_recargo_administrativo = (prima_tecnica_vigente * RECARGO_ADMINISTRATIVO) / CIEN
+        prima_pza_vigente = prima_tecnica_vigente + prima_tecnica_vigente_recargo_administrativo + DERECHO_EMISION
         
         # Determinar la cobertura según si la unidad es importada o no
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
@@ -865,7 +913,7 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
                 'fecha_vigencia': fecha_vigencia,
                 'estado': estado,
                 'uso_vehiculo': uso_vehiculo,
-                'precio': precio,
+                'precio': suma_aseg,
                 'valor_actual': valor_actual,
                 'tipo_de_cobertura': tipo_cobertura,
                 'tasa': tasa,
@@ -969,20 +1017,20 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
         print("Tipo de cobertura: ", tipo_de_cobertura)
         
         # Usar el precio de vehiculo que este en el Excel
-        if fuente_datos == "excel":
-            precio = Decimal(suma_aseg)
-            # Consultar solo el tipo de vehículo
-            vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
-            tipo_vehiculo = get_vehicle_type(vehiculo_info)
-            # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
-            if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
-                vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
-                # Si la suma asegurada es distinta el precio será la diferencia entre sumas
-                if suma_aseg != vehiculo_anterior.suma_asegurada:
-                    precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
-                # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y la prima rc)
-                else:
-                    precio = 0
+    
+        precio = Decimal(suma_aseg)
+        # Consultar solo el tipo de vehículo
+        vehiculo_info = VehiculoInfoAuto.objects.filter(codigo=codia).values_list('tipo_vehiculo', flat=True).first()
+        tipo_vehiculo = get_vehicle_type(vehiculo_info)
+        # Si el motivo es AUMENTO DE SUMA ASEGURADA buscar el vehiculo
+        if motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
+            vehiculo_anterior = VehiculoFlota.objects.filter(cod=codia, patente=patente).first()
+            # Si la suma asegurada es distinta el precio será la diferencia entre sumas
+            if suma_aseg != vehiculo_anterior.suma_asegurada:
+                precio = Decimal(suma_aseg) - vehiculo_anterior.suma_asegurada
+            # Si la suma no es distinta, no hay diferencia, por lo tanto el precio será cero (y la tasa y la prima rc)
+            else:
+                precio = 0
 
         # Usar los datos de vehiculo de info auto
         elif fuente_datos == 'info_auto':
@@ -1100,8 +1148,8 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
             precio = 0
             tasa = 0
             
-        # Si el motivo es renovación o alta de items hay que tener en cuenta la suma aseg de los accesorios en el total                
-        if accesorios == 'SI' and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS':
+        # Si el motivo es renovación o alta de items hay que tener en cuenta la suma aseg de los accesorios en el total
+        if accesorios == 'SI' and motivo_endoso == 'RENOVACIÓN' or motivo_endoso == 'ALTA DE ITEMS' or motivo_endoso == 'AUMENTO DE SUMA ASEGURADA' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA':
             precio += suma_aseg_acc
         
         # Cambiar el tipo de datos a Decimal para evitar errores en los cálculos
@@ -1129,7 +1177,8 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
 
         # Calcular prima tecnica y prima póliza por vigencia
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
-        prima_pza_vigente = prima_pza_anual * dias_vigencia / dias_totales
+        prima_tecnica_vigente_recargo_administrativo = (prima_tecnica_vigente * RECARGO_ADMINISTRATIVO) / CIEN
+        prima_pza_vigente = prima_tecnica_vigente + prima_tecnica_vigente_recargo_administrativo + DERECHO_EMISION
         
         # Determinar la cobertura según si la unidad es importada o no
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
@@ -1241,7 +1290,7 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
                 'fecha_vigencia': fecha_vigencia,
                 'estado': estado,
                 'uso_vehiculo': uso_vehiculo,
-                'precio': precio,
+                'precio': suma_aseg,
                 'valor_actual': valor_actual,
                 'tipo_de_cobertura': tipo_cobertura,
                 'tasa': tasa,

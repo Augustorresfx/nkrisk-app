@@ -50,7 +50,7 @@ from unidecode import unidecode
 from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
-from .utils import importar_datos_roemmers_saicf, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel
+from .utils import importar_datos_roemmers_saicf, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel, comparar_totales
 
 # Roles y permisos
 def is_staff_user(user):
@@ -436,6 +436,7 @@ class ExportarMovimientoView(View):
         workbook = openpyxl.Workbook()
         sheet = workbook.active
         print(vehiculos)
+        
         # Estilos
         font = Font(name="Calibri", size=11, bold=False)
         font_bold = Font(name="Calibri", size=12, bold=True)
@@ -446,6 +447,7 @@ class ExportarMovimientoView(View):
                 top=Side(border_style='thin', color='000000'),
                 bottom=Side(border_style='thin', color='000000'))  # Bordes finos y negro
         relleno_header = PatternFill(start_color="ED7D31", end_color="ED7D31", fill_type="solid")
+        
         # Obtener el número de la próxima fila disponible
         next_row = 10
         num_vehiculo = 1
@@ -849,7 +851,7 @@ class DetalleFlotaView(View):
             primer_movimiento = movimientos.first()
             vehiculos = VehiculoFlota.objects.filter(flota=flota).reverse()
 
-         # Filtrar los vehículos por patente si se proporciona
+        # Filtrar los vehículos por patente si se proporciona
         if patente:
             vehiculos = vehiculos.filter(patente__icontains=patente)
             
@@ -917,6 +919,25 @@ class DetalleFlotaView(View):
                 messages.error(request, f'Error: No se pudo actualizar el elemento. Detalles: {str(e)}')
             return redirect('detalle_flota', flota_id = flota_id)
         
+        if "comparar_totales" in request.POST:
+            # Obtener la instancia de la Flota por su id
+            flota = Flota.objects.get(pk=flota_id)
+
+            # Acceder al cliente relacionado
+            cliente = flota.cliente
+            
+            file1 = request.FILES.get('file1')
+            workbook = openpyxl.load_workbook(file1)
+            try:
+                # Intenta comparar y agregar el porcentaje de diferencia al mov
+                comparar_totales(workbook, flota_id, cliente)
+                messages.success(request, 'Se compararon los totales exitosamente.')
+                
+            except Exception as e:
+                
+                messages.error(request, f'Error: No se pudo comparar los totales: {str(e)}')
+            return redirect('detalle_flota', flota_id=flota_id)
+        
         if "calcular_excel" in request.POST:
             start_time = time.time()
             # Llama a la función para obtener el diccionario de tarifas
@@ -976,32 +997,7 @@ class DetalleFlotaView(View):
             print(f"Tiempo de ejecución: {execution_time} segundos")
             messages.success(request, 'El elemento se importó exitosamente.')
             return redirect('detalle_flota', flota_id=flota_id)
-                
-        flota = Flota.objects.get(id=flota_id)
-        cod_infoauto = request.POST.get('cod_infoauto')
-        marca = request.POST.get('marca')
-        modelo = request.POST.get('modelo')
-        patente = request.POST.get('patente')
-        anio = request.POST.get('anio')
-        okm = request.POST.get('okm')
-        valor = request.POST.get('valor')
-
-        if cod_infoauto and marca:
-            nuevo_vehiculo = VehiculoFlota(
-                flota_id=flota_id,
-                cod_infoauto=cod_infoauto,
-                marca=marca,
-                modelo=modelo,
-                patente=patente,
-                anio=anio,
-                okm=okm,
-                valor=valor,
-            )
-            nuevo_vehiculo.save()
-            return redirect('detalle_flota', flota_id=flota_id)
-        else:
-            # Maneja errores de validación o muestra un mensaje de error
-            return HttpResponse('Error: Datos de vehículo incompletos')
+        return redirect('detalle_flota', flota_id=flota_id)
     
     #def calcular_datos_con_access_token(self, access_token):
         
