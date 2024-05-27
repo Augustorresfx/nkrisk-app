@@ -36,22 +36,20 @@
           <div class="col">
             
             <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
-              <h2 > 
-                Agregar endoso
-              </h2>
+              <h3 > 
+                Agregar endosos
+              </h3>
               
               <form class="pt-3" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <p class="text-danger">
-                  Verificar que los endosos esten ordenados de forma ascendente!
-                </p>
+
 
                 <div class="mb-3">
                   
                   <label for="formFile" class="form-label">Excel de flota</label>
                   <input name="file1" class="form-control" type="file" id="formFile">
                 </div>
-                <div class="mb-3">
+                {% comment %} <div class="mb-3">
                   <label for="fuente_datos" class="form-label">Fuente de datos:</label>
                   <select name="fuente_datos" class="form-select" aria-label="Default select example">
                       <option selected>Seleccionar fuente de datos</option>
@@ -59,13 +57,34 @@
                       <option value="info_auto">Datos de Info Auto</option>
                       <option value="base_datos">Datos de la base de datos propia</option>
                   </select>
-              </div>
+              </div> {% endcomment %}
 
               <button name="calcular_excel" class="btn btn-primary mb-2" type="submit">Agregar</button>
 
                 
             </form>
           </div>
+          <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
+            <h3 > 
+              Comparar totales
+            </h3>
+            
+            <form class="pt-3" method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+
+
+              <div class="mb-3">
+                
+                <label for="formFile" class="form-label">Listado de operaciones</label>
+                <input name="file1" class="form-control" type="file" id="formFile">
+              </div>
+
+
+            <button name="comparar_totales" class="btn btn-primary mb-2" type="submit">Agregar</button>
+
+              
+          </form>
+        </div>
         </div>
 
    
