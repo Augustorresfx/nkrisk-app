@@ -17,6 +17,8 @@ editarBotones.forEach(function(boton) {
                 document.getElementById('motivo_endoso').value = data.motivo_endoso;
                 document.getElementById('numero_orden').value = data.numero_orden;
                 document.getElementById('fecha_alta_op').value = data.fecha_alta_op;
+                document.getElementById('porcentaje_dif_prima').value = data.porcentaje_dif_prima;
+                document.getElementById('porcentaje_dif_premio').value = data.porcentaje_dif_premio;
                 // Actualiza otros campos según sea necesario
             })
             .catch(error => {

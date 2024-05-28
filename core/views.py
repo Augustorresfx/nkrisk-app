@@ -369,14 +369,18 @@ class EliminarClienteView(View):
 class ObtenerDatosMovimientoView(View):
     def get(self, request, movimiento_id):
         movimiento = Movimiento.objects.get(id=movimiento_id)
+
         datos_movimiento = {
             'movimiento_id': movimiento_id,
             'numero_endoso': movimiento.numero_endoso,
             'motivo_endoso': movimiento.motivo_endoso,
             'numero_orden': movimiento.numero_orden,
             'fecha_alta_op': movimiento.fecha_alta_op,
+            'porcentaje_dif_prima': "{:.3f}".format(movimiento.prima_pza_porcentaje_diferencia).replace(',', '.'),
+            'porcentaje_dif_premio': "{:.3f}".format(movimiento.premio_con_iva_porcentaje_diferencia).replace(',', '.')
             # Agrega otros campos del movimiento según sea necesario
         }
+
         return JsonResponse(datos_movimiento)
     
 @method_decorator(login_required, name='dispatch')
