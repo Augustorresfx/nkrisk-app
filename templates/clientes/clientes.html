@@ -87,14 +87,14 @@
                     <input name="recargo_financiero" type="number" class="form-control" step="0.01" min="0" placeholder="Recargo financiero" aria-label="Recargo financiero" aria-describedby="basic-addon1">
                   </div>
                   <div class="col-sm mb-3">
-                    <label for="impuestos" class="form-label">Impuestos: </label>
-                    <input name="impuestos" type="number" class="form-control" step="0.01" min="0" placeholder="Impuestos" aria-label="Impuestos" aria-describedby="basic-addon1">
+                    <label for="imp_y_sellados" class="form-label">Impuestos y sellados: </label>
+                    <input name="imp_y_sellados" type="number" class="form-control" step="0.01" min="0" placeholder="Impuestos y sellados" aria-label="Impuestos y sellados" aria-describedby="basic-addon1">
                   </div>
                 </div>
                   <div class="row g-3">
                   <div class="col-sm mb-3">
-                    <label for="sellados" class="form-label">Sellados: </label>
-                    <input name="sellados" type="number" class="form-control" step="0.01" min="0" placeholder="Sellados" aria-label="Sellados" aria-describedby="basic-addon1">
+                    <label for="iibb" class="form-label">IIBB: </label>
+                    <input name="iibb" type="number" class="form-control" step="0.01" min="0" placeholder="IIBB" aria-label="IIBB" aria-describedby="basic-addon1">
                   </div>
                   <div class="col-sm mb-3">
                     <label for="iva" class="form-label">IVA: </label>
@@ -137,8 +137,8 @@
                         <th scope="col">Teléfono</th>
                         <th scope="col">Email</th>
                         <th scope="col">RF</th>
-                        <th scope="col">Impuestos</th>
-                        <th scope="col">Sellados</th>
+                        <th scope="col">Impuestos y sellados</th>
+                        <th scope="col">IIBB</th>
                         <th scope="col">IVA</th>
 
       
@@ -160,8 +160,8 @@
                           <td>{{ cliente.telefono }}</td>
                           <td>{{ cliente.email }}</td>
                           <td>{{ cliente.recargo_financiero }}</td>
-                          <td>{{ cliente.impuestos }}</td>
-                          <td>{{ cliente.sellados }}</td>
+                          <td>{{ cliente.imp_y_sellados }}</td>
+                          <td>{{ cliente.iibb }}</td>
                           <td>{{ cliente.iva }}</td>
 
                           <td>
