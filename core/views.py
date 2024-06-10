@@ -237,8 +237,8 @@ class ClientesView(View):
         telefono = request.POST.get('telefono')
         email = request.POST.get('email')
         recargo_financiero = request.POST.get('recargo_financiero')
-        impuestos = request.POST.get('impuestos')
-        sellados = request.POST.get('sellados')
+        imp_y_sellados = request.POST.get('imp_y_sellados')
+        iibb = request.POST.get('iibb')
         iva = request.POST.get('iva')
         
 
@@ -254,8 +254,8 @@ class ClientesView(View):
             telefono=telefono,
             email=email,
             recargo_financiero=recargo_financiero,
-            impuestos=impuestos,
-            sellados=sellados,
+            imp_y_sellados=imp_y_sellados,
+            iibb=iibb,
             iva=iva,
             
         )
@@ -280,22 +280,22 @@ class DetalleClienteView(View):
             recargo_financiero_formatted = "{:.3f}".format(cliente.recargo_financiero).replace(',', '.')
         else:
             recargo_financiero_formatted = 0
-        if cliente.impuestos:
-            impuestos_formatted = "{:.3f}".format(cliente.impuestos).replace(',', '.')
+        if cliente.imp_y_sellados:
+            imp_y_sellados_formatted = "{:.3f}".format(cliente.imp_y_sellados).replace(',', '.')
         else:
-            impuestos_formatted = 0
-        if cliente.sellados:
-            sellados_formatted = "{:.3f}".format(cliente.sellados).replace(',', '.')
+            imp_y_sellados_formatted = 0
+        if cliente.iibb:
+            iibb_formatted = "{:.3f}".format(cliente.iibb).replace(',', '.')
         else:
-            sellados_formatted = 0
+            iibb_formatted = 0
         
         iva_formatted = "{:.3f}".format(cliente.iva).replace(',', '.')
     
         context = {
             'cliente': cliente,
             'recargo_financiero_formatted': recargo_financiero_formatted,
-            'impuestos_formatted': impuestos_formatted,
-            'sellados_formatted': sellados_formatted,
+            'imp_y_sellados_formatted ': imp_y_sellados_formatted ,
+            'iibb_formatted': iibb_formatted,
             'iva_formatted': iva_formatted,
         }
         return render(request, 'clientes/detalle_cliente.html', context)
@@ -312,8 +312,8 @@ class DetalleClienteView(View):
         telefono = request.POST.get('telefono')
         email = request.POST.get('email')
         recargo_financiero = request.POST.get('rf')
-        impuestos = request.POST.get('impuestos')
-        sellados = request.POST.get('sellados')
+        imp_y_sellados = request.POST.get('imp_y_sellados')
+        iibb = request.POST.get('iibb')
         iva = request.POST.get('iva')
         
         # Actualiza los campos de la tarifa con los datos del formulario
@@ -326,8 +326,8 @@ class DetalleClienteView(View):
         cliente.telefono = telefono
         cliente.email = email
         cliente.recargo_financiero = recargo_financiero
-        cliente.impuestos = impuestos
-        cliente.sellados = sellados
+        cliente.imp_y_sellados = imp_y_sellados
+        cliente.iibb = iibb
         cliente.iva = iva
         
         try:
