@@ -71,8 +71,8 @@ class Cliente(models.Model):
     telefono = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=254)
     recargo_financiero = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    impuestos = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
-    sellados = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    imp_y_sellados = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
+    iibb = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     iva = models.DecimalField(decimal_places=2, max_digits=100, null=True, blank=True)
     
     
