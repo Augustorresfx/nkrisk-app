@@ -863,7 +863,17 @@ class DetalleFlotaView(View):
         prima_pza_total = 0
         premio_sin_iva_total = 0
         premio_con_iva_total = 0
-
+        
+        prima_pza_todos = 0
+        premio_sin_iva_todos = 0
+        premio_con_iva_todos = 0
+        for movimiento in movimientos:
+            prima_pza_todos += movimiento.prima_pza_total
+            premio_sin_iva_todos += movimiento.premio_sin_iva_total
+            premio_con_iva_todos += movimiento.premio_con_iva_total
+        print("TOTAL MOVIMIENTOS PRIMA PZA: ", prima_pza_todos)
+        print("TOTAL MOVIMIENTOS PREMIO SIN IVA: ", premio_sin_iva_todos)
+        print("TOTAL MOVIMIENTOS PREMIO CON IVA: ", premio_con_iva_todos)
         for vehiculo in vehiculos:
             prima_tecnica_total += vehiculo.prima_tecnica
             prima_pza_total += vehiculo.prima_pza

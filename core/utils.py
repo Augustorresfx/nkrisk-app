@@ -30,6 +30,16 @@ def get_tarifas():
     
     return tarifas_dict
 
+def convert_date_to_YYYY_MM_DD(fecha_str):
+    try:
+        # Intenta convertir la cadena a un objeto datetime
+        fecha_nueva = datetime.strptime(fecha_str, "%Y/%m/%d")
+        return fecha_nueva
+    except ValueError:
+        # Si hay un error en la conversión, imprime un mensaje y retorna None
+        print(f"Error en la conversión de fecha: {fecha_str}")
+        return None
+    
 def convert_date(fecha_str):
     try:
         # Intenta convertir la cadena a un objeto datetime
@@ -165,8 +175,17 @@ def comparar_totales(workbook, flota_id, cliente):
     movimientos = Movimiento.objects.filter(flota=flota)
 
     sheet = workbook.active
-    
-    for row_number, (orden, poliza, endoso, motivo_endoso, cliente_excel, aseguradora, riesgo, vig_op_desde_, vig_op_hasta, moneda, prima, premio, saldo) in enumerate(sheet.iter_rows(min_row=4, values_only=True), start=4):
+    # Obtener todas las hojas en el workbook
+    sheets = workbook.sheetnames
+    # Encontrar el índice de la hoja activa
+    current_index = sheets.index(sheet.title)
+
+    # Mover a la siguiente hoja si existe
+    if current_index < len(sheets) - 1:
+        next_sheet = workbook[sheets[current_index + 2]]
+        sheet = next_sheet  # Ahora 'sheet' es la tercer hoja
+        
+    for row_number, (orden, poliza, endoso, motivo_endoso, cliente_excel, aseguradora, riesgo, vig_op_desde_, vig_op_hasta, moneda, prima, premio, saldo, _,_,_,_,_,_,_,_) in enumerate(sheet.iter_rows(min_row=3, values_only=True), start=3):
         row_values = sheet.cell(row=row_number, column=1).value
         if row_values is None:
             # Salir del bucle si la fila está vacía
@@ -174,13 +193,15 @@ def comparar_totales(workbook, flota_id, cliente):
         try:
             # Buscar el movimiento correspondiente
             movimiento = movimientos.get(numero_orden = orden)
-            print(movimiento)
+            print(movimiento.motivo_endoso)
             if motivo_endoso == 'ALTA DE ITEMS' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA' or motivo_endoso == 'RENOVACIÓN':
                 prima_diferencia = ((Decimal(prima) - movimiento.prima_tec_total) / movimiento.prima_tec_total) * 100 if movimiento.prima_pza_total else 0
                 premio_diferencia = ((Decimal(premio) - movimiento.premio_con_iva_total) / movimiento.premio_con_iva_total) * 100 if movimiento.premio_con_iva_total else 0
             elif motivo_endoso == 'BAJA DE ITEMS':
                 prima_diferencia = ((Decimal(prima) + (movimiento.prima_tec_total*-1)) / movimiento.prima_tec_total) * 100 if movimiento.prima_pza_total else 0
                 premio_diferencia = ((Decimal(premio) + (movimiento.premio_con_iva_total*-1)) / movimiento.premio_con_iva_total) * 100 if movimiento.premio_con_iva_total else 0
+            print(prima_diferencia)
+            print(premio_diferencia)
             movimiento.prima_pza_porcentaje_diferencia = prima_diferencia
             movimiento.premio_con_iva_porcentaje_diferencia = premio_diferencia
             
@@ -441,14 +462,14 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
 
         # Base imponible
-        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero
+        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero / CIEN
         base_imponible = prima_pza_vigente + prima_pza_vigente_por_recargo_financiero
-        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados
+        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados / CIEN
 
         # Premio sin IVA ni IIBB
         premio_vigente_sin_iva = base_imponible + base_imponible_por_imp_y_sellados
-        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb
-        premio_vigente_por_iva = premio_vigente_sin_iva * iva
+        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb / CIEN
+        premio_vigente_por_iva = premio_vigente_sin_iva * iva / CIEN
         
         # Premio FINAL
         premio_vigente_con_iva = premio_vigente_sin_iva + premio_vigente_por_iibb + premio_vigente_por_iva
@@ -605,7 +626,7 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
     
     sheet = workbook.active
     
-    for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, poliza, endoso, motivo_endoso, estado, fecha_operacion_str, fecha_vigencia_str, clau_ajuste, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_excel, prima_total_excel, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op, dif_valor_veh,  tasa, prima_rc_anual, dias_vigencia_excel, _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,) in enumerate(sheet.iter_rows(min_row=5, values_only=True), start=5):
+    for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, poliza, endoso, motivo_endoso, estado, fecha_operacion_str, fecha_vigencia_str, clau_ajuste, nro_item, nro_item_cia, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_excel, prima_total_excel, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op, dif_valor_veh, tasa, prima_rc_anual, dias_vigencia_excel, _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,) in enumerate(sheet.iter_rows(min_row=5, values_only=True), start=5):
         row_values = sheet.cell(row=row_number, column=1).value
         if row_values is None:
             # Salir del bucle si la fila está vacía
@@ -835,14 +856,14 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
 
         # Base imponible
-        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero
+        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero / CIEN
         base_imponible = prima_pza_vigente + prima_pza_vigente_por_recargo_financiero
-        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados
+        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados / CIEN
 
         # Premio sin IVA ni IIBB
         premio_vigente_sin_iva = base_imponible + base_imponible_por_imp_y_sellados
-        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb
-        premio_vigente_por_iva = premio_vigente_sin_iva * iva
+        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb / CIEN
+        premio_vigente_por_iva = premio_vigente_sin_iva * iva / CIEN
         
         # Premio FINAL
         premio_vigente_con_iva = premio_vigente_sin_iva + premio_vigente_por_iibb + premio_vigente_por_iva
@@ -998,7 +1019,7 @@ def importar_datos_roemmers_alberto_guillermo(workbook, flota_id, fuente_datos, 
     
     sheet = workbook.active
     
-    for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, poliza, endoso, motivo_endoso, estado, fecha_operacion_str, fecha_vigencia_str, clau_ajuste, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_excel, prima_total_excel, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op, dif_valor_veh,  tasa, prima_rc_anual, dias_vigencia_excel, _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,) in enumerate(sheet.iter_rows(min_row=5, values_only=True), start=5):
+    for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, poliza, endoso, motivo_endoso, estado, fecha_operacion_str, fecha_vigencia_str, clau_ajuste, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_excel, prima_total_excel, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op, dif_valor_veh,  tasa, prima_rc_anual, dias_vigencia_excel, _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,) in enumerate(sheet.iter_rows(min_row=5, values_only=True), start=5):
         row_values = sheet.cell(row=row_number, column=1).value
         if row_values is None:
             # Salir del bucle si la fila está vacía
@@ -1228,9 +1249,9 @@ def importar_datos_roemmers_alberto_guillermo(workbook, flota_id, fuente_datos, 
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
 
         # Base imponible
-        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero
+        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero / CIEN
         base_imponible = prima_pza_vigente + prima_pza_vigente_por_recargo_financiero
-        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados
+        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados / CIEN
 
         # Premio sin IVA ni IIBB
         premio_vigente_sin_iva = base_imponible + base_imponible_por_imp_y_sellados
@@ -1239,8 +1260,8 @@ def importar_datos_roemmers_alberto_guillermo(workbook, flota_id, fuente_datos, 
         if (endoso == 3 or endoso == 4):
             iibb = 0
             
-        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb
-        premio_vigente_por_iva = premio_vigente_sin_iva * iva
+        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb / CIEN
+        premio_vigente_por_iva = premio_vigente_sin_iva * iva / CIEN
         
         # Premio FINAL
         premio_vigente_con_iva = premio_vigente_sin_iva + premio_vigente_por_iibb + premio_vigente_por_iva
@@ -1400,7 +1421,7 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
     
     sheet = workbook.active
     
-    for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, vinculante, poliza, endoso, motivo_endoso, estado, fecha_operacion_str, fecha_vigencia_str, clau_ajuste, nro_item, nro_item_cia, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa, prima_rc_anual, prima_total, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op_str) in enumerate(sheet.iter_rows(min_row=4, values_only=True), start=4):
+    for row_number, (nro_orden, cliente_excel, productor, aseguradora, riesgo, tipo_refacturacion, poliza, endoso, motivo_endoso, estado, fecha_operacion_str, fecha_vigencia_str, clau_ajuste, nro_item, nro_item_cia, codia, marca, modelo, descripcion, usuario_item, patente, anio, okm, motor, chasis, localidad_vehiculo, uso_vehiculo, suma_aseg, valor_actual, tipo_cobertura, tasa_excel, prima_rc_anual_excel, prima_total, accesorios, clau_ajuste_item, suma_aseg_acc, acreedor, usuario, observacion, fecha_alta_op_str, dif_valor_veh, tasa, prima_rc_anual, dias_vigencia_excel, _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,) in enumerate(sheet.iter_rows(min_row=5, values_only=True), start=5):
         row_values = sheet.cell(row=row_number, column=1).value
         if row_values is None:
             # Salir del bucle si la fila está vacía
@@ -1408,7 +1429,7 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
         
         fecha_operacion = fecha_operacion_str
         fecha_vigencia = fecha_vigencia_str
-        fecha_alta_op = fecha_alta_op_str.strftime("%Y-%m-%d")
+        fecha_alta_op = fecha_alta_op_str
         created = datetime.now()
         # Verificar si el número de orden cambió (crea un movimiento por c/nro de orden)
         if nro_orden != numero_orden_actual:
@@ -1630,14 +1651,14 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
         cobertura = COBERTURA_IMPORTADO if tipo_cobertura == "TODO AUTO FCIA. IMP. $112.500.-" else COBERTURA_NACIONAL
 
         # Base imponible
-        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero
+        prima_pza_vigente_por_recargo_financiero = prima_pza_vigente * recargo_financiero / CIEN
         base_imponible = prima_pza_vigente + prima_pza_vigente_por_recargo_financiero
-        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados
+        base_imponible_por_imp_y_sellados = base_imponible * imp_y_sellados / CIEN
 
         # Premio sin IVA ni IIBB
         premio_vigente_sin_iva = base_imponible + base_imponible_por_imp_y_sellados
-        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb
-        premio_vigente_por_iva = premio_vigente_sin_iva * iva
+        premio_vigente_por_iibb = premio_vigente_sin_iva * iibb / CIEN
+        premio_vigente_por_iva = premio_vigente_sin_iva * iva / CIEN
         
         # Premio FINAL
         premio_vigente_con_iva = premio_vigente_sin_iva + premio_vigente_por_iibb + premio_vigente_por_iva
