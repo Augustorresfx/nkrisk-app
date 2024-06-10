@@ -237,7 +237,7 @@ class ClientesView(View):
         telefono = request.POST.get('telefono')
         email = request.POST.get('email')
         recargo_financiero = request.POST.get('recargo_financiero')
-        imp_y_sellados = request.POST.get('imp_y_sellados')
+        impuestos_y_sellados = request.POST.get('imp_y_sellados')
         iibb = request.POST.get('iibb')
         iva = request.POST.get('iva')
         
@@ -254,7 +254,7 @@ class ClientesView(View):
             telefono=telefono,
             email=email,
             recargo_financiero=recargo_financiero,
-            imp_y_sellados=imp_y_sellados,
+            imp_y_sellados=impuestos_y_sellados,
             iibb=iibb,
             iva=iva,
             
@@ -288,13 +288,13 @@ class DetalleClienteView(View):
             iibb_formatted = "{:.3f}".format(cliente.iibb).replace(',', '.')
         else:
             iibb_formatted = 0
-        
+        print(imp_y_sellados_formatted)
         iva_formatted = "{:.3f}".format(cliente.iva).replace(',', '.')
     
         context = {
             'cliente': cliente,
             'recargo_financiero_formatted': recargo_financiero_formatted,
-            'imp_y_sellados_formatted ': imp_y_sellados_formatted ,
+            'imp_y_sellados_formatted': imp_y_sellados_formatted,
             'iibb_formatted': iibb_formatted,
             'iva_formatted': iva_formatted,
         }
