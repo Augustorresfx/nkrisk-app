@@ -195,11 +195,11 @@ def comparar_totales(workbook, flota_id, cliente):
             movimiento = movimientos.get(numero_orden = orden)
             print(movimiento.motivo_endoso)
             if motivo_endoso == 'ALTA DE ITEMS' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA' or motivo_endoso == 'RENOVACIÓN':
-                prima_diferencia = ((Decimal(prima) - movimiento.prima_tec_total) / movimiento.prima_tec_total) * 100 if movimiento.prima_pza_total else 0
-                premio_diferencia = ((Decimal(premio) - movimiento.premio_con_iva_total) / movimiento.premio_con_iva_total) * 100 if movimiento.premio_con_iva_total else 0
+                prima_diferencia = ((Decimal(prima) - movimiento.prima_tec_total) / Decimal(prima)) * 100 if movimiento.prima_tec_total else 0
+                premio_diferencia = ((Decimal(premio) - movimiento.premio_con_iva_total) / Decimal(premio)) * 100 if movimiento.premio_con_iva_total else 0
             elif motivo_endoso == 'BAJA DE ITEMS':
-                prima_diferencia = ((Decimal(prima) + (movimiento.prima_tec_total*-1)) / movimiento.prima_tec_total) * 100 if movimiento.prima_pza_total else 0
-                premio_diferencia = ((Decimal(premio) + (movimiento.premio_con_iva_total*-1)) / movimiento.premio_con_iva_total) * 100 if movimiento.premio_con_iva_total else 0
+                prima_diferencia = ((Decimal(prima) + (movimiento.prima_tec_total*-1)) / Decimal(prima)) * 100 if movimiento.prima_tec_total else 0
+                premio_diferencia = ((Decimal(premio) + (movimiento.premio_con_iva_total*-1)) / Decimal(premio)) * 100 if movimiento.premio_con_iva_total else 0
             print(prima_diferencia)
             print(premio_diferencia)
             movimiento.prima_pza_porcentaje_diferencia = prima_diferencia
@@ -439,7 +439,7 @@ def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
         dias_calculado = dias_vigencia/dias_totales
         
         # Calcular prima tecnica
-        prima_tecnica_anual = (precio) * (tasa / MIL) + prima_rc_anual
+        prima_tecnica_anual = ((precio) * (tasa / MIL)) + prima_rc_anual
         
         # Prima prorrateada
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
@@ -833,7 +833,7 @@ def importar_datos_rofina_saicf(workbook, flota_id, fuente_datos, cliente):
         dias_calculado = dias_vigencia/dias_totales
         
         # Calcular prima tecnica
-        prima_tecnica_anual = (precio) * (tasa / MIL) + prima_rc_anual
+        prima_tecnica_anual = ((precio) * (tasa / MIL)) + prima_rc_anual
         
         # Prima prorrateada
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
@@ -1226,7 +1226,7 @@ def importar_datos_roemmers_alberto_guillermo(workbook, flota_id, fuente_datos, 
         dias_calculado = dias_vigencia/dias_totales
         
         # Calcular prima tecnica
-        prima_tecnica_anual = (precio) * (tasa / MIL) + prima_rc_anual
+        prima_tecnica_anual = ((precio) * (tasa / MIL))+ prima_rc_anual
         
         # Prima prorrateada
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
@@ -1259,6 +1259,10 @@ def importar_datos_roemmers_alberto_guillermo(workbook, flota_id, fuente_datos, 
         # Endoso 3 y 4 NO se facturaron con IIBB
         if (endoso == 3 or endoso == 4):
             iibb = 0
+            
+        # Endoso 5 y 6 facturaron 4% de IIBB
+        if (endoso == 5 or endoso == 6):
+            iibb = 4
             
         premio_vigente_por_iibb = premio_vigente_sin_iva * iibb / CIEN
         premio_vigente_por_iva = premio_vigente_sin_iva * iva / CIEN
@@ -1628,7 +1632,7 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
         dias_calculado = dias_vigencia/dias_totales
         
         # Calcular prima tecnica
-        prima_tecnica_anual = (precio) * (tasa / MIL) + prima_rc_anual
+        prima_tecnica_anual = ((precio) * (tasa / MIL)) + prima_rc_anual
         
         # Prima prorrateada
         prima_tecnica_vigente = prima_tecnica_anual * dias_vigencia / dias_totales
