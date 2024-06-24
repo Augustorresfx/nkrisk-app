@@ -831,34 +831,33 @@ class DetalleFlotaView(View):
     def get(self, request, flota_id, movimiento_id=None, *args, **kwargs):
         selected_month = request.GET.get("month")
         patente = request.GET.get("patente")
+        movimiento_id = request.GET.get("movimiento_id") or movimiento_id  # Obtener movimiento_id de GET si está presente
+
         # Obtener la flota
-        flota = Flota.objects.get(id=flota_id)
+        flota = get_object_or_404(Flota, id=flota_id)
         # Obtener todos los movimientos vinculados a esa flota
         movimientos = Movimiento.objects.filter(flota=flota).order_by('fecha_alta_op')
 
+        vehiculos = VehiculoFlota.history.none()  # Inicializar vacío
+
         if movimiento_id:
             # Si hay un movimiento_id específico, obtener ese movimiento
-            movimiento = Movimiento.objects.filter(id=movimiento_id).first()
+            movimiento = get_object_or_404(Movimiento, id=movimiento_id)
             print("TOTALES DEL MOVIMIENTO: ")
             print("PRIMA TEC TOTAL: ", movimiento.prima_tec_total)
             print("PRIMA PZA TOTAL: ", movimiento.prima_pza_total)
             print("PREMIO SIN IVA TOTAL: ", movimiento.premio_sin_iva_total)
             print("PREMIO CON IVA TOTAL: ", movimiento.premio_con_iva_total)
-            if movimiento:
-                # Obtener todos los vehículos vinculados a ese movimiento a lo largo de su historial
-                vehiculos = VehiculoFlota.history.filter(movimiento=movimiento).reverse()
+            if patente:
+                vehiculos = VehiculoFlota.history.filter(movimiento=movimiento, patente__icontains=patente).reverse()
             else:
-                # Si el movimiento no existe, establecer vehículos como vacío
-                vehiculos = VehiculoFlota.history.none()
+                vehiculos = VehiculoFlota.history.filter(movimiento=movimiento).reverse()
         else:
-            # Obtener los vehículos en su último estado
-            primer_movimiento = movimientos.first()
-            vehiculos = VehiculoFlota.objects.filter(flota=flota).reverse()
-
-        # Filtrar los vehículos por patente si se proporciona
-        if patente:
-            vehiculos = vehiculos.filter(patente__icontains=patente)
-            
+            if patente:
+                vehiculos = VehiculoFlota.objects.filter(flota=flota, patente__icontains=patente).reverse()
+            else:
+                vehiculos = VehiculoFlota.objects.filter(flota=flota).reverse()
+                
         prima_tecnica_total = 0
         prima_pza_total = 0
         premio_sin_iva_total = 0
