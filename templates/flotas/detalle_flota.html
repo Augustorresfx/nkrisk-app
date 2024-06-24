@@ -329,18 +329,21 @@
   </button>
   
 </form>
-<form method="get" class="d-inline" action="{% url 'detalle_flota' flota.id %}">
-
+<form method="get" class="d-inline" action="">
+  {% if movimiento %}
+      <input type="hidden" name="movimiento_id" value="{{ movimiento.id }}">
+  {% endif %}
   <div class="input-group mb-3">
-    <span class="input-group-text" id="basic-addon2">Buscar por patente:</span>
-
-    <input name="patente" class="form-control" type="text" id="patente">
-    <span class="input-group-text" id="basic-addon2">
-      <button type="submit" class="btn m-0 p-0 bg-transparent d-flex align-items-center"><img class="material-icons" src="{% static 'svg/search.svg' %}" alt="Buscar"></button>
-    </span>
-</div>
-
+      <span class="input-group-text" id="basic-addon2">Buscar por patente:</span>
+      <input name="patente" class="form-control" type="text" id="patente">
+      <span class="input-group-text" id="basic-addon2">
+          <button type="submit" class="btn m-0 p-0 bg-transparent d-flex align-items-center">
+              <img class="material-icons" src="{% static 'svg/search.svg' %}" alt="Buscar">
+          </button>
+      </span>
+  </div>
 </form>
+
        
       </div>
          <div class="row">
