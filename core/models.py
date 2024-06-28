@@ -194,6 +194,7 @@ class CoberturaNominada(models.Model):
     monto_aprobado = models.IntegerField()
     estado = models.CharField(max_length=14)
     condicion_de_venta = models.TextField()
+    linea_de_negocios = models.IntegerField(null=True, blank=True)
     plazo_en_dias = models.IntegerField()
     codigoAsegurado = models.CharField(max_length=100, null=True, blank=True)
     observaciones = models.TextField()
