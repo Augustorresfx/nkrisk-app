@@ -178,6 +178,7 @@ class CoberturaInnominada(models.Model):
     nombre_cliente = models.CharField(max_length=100)
     fecha_primer_consulta = models.DateTimeField(null=True, blank=True)
     fecha_ultima_consulta = models.DateTimeField(null=True, blank=True)
+    estadoActual = models.CharField(max_length=100, null=True, blank=True)
     codigoAutorizacion = models.CharField(max_length=100)
     fecha_hasta = models.DateTimeField(null=True, blank=True)
     codigoAsegurado = models.CharField(max_length=100, null=True, blank=True)
