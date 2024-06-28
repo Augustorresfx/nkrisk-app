@@ -173,4 +173,27 @@ class PrecioAnual(models.Model):
     def __str__(self):
         return f"{self.precio}"
     
+class CoberturaInnominada(models.Model):
+    id_nacional = models.CharField(max_length=100)
+    nombre_cliente = models.CharField(max_length=100)
+    fecha_primer_consulta = models.DateTimeField(null=True, blank=True)
+    fecha_ultima_consulta = models.DateTimeField(null=True, blank=True)
+    codigoAutorizacion = models.CharField(max_length=100)
+    fecha_hasta = models.DateTimeField(null=True, blank=True)
+    codigoAsegurado = models.CharField(max_length=100, null=True, blank=True)
     
+class CoberturaNominada(models.Model):
+    id_nacional = models.CharField(max_length=100)
+    pais = models.CharField(max_length=25)
+    ciudad = models.CharField(max_length=100)
+    cliente = models.CharField(max_length=100)
+    vigencia_desde = models.DateTimeField(null=True, blank=True)
+    vigencia_hasta = models.DateTimeField(null=True, blank=True)
+    moneda = models.CharField(max_length=5)
+    monto_solicitado = models.IntegerField()
+    monto_aprobado = models.IntegerField()
+    estado = models.CharField(max_length=14)
+    condicion_de_venta = models.TextField()
+    plazo_en_dias = models.IntegerField()
+    codigoAsegurado = models.CharField(max_length=100, null=True, blank=True)
+    observaciones = models.TextField()
