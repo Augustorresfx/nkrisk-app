@@ -33,6 +33,8 @@ from django.urls import reverse_lazy
 import time
 from collections import defaultdict
 from django.db.models import F
+from weasyprint import HTML
+from django.template.loader import render_to_string
 # Importe de formularios
 
 # Importe de modelos
@@ -1684,16 +1686,33 @@ class DetalleCreditoView(View):
         lista_errores = []
         asegurado = AseguradoCredito.objects.get(id=asegurado_id)
 
-        if 'descargar_excel' in request.POST:
+        if 'generar_reporte_pdf' in request.POST:
+            año = int(request.POST.get('año'))
+            mes = int(request.POST.get('mes'))
             
-            # Nombre del archivo que quieres descargar
-            file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
-
-            # Abre el archivo y lee su contenido
-            with open(file_path, 'rb') as file:
-                response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
-                return response
+            # Obtener solicitudes necesarias de la base de datos
+            solicitudes_cobertura = CoberturaNominada.objects.filter(
+            vigencia_desde__month=mes,
+            vigencia_desde__year=año,
+            vigencia_hasta="Indefinida"
+            )
+            
+            # Renderizar el template con los datos
+            html_string = render_to_string('reporte_template.html', {
+            'solicitudes_cobertura': solicitudes_cobertura,
+            'mes': mes,
+            'año': año
+            })
+            
+            # Generar el PDF
+            html = HTML(string=html_string)
+            pdf = html.write_pdf()
+            
+            # Devolver el PDF como respuesta HTTP
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="reporte.pdf"'
+            return response
+            
         if "importar_nominados" in request.POST:
             # Obtener la instancia del asegurado
             asegurado = AseguradoCredito.objects.get(pk=asegurado_id)
