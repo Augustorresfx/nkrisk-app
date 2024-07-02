@@ -45,7 +45,7 @@ EMAIL_HOST_PASSWORD = SMTP_PASSWORD
 SECRET_KEY = os.environ.get('SECRET_KEY', default='pQu!}YDjXfF~%+b,P]SxC[=EdM5z:VscK^W9HTq6g@7e3_yL{ak@UDh>m}uX<9*NrLQB7nZ:$;KG48a]Pw5sE,J6C?WYqVR/3pe+e3XdJYNDFuRqZ2K+[ybw`kEP@vM-c5r;t9{CBz.,%p]>A4T=/:DT&c^:[9wB<H?]Ep`7;zbs5dQ+agCt4-_*u.RKr>m~%!Z6Xv$FPf~6F5s8`LraDyu%b<k,2];XR*V:ve&_7>9SgGMEKw{?.nx^/4')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True #'RENDER' not in os.environ
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = ['nkrisk-app-835r.onrender.com']
 
