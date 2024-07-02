@@ -173,23 +173,35 @@ class PrecioAnual(models.Model):
     def __str__(self):
         return f"{self.precio}"
     
+class AseguradoCredito(models.Model):
+    nombre_asegurado = models.CharField(max_length=40)
+    cuit = models.CharField(max_length=40)
+    direccion = models.CharField(max_length=50)
+    provincia = models.CharField(max_length=40)
+    numero_poliza = models.IntegerField()
+    producto = models.CharField(max_length=10)
+    fecha_vigencia_desde = models.DateField(null=True, blank=True)
+    fecha_vigencia_hasta = models.DateField(null=True, blank=True)
+    
 class CoberturaInnominada(models.Model):
+    asegurado = models.ForeignKey(AseguradoCredito, on_delete=models.CASCADE, null=True, blank=True)
     id_nacional = models.CharField(max_length=100)
     nombre_cliente = models.CharField(max_length=100)
-    fecha_primer_consulta = models.DateTimeField(null=True, blank=True)
-    fecha_ultima_consulta = models.DateTimeField(null=True, blank=True)
+    fecha_primer_consulta = models.DateField(null=True, blank=True)
+    fecha_ultima_consulta = models.DateField(null=True, blank=True)
     estadoActual = models.CharField(max_length=100, null=True, blank=True)
     codigoAutorizacion = models.CharField(max_length=100)
-    fecha_hasta = models.DateTimeField(null=True, blank=True)
+    fecha_hasta = models.DateField(null=True, blank=True)
     codigoAsegurado = models.CharField(max_length=100, null=True, blank=True)
     
 class CoberturaNominada(models.Model):
+    asegurado = models.ForeignKey(AseguradoCredito, on_delete=models.CASCADE, null=True, blank=True)
     id_nacional = models.CharField(max_length=100)
     pais = models.CharField(max_length=25)
     ciudad = models.CharField(max_length=100)
     cliente = models.CharField(max_length=100)
-    vigencia_desde = models.DateTimeField(null=True, blank=True)
-    vigencia_hasta = models.DateTimeField(null=True, blank=True)
+    vigencia_desde = models.CharField(max_length=100, null=True, blank=True)
+    vigencia_hasta = models.CharField(max_length=100, null=True, blank=True)
     moneda = models.CharField(max_length=5)
     monto_solicitado = models.IntegerField()
     monto_aprobado = models.IntegerField()

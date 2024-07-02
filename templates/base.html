@@ -96,6 +96,15 @@
                   <span class="mx-2 text-white">Tarifas de flotas</span>
                 </a>
               </li>
+              <li class="border-top my-3"></li>
+              <li>
+                <li>
+                  <a href="/creditos/" class="nav-link active d-flex align-items-center">
+                    <img class="material-icons" src="{% static 'svg/creditos.svg' %}" alt="Créditos">
+                    <span class="mx-2 text-white">Créditos</span>
+                  </a>
+                </li>
+              </li>
               {% if is_staff %}
               <li class="border-top my-3"></li>
               
@@ -192,6 +201,7 @@
               <li class="nav-item"><a href="/flotas/" class="nav-link text-body-secondary p-0">Flotas</a></li>
               <li class="nav-item"><a href="/buscar_vehiculo/" class="nav-link text-body-secondary p-0">Buscar un vehículo</a></li>
               <li class="nav-item"><a href="/tarifas_flotas/" class="nav-link text-body-secondary p-0">Tarifas de flotas</a></li>
+              <li class="nav-item"><a href="/creditos/" class="nav-link text-body-secondary p-0">Créditos</a></li>
           </div>
           {% if is_staff %}
           <div class="col mb-3">
