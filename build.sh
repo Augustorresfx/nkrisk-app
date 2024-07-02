@@ -13,4 +13,3 @@ python manage.py migrate
 #  python manage.py createsuperuser --no-input
 #fi
 
-python manage.py createsuperuser --no-input
