@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% load app_extras %}
+
+
+{% load static %}
+{% block content %}
+  <section class="mb-4">
+  <div class="container-fluid h-custom">
+      <div class="mt-5 pt-5">
+        <div class="container-fluid h-custom">
+          <h1 class="h2">Créditos | Listado de asegurados</h1>
+          {% if messages %}
+
+            {% for message in messages %}
+              {% if message.tags == 'error' %}
+              <div class="alert alert-danger m-0 p-0" role="alert">
+                {{ message }}
+              </div>
+              {% elif message.tags == 'success' %}
+              <div class="alert alert-success m-0" role="alert">
+                {{ message }}
+              </div>
+              {% else %}
+              <div class="alert alert-primary m-0" role="alert">
+                {{ message }}
+              </div>
+              {% endif %}
+            {% endfor %}
+
+          {% endif %}
+        </div>
+
+          <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
+              
+         
+
+  
+     
+    
+        <!--
+          MOVIMIENTOS
+        
+        <div class="">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+            <h2> 
+              Flotas
+            </h2>
+         
+  
+        </div>
+          
+          <div class="list-group overflow-auto" style="max-height: 360px;">
+           
+            {% for movimiento in movimientos %}
+              <div  class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">{{movimiento.nombre_movimiento}}</h5>
+                  <div>
+                    <form method="POST" class="d-inline" action="{% url 'exportar_movimiento' flota.id movimiento.id %}">
+                      {% csrf_token %}
+                    <button type="submit" class="w-10 btn btn-sm btn-success exportar-excel mx-2">
+                      <span class="material-icons-outlined">
+                        file_download
+                        </span>
+                        
+                    </button>
+                  </form>
+                  <form method="POST" class="d-inline eliminar-formulario" action="{% url 'delete_movimiento' flota.id movimiento.id %}" id="eliminarFormulario">
+                    {% csrf_token %}
+                  <button type="button" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar mx-2" onclick="confirmarEliminar()">
+                    <span class="material-icons-outlined">
+                      delete
+                      </span>
+                      
+                  </button>
+                </form>
+  
+                  </div>
+                </div>
+                <p class="mb-1">{{movimiento.tipo_movimiento}}</p>
+                
+                <p class="mb-1">Creación: {{movimiento.created}}</p>
+                
+              </div>
+            {% endfor %}
+            
+          </div>
+        -->
+        </div>
+  </div>
+ 
+        
+     
+
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 ">
+
+        <div class="btn-toolbar mb-3">
+              <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5 " id="exampleModalLabel">Agregar asegurado</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+        <div class="modal-body">
+            
+                <div class="mb-3">
+                  <label for="nombre" class="form-label">Nombre del asegurado: </label>
+                  <input name="nombre" type="text" class="form-control" placeholder="Nombre completo" aria-label="Nombre completo" aria-describedby="basic-addon1">
+                </div>
+                <div class="mb-3">
+                    <label for="cuit" class="form-label">Cuit del asegurado: </label>
+                    <input name="cuit" type="text" class="form-control" placeholder="Cuit" aria-label="Cuit" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="row g-3">
+                  <div class="col-sm mb-3">
+                    <label for="direccion" class="form-label">Dirección: </label>
+                    <input name="direccion" type="text" class="form-control" placeholder="Dirección" aria-label="Dirección" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="col-sm mb-3">
+                    <label for="provincia" class="form-label">Provincia: </label>
+                    <input name="provincia" type="text" class="form-control" placeholder="Provincia" aria-label="Provincia" aria-describedby="basic-addon1">
+                  </div>
+                </div>
+                <div class="row g-3">
+                  <div class="col-sm mb-3">
+                    <label for="num_poliza" class="form-label">Número de póliza: </label>
+                    <input name="num_poliza" type="text" class="form-control" placeholder="Número de póliza" aria-label="Número de póliza" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="col-sm-6 mb-3">
+                    <label for="producto" class="form-label">Producto: </label>
+                    <input name="producto" type="text" class="form-control" placeholder="Producto" aria-label="Producto" aria-describedby="basic-addon1">
+                  </div>
+                </div>
+                <div class="row g-3">
+                  <div class="col-sm mb-3">
+                    <label for="vigencia_desde" class="form-label">Fecha de vigencia desde: </label>
+                    <input name="vigencia_desde" type="date" class="form-control" placeholder="Vigencia desde" aria-label="Vigencia desde" aria-describedby="basic-addon1">
+                  </div>
+                  <div class="col-sm mb-3">
+                    <label for="vigencia_hasta" class="form-label">Fecha de vigencia hasta: </label>
+                    <input name="vigencia_hasta" type="date" class="form-control" placeholder="Vigencia hasta" aria-label="Vigencia hasta" aria-describedby="basic-addon1">
+                  </div>
+                </div>
+             
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
+      </div>
+    </div>
+  </div>
+        
+     
+
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 ">
+               <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Agregar asegurado
+</button>
+
+       
+      </div>
+          <!--
+          <div class="dropdown">
+            
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Seleccionar mes
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="monthDropdown">
+              <li><a class="dropdown-item" href="?month=1">Enero</a></li>
+              <li><a class="dropdown-item" href="?month=2">Febrero</a></li>
+              <li><a class="dropdown-item" href="?month=3">Marzo</a></li>
+              <li><a class="dropdown-item" href="?month=4">Abril</a></li>
+              <li><a class="dropdown-item" href="?month=5">Mayo</a></li>
+              <li><a class="dropdown-item" href="?month=6">Junio</a></li>
+              <li><a class="dropdown-item" href="?month=7">Julio</a></li>
+              <li><a class="dropdown-item" href="?month=8">Agosto</a></li>
+              <li><a class="dropdown-item" href="?month=9">Septiembre</a></li>
+              <li><a class="dropdown-item" href="?month=10">Octubre</a></li>
+              <li><a class="dropdown-item" href="?month=11">Noviembre</a></li>
+              <li><a class="dropdown-item" href="?month=12">Diciembre</a></li>
+            </ul>
+          </div>
+           -->
+        </div>
+      </div>
+         
+            <div id="TableContainer" class="table-responsive mb-2">
+            
+                <table class="table table bg-white rounded shadow-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Nombre del asegurado</th>
+                        <th scope="col">Póliza</th>
+                        <th scope="col">Producto</th>
+                        <th scope="col">Vigencia desde</th>
+                        <th scope="col">Vigencia hasta</th>
+
+
+      
+                        <th scope="col">Ver flota</th>
+                        <th scope="col">Eliminar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for asegurado in pages %}
+                      
+                      <tr>
+                          <td>{{ asegurado.nombre_asegurado }}</td>
+                          <td>{{ asegurado.numero_poliza }}</td>
+                          <td>{{ asegurado.producto }}</td>
+                          <td>{{ asegurado.fecha_vigencia_desde }}</td>
+                          <td>{{ asegurado.fecha_vigencia_hasta }}</td>
+
+                          <td>
+                            <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_credito' asegurado.id %}">
+                              <span class="material-icons align-middle">
+                                visibility
+                                </span>
+                            </a>
+                          </td>
+                          <td>
+
+                            <button type="submit" class="w-10 btn btn-sm btn-danger eliminar-elemento confirmar-eliminar" data-url="{% url 'delete_asegurado' asegurado.id %}">
+                              <span class="material-icons align-middle">
+                                delete
+                                </span>
+                            </button>
+
+                            
+                          
+                          </td>
+                        </tr>
+                     
+                  
+                      {% endfor %}
+                    </tbody>
+                </table>
+            </div>  
+            <div class="app-table">
+            <div class="table-output">
+      <tbody id="table-body" class="table-body"> </tbody></div>
+          </div>
+        </div>
+      <div class="mx-2">
+              <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-end">
+      
+      
+                  {% if pages.has_previous %}
+                    <li class="page-item">
+                      <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="{% my_url pages.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
+                    </li>
+      
+                      {% endif %}
+            
+            
+                      <li class="page-item">
+                        
+                      <a class="page-link" href="{% my_url pages.number 'page' request.GET.urlencode %}">{{ pages.number }}</a>
+                    
+                     
+                      </li>
+                      <li class="page-item">
+                        
+                        <a class="page-link" href="{% my_url pages.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages.paginator.num_pages }}</a>
+                      
+                       
+                        </li>
+                  
+                
+             
+                  {% if pages.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="{% my_url pages.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
+                   </li>
+                   <li class="page-item">
+                  <a class="page-link" href="{% my_url pages.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+                </li>
+                  {% endif %}
+                </ul>
+                </nav>
+         
+        </div>
+        </div>
+      </div>
+    </div>
+      
+
+  </section>
+  <script src="{% static 'js/swal.js' %}"></script>
+  <script src="{% static 'js/fileInput.js' %}"></script>
+{% endblock %}

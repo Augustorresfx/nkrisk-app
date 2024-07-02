@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% load app_extras %}
+
+
+{% load static %}
+{% block content %}
+  <section class="mb-4">
+  <div class="container-fluid h-custom">
+      <div class="mt-5 pt-5">
+        <h1 class="h2">Póliza: {{asegurado.numero_poliza}}</h1>
+      
+        {% if messages %}
+
+        {% for message in messages %}
+          {% if message.tags == 'error' %}
+          <div class="alert alert-danger m-0 p-0" role="alert">
+            {{ message }}
+          </div>
+          {% elif message.tags == 'success' %}
+          <div class="alert alert-success m-0" role="alert">
+            {{ message }}
+          </div>
+          {% else %}
+          <div class="alert alert-primary m-0" role="alert">
+            {{ message }}
+          </div>
+          {% endif %}
+        {% endfor %}
+
+      {% endif %}
+          <!--
+            FORMULARIO IMPORTACION DESDE EXCEL
+          -->
+          <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
+              
+          <div class="col">
+            
+            <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
+              <h3 > 
+                Importar listado de nominados
+              </h3>
+              
+              <form class="pt-3" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+
+                <div class="mb-3">
+                  
+                  <label for="formFile" class="form-label">Listado de nominados</label>
+                  <input name="file1" class="form-control" type="file" id="formFile">
+                </div>
+                {% comment %} <div class="mb-3">
+                  <label for="fuente_datos" class="form-label">Fuente de datos:</label>
+                  <select name="fuente_datos" class="form-select" aria-label="Default select example">
+                      <option selected>Seleccionar fuente de datos</option>
+                      <option value="excel">Datos del Excel</option>
+                      <option value="info_auto">Datos de Info Auto</option>
+                      <option value="base_datos">Datos de la base de datos propia</option>
+                  </select>
+              </div> {% endcomment %}
+
+              <button name="importar_nominados" class="btn btn-primary mb-2" type="submit">Importar</button>
+
+                
+            </form>
+          </div>
+
+        </div>
+
+
+      <div class="">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+
+       
+
+      </div>
+        <!-- Form importacion innominados -->
+       
+            <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
+                <h3 > 
+                  Importar listado de innominados
+                </h3>
+                
+                <form class="pt-3" method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+    
+    
+                  <div class="mb-3">
+                    
+                    <label for="formFile" class="form-label">Listado de innominados</label>
+                    <input name="file1" class="form-control" type="file" id="formFile">
+                  </div>
+    
+    
+                <button name="importar_innominados" class="btn btn-primary mb-2" type="submit">Importar</button>
+    
+                  
+              </form>
+            </div>
+
+    </div>
+</div>
+ 
+
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2">
+        <h2>
+          Listado nominados
+        </h2>
+
+        {% comment %} <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Seleccionar mes
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="monthDropdown">
+              <li><a class="dropdown-item" href="?month=1">Enero</a></li>
+              <li><a class="dropdown-item" href="?month=2">Febrero</a></li>
+              <li><a class="dropdown-item" href="?month=3">Marzo</a></li>
+              <li><a class="dropdown-item" href="?month=4">Abril</a></li>
+              <li><a class="dropdown-item" href="?month=5">Mayo</a></li>
+              <li><a class="dropdown-item" href="?month=6">Junio</a></li>
+              <li><a class="dropdown-item" href="?month=7">Julio</a></li>
+              <li><a class="dropdown-item" href="?month=8">Agosto</a></li>
+              <li><a class="dropdown-item" href="?month=9">Septiembre</a></li>
+              <li><a class="dropdown-item" href="?month=10">Octubre</a></li>
+              <li><a class="dropdown-item" href="?month=11">Noviembre</a></li>
+              <li><a class="dropdown-item" href="?month=12">Diciembre</a></li>
+            </ul>
+          </div>
+           
+        </div> {% endcomment %}
+      </div>
+ 
+<form method="POST" class="d-inline" action="">
+  {% csrf_token %}
+<button type="submit" class="btn btn-success mb-3 d-flex align-items-center">
+    <img class="material-icons" src="{% static 'svg/file_download.svg' %}" alt="Descargar archivo">
+    Exportar reporte
+  </button>
+  
+</form>
+
+       
+      </div>
+         <div class="row">
+            <div class="table-responsive mb-2">
+            
+                <table class="table bg-white rounded shadow-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Id. Nacional</th>
+                        <th scope="col">País</th>
+                        <th scope="col">Ciudad</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Vigencia desde</th>
+                        <th scope="col">Vigencia hasta</th>
+                        <th scope="col">Moneda</th>
+                        <th scope="col">Monto solicitado</th>
+                        <th scope="col">Monto solicitado</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Plazo en dias</th>
+                        <th scope="col">Codigo asegurado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for nominado in pages_nominados %}
+                      
+                      <tr>
+                        <td>{{ nominado.id_nacional }}</td>
+                        <td>{{ nominado.pais }}</td>
+                        <td>{{ nominado.ciudad }}</td>
+                        <td>{{ nominado.cliente }}</td>
+                        <td>{{ nominado.vigencia_desde  }}</td>
+                        <td>{{ nominado.vigencia_hasta  }}</td>
+                        <td>{{ nominado.moneda }}</td>
+                        <td>{{ nominado.monto_solicitado }}</td>
+                        <td>{{ nominado.monto_aprobado }}</td>
+                        <td>{{ nominado.estado }}</td>
+                        <td>{{ nominado.plazo_en_dias }}</td>
+                        <td>{{ nominado.codigoAsegurado }}</td>
+                      </tr>
+                     
+                  
+                      {% endfor %}
+                    </tbody>
+                </table>
+            </div>  
+            <div class="app-table">
+            <div class="table-output">
+      <tbody id="table-body" class="table-body"> </tbody></div>
+          </div>
+        </div>
+      <div class="mx-2">
+              <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-end">
+      
+      
+                  {% if pages_nominados.has_previous %}
+                    <li class="page-item">
+                      <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="{% my_url pages_nominados.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
+                    </li>
+      
+                      {% endif %}
+            
+            
+                      <li class="page-item">
+                        
+                      <a class="page-link" href="{% my_url pages_nominados.number 'page' request.GET.urlencode %}">{{ pages.number }}</a>
+                    
+                     
+                      </li>
+                      <li class="page-item">
+                        
+                        <a class="page-link" href="{% my_url pages_nominados.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages.paginator.num_pages }}</a>
+                      
+                       
+                        </li>
+                  
+                
+             
+                  {% if pages_nominados.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="{% my_url pages_nominados.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
+                   </li>
+                   <li class="page-item">
+                  <a class="page-link" href="{% my_url pages_nominados.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+                </li>
+                  {% endif %}
+                </ul>
+                </nav>
+                
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2">
+                  <h2>
+                    Listado innominados
+                  </h2>
+          
+                  {% comment %} <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="dropdown">
+                      <button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Seleccionar mes
+                      </button>
+                      <ul class="dropdown-menu" aria-labelledby="monthDropdown">
+                        <li><a class="dropdown-item" href="?month=1">Enero</a></li>
+                        <li><a class="dropdown-item" href="?month=2">Febrero</a></li>
+                        <li><a class="dropdown-item" href="?month=3">Marzo</a></li>
+                        <li><a class="dropdown-item" href="?month=4">Abril</a></li>
+                        <li><a class="dropdown-item" href="?month=5">Mayo</a></li>
+                        <li><a class="dropdown-item" href="?month=6">Junio</a></li>
+                        <li><a class="dropdown-item" href="?month=7">Julio</a></li>
+                        <li><a class="dropdown-item" href="?month=8">Agosto</a></li>
+                        <li><a class="dropdown-item" href="?month=9">Septiembre</a></li>
+                        <li><a class="dropdown-item" href="?month=10">Octubre</a></li>
+                        <li><a class="dropdown-item" href="?month=11">Noviembre</a></li>
+                        <li><a class="dropdown-item" href="?month=12">Diciembre</a></li>
+                      </ul>
+                    </div>
+                     
+                  </div> {% endcomment %}
+                </div>
+           
+          <form method="POST" class="d-inline" action="">
+            {% csrf_token %}
+          <button type="submit" class="btn btn-success mb-3 d-flex align-items-center">
+              <img class="material-icons" src="{% static 'svg/file_download.svg' %}" alt="Descargar archivo">
+              Exportar reporte
+            </button>
+            
+          </form>
+          
+                 
+                </div>
+                   <div class="row">
+                      <div class="table-responsive mb-2">
+                      
+                          <table class="table bg-white rounded shadow-sm">
+                              <thead>
+                                <tr>
+                                  <th scope="col">Id. Nacional</th>
+                                  <th scope="col">Nombre cliente</th>
+                                  <th scope="col">Fecha 1er consulta</th>
+                                  <th scope="col">Fecha ult consulta</th>
+                                  <th scope="col">Estado actual</th>
+                                  <th scope="col">Fecha hasta</th>
+                                  <th scope="col">Código asegurado</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {% for innominado in pages_innominados %}
+                                <tr>
+                                  <td>{{ innominado.id_nacional }}</td>
+                                  <td>{{ innominado.nombre_cliente }}</td>
+                                  <td>{{ innominado.fecha_primer_consulta|date:"d/m/Y"  }}</td>
+                                  <td>{{ innominado.fecha_ultima_consulta|date:"d/m/Y"  }}</td>
+                                  <td>{{ innominado.estadoActual }}</td>
+                                  <td>{{ innominado.fecha_hasta|date:"d/m/Y"  }}</td>
+                                  <td>{{ innominado.codigoAsegurado }}</td>
+                                </tr>
+                               
+                            
+                                {% endfor %}
+                              </tbody>
+                          </table>
+                      </div>  
+                      <div class="app-table">
+                      <div class="table-output">
+                <tbody id="table-body" class="table-body"> </tbody></div>
+                    </div>
+                  </div>
+                <div class="mx-2">
+                        <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-end">
+                
+                
+                            {% if pages_innominados.has_previous %}
+                              <li class="page-item">
+                                <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
+                              </li>
+                              <li class="page-item">
+                                <a class="page-link" href="{% my_url pages_innominados.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
+                              </li>
+                
+                                {% endif %}
+                      
+                      
+                                <li class="page-item">
+                                  
+                                <a class="page-link" href="{% my_url pages_innominados.number 'page' request.GET.urlencode %}">{{ pages.number }}</a>
+                              
+                               
+                                </li>
+                                <li class="page-item">
+                                  
+                                  <a class="page-link" href="{% my_url pages_innominados.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages.paginator.num_pages }}</a>
+                                
+                                 
+                                  </li>
+                            
+                          
+                       
+                            {% if pages_innominados.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{% my_url pages_innominados.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
+                             </li>
+                             <li class="page-item">
+                            <a class="page-link" href="{% my_url pages_innominados.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+                          </li>
+                            {% endif %}
+                          </ul>
+                          </nav>
+                          
+                        </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+              
+        </div>
+        
+        </div>
+      
+        
+      </div>
+      
+    </div>
+      
+
+  </section>
+  <script src="{% static 'js/swal.js' %}"></script>
+{% endblock %}

@@ -36,7 +36,7 @@ from django.db.models import F
 # Importe de formularios
 
 # Importe de modelos
-from .models import Vencimiento, Localidad, Flota, VehiculoFlota, VehiculoInfoAuto, MarcaInfoAuto, PrecioAnual, Movimiento, TarifaFlota, Cliente, AccessToken, RefreshToken, Localidad
+from .models import CoberturaInnominada, CoberturaNominada, AseguradoCredito, Vencimiento, Localidad, Flota, VehiculoFlota, VehiculoInfoAuto, MarcaInfoAuto, PrecioAnual, Movimiento, TarifaFlota, Cliente, AccessToken, RefreshToken, Localidad
 
 # Importe de librerias
 import pandas as pd
@@ -51,6 +51,7 @@ from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
 from .utils import importar_datos_roemmers_saicf, importar_datos_roemmers_alberto_guillermo, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel, comparar_totales
+from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados
 
 # Roles y permisos
 def is_staff_user(user):
@@ -1597,6 +1598,167 @@ class LocalidadesView(View):
             print(f"Tiempo de ejecución, {execution_time} segundos")
         return redirect('localidades')
 
+# Seguros de creditos
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
+class CreditosView(View):
+    def get(self, request, *args, **kwargs):
+        
+        asegurados = AseguradoCredito.objects.all()
+        
+        asegurados_paginados = Paginator(asegurados, 30)
+        page_number = request.GET.get("page")
+        filter_pages = asegurados_paginados.get_page(page_number)
+        context = {
+
+            'asegurados': asegurados, 
+            'pages': filter_pages,
+
+        }
+        return render(request, 'creditos/creditos.html', context)
+    def post(self, request, *args, **kwargs):
+        # Obtén los datos del formulario directamente desde request.POST
+        
+        nombre = request.POST.get('nombre')
+        cuit = request.POST.get('cuit')
+        direccion = request.POST.get('direccion')
+        provincia = request.POST.get('provincia')
+        num_poliza = request.POST.get('num_poliza')
+        producto = request.POST.get('producto')
+        vigencia_desde = request.POST.get('vigencia_desde')
+        vigencia_hasta = request.POST.get('vigencia_hasta')
+    
+        nuevo_asegurado = AseguradoCredito(
+            
+            nombre_asegurado=nombre,
+            cuit=cuit,
+            direccion=direccion,
+            provincia=provincia,
+            numero_poliza=num_poliza,
+            producto=producto,
+            fecha_vigencia_desde=vigencia_desde,
+            fecha_vigencia_hasta=vigencia_hasta,
+
+        )
+        try:
+            # Intenta crear el nuevo elemento
+            nuevo_asegurado.save()
+            messages.success(request, 'El elemento se creó exitosamente.')
+        except Exception as e:
+            # Si hay un error al crear el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo crear el elemento. Detalles: {str(e)}')
+
+        # Redirige, incluyendo los mensajes en el contexto
+        return HttpResponseRedirect(request.path_info)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
+class DetalleCreditoView(View):
+    def get(self, request, asegurado_id, *args, **kwargs):
+       
+        # Obtener el asegurado
+        asegurado = get_object_or_404(AseguradoCredito, id=asegurado_id)
+        
+        nominados = CoberturaNominada.objects.all()
+        innominados = CoberturaInnominada.objects.all()
+
+        page_number_nominados = request.GET.get("page")
+        nominados_paginados = Paginator(nominados, 30)
+        filter_pages_nominados = nominados_paginados.get_page(page_number_nominados)
+
+        page_number_innominados = request.GET.get("page")
+        innominados_paginados = Paginator(innominados, 30)
+        filter_pages_innominados = innominados_paginados.get_page(page_number_innominados)
+
+        context = {
+            'asegurado': asegurado,
+            'nominados': nominados,
+            'pages_nominados': filter_pages_nominados,
+            'pages_innominados': filter_pages_innominados,
+        }
+        
+        return render(request, 'creditos/detalle_credito.html', context)
+    @transaction.atomic
+    def post(self, request, asegurado_id, *args, **kwargs):
+        lista_errores = []
+        asegurado = AseguradoCredito.objects.get(id=asegurado_id)
+
+        if 'descargar_excel' in request.POST:
+            
+            # Nombre del archivo que quieres descargar
+            file_path = os.path.join(settings.STATICFILES_DIRS[0], 'excel', 'modelo_ejemplo.xlsx')
+
+            # Abre el archivo y lee su contenido
+            with open(file_path, 'rb') as file:
+                response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename=modelo_ejemplo.xlsx'
+                return response
+        if "importar_nominados" in request.POST:
+            # Obtener la instancia del asegurado
+            asegurado = AseguradoCredito.objects.get(pk=asegurado_id)
+
+            
+            file1 = request.FILES.get('file1')
+            df = pd.read_excel(file1)
+            try:
+                # Intenta importar datos de nominados
+                
+                cargar_datos_nominados(df, asegurado)
+                messages.success(request, 'Se importaron los datos exitosamente.')
+                
+            except Exception as e:
+                
+                messages.error(request, f'Error: No se pudo importar los datos: {str(e)}')
+            return redirect('detalle_credito', asegurado_id=asegurado_id)
+        
+        if "importar_innominados" in request.POST:
+            # Obtener la instancia del asegurado
+            asegurado = AseguradoCredito.objects.get(pk=asegurado_id)
+
+            
+            file2 = request.FILES.get('file1')
+            
+            df = pd.read_excel(file2)
+            try:
+                # Intenta importar datos de nominados
+                
+                cargar_datos_innominados(df, asegurado)
+                messages.success(request, 'Se importaron los datos exitosamente.')
+                
+            except Exception as e:
+                
+                messages.error(request, f'Error: No se pudo importar los datos: {str(e)}')
+            return redirect('detalle_credito', asegurado_id=asegurado_id)
+        
+        return redirect('detalle_credito', asegurado_id=asegurado_id)
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
+class EliminarAseguradoCreditoView(View):
+    def get(self, request, asegurado_id):
+        asegurado = get_object_or_404(AseguradoCredito, id=asegurado_id)
+
+        context = {
+            'asegurado': asegurado
+        }
+        return redirect('creditos')
+
+    def post(self, request, asegurado_id):
+        asegurado = get_object_or_404(AseguradoCredito, id=asegurado_id)
+        
+        try:
+            # Intenta guardar la eliminación del elemento
+            asegurado.delete()
+            messages.success(request, 'El elemento se eliminó exitosamente.')
+        except Exception as e:
+            # Si hay un error al eliminar el elemento, captura la excepción
+            messages.error(request, f'Error: No se pudo eliminar el elemento. Detalles: {str(e)}')
+
+        return redirect('creditos')        
+        
+
 # Buscar vehículo 
 
 @login_required
@@ -1781,6 +1943,7 @@ class VehiculosInfoAutoView(View):
             execution_time = end_time - start_time
             print(execution_time)
             return redirect('vehiculos')
+        
 # Autenticación
 class SignOutView(View):
     def get(self, request, *args, **kwargs):
