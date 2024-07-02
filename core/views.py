@@ -1686,20 +1686,20 @@ class DetalleCreditoView(View):
         lista_errores = []
         asegurado = AseguradoCredito.objects.get(id=asegurado_id)
 
-        if 'generar_reporte_pdf' in request.POST:
+        if 'generar_reporte' in request.POST:
             año = int(request.POST.get('año'))
             mes = int(request.POST.get('mes'))
             
             # Obtener solicitudes necesarias de la base de datos
-            solicitudes_cobertura = CoberturaNominada.objects.filter(
-            vigencia_desde__month=mes,
-            vigencia_desde__year=año,
-            vigencia_hasta="Indefinida"
-            )
+            #solicitudes_cobertura = CoberturaNominada.objects.filter(
+            #vigencia_desde__month=mes,
+            #vigencia_desde__year=año,
+            #vigencia_hasta="Indefinida"
+            #)
             
             # Renderizar el template con los datos
-            html_string = render_to_string('reporte_template.html', {
-            'solicitudes_cobertura': solicitudes_cobertura,
+            html_string = render_to_string('creditos/reporte_template.html', {
+            #'solicitudes_cobertura': solicitudes_cobertura,
             'mes': mes,
             'año': año
             })
