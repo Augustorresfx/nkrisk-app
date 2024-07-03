@@ -1,63 +1,309 @@
-{% load custom_filters %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte de Cobertura</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Insur - HZ</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #F0F4FB;
+    color: #333;
+}
+
+header {
+    text-align: left;
+    background-color: #4a90e2;
+    color: white;
+    padding: 10px 20px;
+    border-bottom: 4px solid #357ab8;
+    position: relative;
+    padding-bottom: 88px;
+}
+
+header .left-info {
+    position: absolute;
+    left: 20px;
+    top: 50px;
+    text-align: left;
+    color: white;
+}
+
+header .left-info .categoria {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5em;
+    padding-top: 10px;
+}
+
+header p {
+    margin: 5px 0;
+}
+
+section.clientes {
+    padding: 10px;
+    margin: 16px 20px;
+    margin-bottom: 0px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+section.clientes h2 {
+    text-align: left;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #4a90e2;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 5px;
+    text-align: left;
+}
+
+th {
+    background-color: #4a90e2;
+    color: white;
+    font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+    background-color: #e2f1ff;
+}
+
+tbody tr td {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease-in-out;
+}
+
+tbody tr:hover td {
+    border-left: 4px solid #4a90e2;
+}
+
+@media (min-width: 768px) {
+    body {
+        margin: 10px;
+    }
+
+    section.clientes {
+        margin: 10px auto;
+        max-width: 800px;
+    }
+}
+
     </style>
 </head>
 <body>
-    <h1>Reporte de Cobertura -</h1>
-    <h2>Solicitudes de Cobertura</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>CUIT</th>
-                <th>País</th>
-                <th>Ciudad</th>
-                <th>Cliente</th>
-                <th>Vigencia Desde</th>
-                <th>Vigencia Hasta</th>
-                <th>Moneda</th>
-                <th>Monto Solicitado</th>
-                <th>Monto Aprobado</th>
-                <th>Estado</th>
-                <th>Condición de Venta</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for solicitud in solicitudes_cobertura %}
-            <tr>
-                <td>{{ solicitud.cuit }}</td>
-                <td>{{ solicitud.pais }}</td>
-                <td>{{ solicitud.ciudad }}</td>
-                <td>{{ solicitud.cliente }}</td>
-                <td>{{ solicitud.vigencia_desde }}</td>
-                <td>{{ solicitud.vigencia_hasta }}</td>
-                <td>{{ solicitud.moneda }}</td>
-                <td>{{ solicitud.monto_solicitado }}</td>
-                <td>{{ solicitud.monto_aprobado }}</td>
-                <td>{{ solicitud.estado }}</td>
-                <td>{{ solicitud.condicion_de_venta }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <header>
+        <div class="left-info">
+            <p class="categoria">GHZ</p>
+            <p>Abril 2024</p>
+            <p>Moneda: ARS</p>
+        </div>
+        <h1>Informe de gestión - Seguro de crédito</h1>
+    </header>
+    <section class="clientes">
+        <h2>Solicitudes de cobertura</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Solicitado</th>
+                    <th>Aprobado</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cliente 1</td>
+                    <td>$10,000</td>
+                    <td>01-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <tr>
+                    <td>Cliente 2</td>
+                    <td>$8,000</td>
+                    <td>15-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                </tr>
+              </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Clientes nuevos o sin cobertura</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Solicitado</th>
+                    <th>Aprobado</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cliente 1</td>
+                    <td>$10,000</td>
+                    <td>01-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <tr>
+                    <td>Cliente 2</td>
+                    <td>$8,000</td>
+                    <td>15-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                </tr>
+              </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Re estudios</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Solicitado</th>
+                    <th>Aprobado</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cliente 1</td>
+                    <td>$10,000</td>
+                    <td>01-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <tr>
+                    <td>Cliente 2</td>
+                    <td>$8,000</td>
+                    <td>15-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                </tr>
+              </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Reducciones / cancelaciones</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Solicitado</th>
+                    <th>Aprobado</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cliente 1</td>
+                    <td>$10,000</td>
+                    <td>01-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <tr>
+                    <td>Cliente 2</td>
+                    <td>$8,000</td>
+                    <td>15-05-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                  <td>$180</td>
+                </tr>
+              </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Clientes D</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Deuda</th>
+                    <th>Fecha de Vencimiento</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cliente 7</td>
+                    <td>$15,000</td>
+                    <td>20-06-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <tr>
+                    <td>Cliente 8</td>
+                    <td>$9,000</td>
+                    <td>30-06-2024</td>
+                    <td>Activo</td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+        </table>
+    </section>
 </body>
+
 </html>
