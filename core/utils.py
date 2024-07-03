@@ -210,7 +210,7 @@ def comparar_totales(workbook, flota_id, cliente):
             movimiento.save()
         except Movimiento.DoesNotExist:
             pass
-            
+        
     
 def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
     api_manager = ApiManager()
@@ -1796,3 +1796,5 @@ def importar_datos_ganadera_santa_isabel(workbook, flota_id, fuente_datos, clien
     # Crear una respuesta HTTP con el archivo adjunto
     #response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     #response['Content-Disposition'] = f'attachment; filename=resultados_actualizados.xlsx'
+    
+    
