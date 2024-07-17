@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime, timedelta
 from simple_history.models import HistoricalRecords
+from django.db.models import Sum
 
 def access_expiration():
     return timezone.now() + timezone.timedelta(hours=1)
@@ -95,12 +96,36 @@ class Flota(models.Model):
         
     def __str__(self):
         return str(self.numero_flota)
+    
+    def aplicar_diferencia(self):
+        # Obtener todos los movimientos de la flota
+        movimientos = self.movimientos.all()
+        
+        # Calcular el porcentaje total de diferencia acumulada para prima_pza y premio_con_iva
+        #total_diferencia_prima_pza = movimientos.aggregate(Sum('prima_pza_porcentaje_diferencia'))['prima_pza_porcentaje_diferencia__sum'] or 0
+        total_diferencia_premio_con_iva = movimientos.aggregate(Sum('premio_con_iva_porcentaje_diferencia'))['premio_con_iva_porcentaje_diferencia__sum'] or 0
+        
+        # Contar el número de vehículos en la flota
+        num_vehiculos = self.vehiculos.count()
+        
+        if num_vehiculos == 0:
+            return  # No hay vehículos en la flota, no se hace nada
+        
+        # Calcular el porcentaje de diferencia a aplicar por vehículo
+        #diferencia_prima_pza_por_vehiculo = total_diferencia_prima_pza / num_vehiculos
+        diferencia_premio_con_iva_por_vehiculo = total_diferencia_premio_con_iva / num_vehiculos
+        
+        # Aplicar el porcentaje de diferencia a cada vehículo
+        for vehiculo in self.vehiculos.all():
+            #vehiculo.prima_pza += vehiculo.prima_pza * (diferencia_prima_pza_por_vehiculo / 100)
+            vehiculo.premio_con_iva += vehiculo.premio_con_iva * (diferencia_premio_con_iva_por_vehiculo / 100)
+            vehiculo.save()
 
 class Movimiento(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     numero_endoso = models.CharField(max_length=100, blank=True, null=True)
     motivo_endoso = models.CharField(max_length=140, blank=True, null=True)
-    flota = models.ForeignKey(Flota, on_delete=models.CASCADE)
+    flota = models.ForeignKey(Flota, related_name='movimientos', on_delete=models.CASCADE)
     numero_orden = models.CharField(max_length=100, blank=True, null=True)
     vigencia_desde = models.DateField(blank=True, null=True)
     vigencia_hasta = models.DateField(blank=True, null=True)
@@ -116,7 +141,7 @@ class Movimiento(models.Model):
 class VehiculoFlota(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     cod = models.IntegerField(null=True, blank=True)
-    flota = models.ForeignKey(Flota, on_delete=models.CASCADE)
+    flota = models.ForeignKey(Flota, related_name='vehiculos', on_delete=models.CASCADE)
     movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE)
     marca = models.CharField(max_length=100, blank=True, null=True)
     modelo = models.CharField(max_length=100, blank=True, null=True)
