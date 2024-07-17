@@ -174,6 +174,10 @@ def comparar_totales(workbook, flota_id, cliente):
     # Obtener todos los movimientos vinculados a esa flota
     movimientos = Movimiento.objects.filter(flota=flota)
 
+    vehiculos = VehiculoFlota.objects.filter(flota=flota).exclude(estado="Baja")
+    
+    num_vehiculos = vehiculos.count()
+    
     sheet = workbook.active
     # Obtener todas las hojas en el workbook
     sheets = workbook.sheetnames
@@ -185,6 +189,10 @@ def comparar_totales(workbook, flota_id, cliente):
         next_sheet = workbook[sheets[current_index + 2]]
         sheet = next_sheet  # Ahora 'sheet' es la tercer hoja
         
+    total_prima_excel = 0
+    total_premio_excel = 0
+    total_prima_mov = 0
+    total_premio_mov = 0
     for row_number, (orden, poliza, endoso, motivo_endoso, cliente_excel, aseguradora, riesgo, vig_op_desde_, vig_op_hasta, moneda, prima, premio, saldo, _,_,_,_,_,_,_,_) in enumerate(sheet.iter_rows(min_row=3, values_only=True), start=3):
         row_values = sheet.cell(row=row_number, column=1).value
         if row_values is None:
@@ -204,13 +212,37 @@ def comparar_totales(workbook, flota_id, cliente):
             print(premio_diferencia)
             movimiento.prima_pza_porcentaje_diferencia = prima_diferencia
             movimiento.premio_con_iva_porcentaje_diferencia = premio_diferencia
-            
+            total_prima_mov += movimiento.prima_pza_total
+            total_premio_mov += movimiento.premio_con_iva_total
             # Añadir logs para verificar valores
             print(f"Orden: {orden} - Prima diferencia: {prima_diferencia}, Premio diferencia: {premio_diferencia}")
             movimiento.save()
         except Movimiento.DoesNotExist:
             pass
         
+    total_prima_excel = Decimal(prima)
+    total_premio_excel = Decimal(premio)
+    total_premio_mov = Decimal(total_premio_mov)
+    
+    print("Prima total exc (comparar totales): ", total_prima_excel)
+    print("Premio total exc (comparar totales): ", total_premio_excel)
+    print("Prima total mov (comparar totales): ", total_prima_excel)
+    print("Premio total mov (comparar totales): ", total_premio_excel)
+    
+    
+    
+    # Calcular la diferencia porcentual entre total_premio_excel y total_premio_mov
+    total_premio_diferencia = ((total_premio_excel - total_premio_mov) / total_premio_excel) * Decimal(100)
+    print("Porcentaje de diferencia total: ", total_premio_diferencia)
+    if -2 <= total_premio_diferencia <= 2:
+        porcentaje_a_sumar = total_premio_diferencia / Decimal(num_vehiculos)
+        for vehiculo in vehiculos:
+            vehiculo.premio_con_iva += (vehiculo.premio_con_iva * porcentaje_a_sumar / Decimal(100))
+            vehiculo.save()
+        
+    
+        
+    
     
 def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):
     api_manager = ApiManager()

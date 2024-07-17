@@ -902,6 +902,8 @@ class DetalleFlotaView(View):
         lista_errores = []
         flota = Flota.objects.get(id=flota_id)
         cliente = flota.cliente
+        if 'aplicar_diferencia' in request.POST:
+            flota.aplicar_diferencia()
         if 'descargar_excel' in request.POST:
             
             # Nombre del archivo que quieres descargar
@@ -1690,6 +1692,7 @@ class DetalleCreditoView(View):
             año = int(request.POST.get('año'))
             mes = int(request.POST.get('mes'))
             
+            fecha_formateada = f"{mes:02d}/{año}"
             # Obtener solicitudes necesarias de la base de datos
             #solicitudes_cobertura = CoberturaNominada.objects.filter(
             #vigencia_desde__month=mes,
@@ -1700,8 +1703,7 @@ class DetalleCreditoView(View):
             # Renderizar el template con los datos
             html_string = render_to_string('creditos/reporte_template.html', {
             #'solicitudes_cobertura': solicitudes_cobertura,
-            'mes': mes,
-            'año': año
+            'fecha_formateada': fecha_formateada,
             })
             
             # Generar el PDF

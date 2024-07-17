@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informe Insur - HZ</title>
+    <title>Informe Insur {{fecha_formateada}} - HZ</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
@@ -12,7 +12,7 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    background-color: #F0F4FB;
+    background-color: white;
     color: #333;
 }
 
@@ -58,6 +58,15 @@ section.clientes {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+section.clientes-reducciones-cancelaciones {
+    padding: 10px;
+    margin: 16px 20px;
+    margin-bottom: 0px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 section.clientes h2 {
     text-align: left;
     margin-bottom: 10px;
@@ -78,6 +87,18 @@ table, th, td {
     border: 1px solid #ddd;
 }
 
+.table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0px 0px;
+    padding: 0px;
+    max-width: 90%;
+    box-sizing: border-box;
+}
+
+
 th, td {
     padding: 5px;
     text-align: left;
@@ -97,14 +118,6 @@ tbody tr:hover {
     background-color: #e2f1ff;
 }
 
-tbody tr td {
-    border-left: 4px solid transparent;
-    transition: all 0.3s ease-in-out;
-}
-
-tbody tr:hover td {
-    border-left: 4px solid #4a90e2;
-}
 
 @media (min-width: 768px) {
     body {
@@ -123,7 +136,7 @@ tbody tr:hover td {
     <header>
         <div class="left-info">
             <p class="categoria">GHZ</p>
-            <p>Abril 2024</p>
+            <p>{{fecha_formateada}}</p>
             <p>Moneda: ARS</p>
         </div>
         <h1>Informe de gestión - Seguro de crédito</h1>
@@ -142,25 +155,25 @@ tbody tr:hover td {
             </thead>
             <tbody>
                 <tr>
-                    <td>Cliente 1</td>
-                    <td>$10,000</td>
-                    <td>01-05-2024</td>
-                    <td>Activo</td>
+                    <td>APROBADO</td>
+                    <td>2</td>
+                    <td>10.600.340</td>
+                    <td>1.500.630</td>
                 </tr>
                 <tr>
-                    <td>Cliente 2</td>
-                    <td>$8,000</td>
-                    <td>15-05-2024</td>
-                    <td>Activo</td>
+                    <td>RECHAZADO</td>
+                    <td>1</td>
+                    <td>1.435.605</td>
+                    <td>-</td>
                 </tr>
                 <!-- Más filas aquí -->
             </tbody>
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>$180</td>
-                  <td>$180</td>
-                  <td>$180</td>
+                  <td>3</td>
+                  <td>12.035.945</td>
+                  <td>1.500.630</td>
                 </tr>
               </tfoot>
         </table>
@@ -179,27 +192,27 @@ tbody tr:hover td {
             </thead>
             <tbody>
                 <tr>
-                    <td>Cliente 1</td>
-                    <td>$10,000</td>
-                    <td>01-05-2024</td>
-                    <td>Activo</td>
+                    <td>APROBADO</td>
+                    <td>2</td>
+                    <td>10.600.340</td>
+                    <td>1.500.630</td>
                 </tr>
                 <tr>
-                    <td>Cliente 2</td>
-                    <td>$8,000</td>
-                    <td>15-05-2024</td>
-                    <td>Activo</td>
+                    <td>RECHAZADO</td>
+                    <td>1</td>
+                    <td>1.435.605</td>
+                    <td>-</td>
                 </tr>
                 <!-- Más filas aquí -->
             </tbody>
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>$180</td>
-                  <td>$180</td>
-                  <td>$180</td>
+                  <td>3</td>
+                  <td>12.035.945</td>
+                  <td>1.500.630</td>
                 </tr>
-              </tfoot>
+            </tfoot>
         </table>
     </section>
     <section class="clientes">
@@ -216,27 +229,27 @@ tbody tr:hover td {
             </thead>
             <tbody>
                 <tr>
-                    <td>Cliente 1</td>
-                    <td>$10,000</td>
-                    <td>01-05-2024</td>
-                    <td>Activo</td>
+                    <td>APROBADO</td>
+                    <td>2</td>
+                    <td>10.600.340</td>
+                    <td>1.500.630</td>
                 </tr>
                 <tr>
-                    <td>Cliente 2</td>
-                    <td>$8,000</td>
-                    <td>15-05-2024</td>
-                    <td>Activo</td>
+                    <td>RECHAZADO</td>
+                    <td>1</td>
+                    <td>1.435.605</td>
+                    <td>-</td>
                 </tr>
                 <!-- Más filas aquí -->
             </tbody>
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>$180</td>
-                  <td>$180</td>
-                  <td>$180</td>
+                  <td>3</td>
+                  <td>12.035.945</td>
+                  <td>1.500.630</td>
                 </tr>
-              </tfoot>
+            </tfoot>
         </table>
     </section>
     <section class="clientes">
@@ -246,62 +259,102 @@ tbody tr:hover td {
                 <tr>
                     <th>Gestión</th>
                     <th>#</th>
-                    <th>Solicitado</th>
-                    <th>Aprobado</th>
+                    <th>Anterior</th>
+                    <th>Vigente</th>
 
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Cliente 1</td>
-                    <td>$10,000</td>
-                    <td>01-05-2024</td>
-                    <td>Activo</td>
+                    <td>REDUCCIÓN</td>
+                    <td>0</td>
+                    <td>-</td>
+                    <td>-</td>
                 </tr>
                 <tr>
-                    <td>Cliente 2</td>
-                    <td>$8,000</td>
-                    <td>15-05-2024</td>
-                    <td>Activo</td>
+                    <td>CANCELADO</td>
+                    <td>1</td>
+                    <td>4.000.000</td>
+                    <td>-</td>
                 </tr>
                 <!-- Más filas aquí -->
             </tbody>
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>$180</td>
-                  <td>$180</td>
-                  <td>$180</td>
+                  <td>1</td>
+                  <td>4.000.000</td>
+                  <td>-</td>
                 </tr>
-              </tfoot>
+            </tfoot>
         </table>
     </section>
     <section class="clientes">
-        <h2>Clientes D</h2>
-        <table>
+        <h2></h2>
+        <div class="table-container">
+        <table class="tabla-reducciones-cancelaciones">
             <thead>
                 <tr>
-                    <th>Cliente</th>
-                    <th>Deuda</th>
-                    <th>Fecha de Vencimiento</th>
-                    <th>Estado</th>
+                    <th>Razón social</th>
+                    <th>Gestión</th>
+                    <th>Exposición</th>
+                    <th>Cubierto</th>
+                    <th>Anterior</th>
+                    <th>Actual</th>
+                    <th>Estado deuda</th>
+                    <th>Comercial</th>
+                    <th>División</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Cliente 7</td>
-                    <td>$15,000</td>
-                    <td>20-06-2024</td>
-                    <td>Activo</td>
+                    <td>Cliente 1</td>
+                    <td>Cancelado</td>
+                    <td>4.000.000</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
                 </tr>
-                <tr>
-                    <td>Cliente 8</td>
-                    <td>$9,000</td>
-                    <td>30-06-2024</td>
-                    <td>Activo</td>
-                </tr>
+
                 <!-- Más filas aquí -->
             </tbody>
+        </table>
+    </div>
+    </section>
+    <section class="clientes">
+        <h2>Prorrogas solicitadas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Razón social</th>
+                    <th>Monto</th>
+                    <th>Cubierto</th>
+                    <th>Vencimiento</th>
+                    <th>Prorroga</th>
+                    <th>Estado</th>
+                    <th>Comercial</th>
+                    <th>División</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                
+                <!-- Más filas aquí -->
+            </tbody>
+
         </table>
     </section>
 </body>

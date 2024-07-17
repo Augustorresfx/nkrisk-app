@@ -8,7 +8,27 @@
   <div class="container-fluid h-custom">
       <div class="mt-5 pt-5">
         <h1 class="h2">Póliza: {{asegurado.numero_poliza}}</h1>
-      
+        <form method="POST" class="d-inline" action="">
+          {% csrf_token %}
+          <label for="año">Año:</label>
+          <select class="form-select w-25" name="año" id="año">
+              {% for year in 2020|get_years_to_current %}
+                  <option class= value="{{ year }}">{{ year }}</option>
+              {% endfor %}
+          </select>
+          
+          <label for="mes">Mes:</label>
+          <select class="form-select w-25" name="mes" id="mes">
+              {% for i in 1|get_months %}
+                  <option value="{{ i }}">{{ i|get_month_name }}</option>
+              {% endfor %}
+          </select>
+        <button name="generar_reporte" type="submit" class="btn btn-success  my-3 d-flex align-items-center">
+            <img class="material-icons" src="{% static 'svg/file_download.svg' %}" alt="Descargar archivo">
+            Exportar reporte
+          </button>
+          
+        </form>
         {% if messages %}
 
         {% for message in messages %}
@@ -130,15 +150,7 @@
            
         </div> {% endcomment %}
       </div>
- 
-<form method="POST" class="d-inline" action="">
-  {% csrf_token %}
-<button type="submit" class="btn btn-success mb-3 d-flex align-items-center">
-    <img class="material-icons" src="{% static 'svg/file_download.svg' %}" alt="Descargar archivo">
-    Exportar reporte
-  </button>
-  
-</form>
+
 
        
       </div>
@@ -190,48 +202,49 @@
       <tbody id="table-body" class="table-body"> </tbody></div>
           </div>
         </div>
-      <div class="mx-2">
-              <nav aria-label="Page navigation example">
-              <ul class="pagination justify-content-end">
-      
-      
-                  {% if pages_nominados.has_previous %}
-                    <li class="page-item">
-                      <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
-                    </li>
-                    <li class="page-item">
-                      <a class="page-link" href="{% my_url pages_nominados.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
-                    </li>
-      
-                      {% endif %}
-            
-            
-                      <li class="page-item">
-                        
-                      <a class="page-link" href="{% my_url pages_nominados.number 'page' request.GET.urlencode %}">{{ pages.number }}</a>
-                    
-                     
-                      </li>
-                      <li class="page-item">
-                        
-                        <a class="page-link" href="{% my_url pages_nominados.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages.paginator.num_pages }}</a>
-                      
-                       
-                        </li>
-                  
-                
-             
-                  {% if pages_nominados.has_next %}
-                  <li class="page-item">
-                      <a class="page-link" href="{% my_url pages_nominados.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
-                   </li>
-                   <li class="page-item">
-                  <a class="page-link" href="{% my_url pages_nominados.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+        <div class="mx-2">
+          <nav aria-label="Page navigation example">
+          <ul class="pagination justify-content-end">
+  
+  
+              {% if pages_nominados.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
                 </li>
+                <li class="page-item">
+                  <a class="page-link" href="{% my_url pages_nominados.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
+                </li>
+  
                   {% endif %}
-                </ul>
-                </nav>
+        
+        
+                  <li class="page-item">
+                    
+                  <a class="page-link" href="{% my_url pages.number 'page' request.GET.urlencode %}">{{ pages_nominados.number }}</a>
                 
+                 
+                  </li>
+                  <li class="page-item">
+                    
+                    <a class="page-link" href="{% my_url pages.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages_nominados.paginator.num_pages }}</a>
+                  
+                   
+                    </li>
+              
+            
+         
+              {% if pages_nominados.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="{% my_url pages_nominados.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
+               </li>
+               <li class="page-item">
+              <a class="page-link" href="{% my_url pages_nominados.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+            </li>
+              {% endif %}
+            </ul>
+            </nav>
+     
+    </div>
 
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2">
                   <h2>
@@ -262,27 +275,7 @@
                   </div> {% endcomment %}
                 </div>
            
-          <form method="POST" class="d-inline" action="">
-            {% csrf_token %}
-            <label for="año">Año:</label>
-            <select name="año" id="año">
-                {% for year in 2020|get_years_to_current %}
-                    <option value="{{ year }}">{{ year }}</option>
-                {% endfor %}
-            </select>
-            
-            <label for="mes">Mes:</label>
-            <select name="mes" id="mes">
-                {% for i in 1|get_months %}
-                    <option value="{{ i }}">{{ i|get_month_name }}</option>
-                {% endfor %}
-            </select>
-          <button name="generar_reporte" type="submit" class="btn btn-success mb-3 d-flex align-items-center">
-              <img class="material-icons" src="{% static 'svg/file_download.svg' %}" alt="Descargar archivo">
-              Exportar reporte
-            </button>
-            
-          </form>
+          
           
                  
                 </div>
@@ -323,49 +316,49 @@
                 <tbody id="table-body" class="table-body"> </tbody></div>
                     </div>
                   </div>
-                <div class="mx-2">
-                        <nav aria-label="Page navigation example">
-                        <ul class="pagination justify-content-end">
-                
-                
-                            {% if pages_innominados.has_previous %}
-                              <li class="page-item">
-                                <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
-                              </li>
-                              <li class="page-item">
-                                <a class="page-link" href="{% my_url pages_innominados.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
-                              </li>
-                
-                                {% endif %}
-                      
-                      
-                                <li class="page-item">
-                                  
-                                <a class="page-link" href="{% my_url pages_innominados.number 'page' request.GET.urlencode %}">{{ pages.number }}</a>
-                              
-                               
-                                </li>
-                                <li class="page-item">
-                                  
-                                  <a class="page-link" href="{% my_url pages_innominados.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages.paginator.num_pages }}</a>
-                                
-                                 
-                                  </li>
-                            
-                          
-                       
-                            {% if pages_innominados.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="{% my_url pages_innominados.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
-                             </li>
-                             <li class="page-item">
-                            <a class="page-link" href="{% my_url pages_innominados.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+                  <div class="mx-2">
+                    <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-end">
+            
+            
+                        {% if pages_innominados.has_previous %}
+                          <li class="page-item">
+                            <a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}">&laquo; primer página</a>
                           </li>
+                          <li class="page-item">
+                            <a class="page-link" href="{% my_url pages_innominados.previous_page_number 'page' request.GET.urlencode %}">anterior</a>
+                          </li>
+            
                             {% endif %}
-                          </ul>
-                          </nav>
+                  
+                  
+                            <li class="page-item">
+                              
+                            <a class="page-link" href="{% my_url pages_innominados.number 'page' request.GET.urlencode %}">{{ pages_innominados.number }}</a>
                           
-                        </div>
+                           
+                            </li>
+                            <li class="page-item">
+                              
+                              <a class="page-link" href="{% my_url pages_innominados.paginator.num_pages 'page' request.GET.urlencode %}">{{ pages_innominados.paginator.num_pages }}</a>
+                            
+                             
+                              </li>
+                        
+                      
+                   
+                        {% if pages_innominados.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{% my_url pages_innominados.next_page_number 'page' request.GET.urlencode %}">siguiente</a>
+                         </li>
+                         <li class="page-item">
+                        <a class="page-link" href="{% my_url pages_innominados.paginator.num_pages 'page' request.GET.urlencode %}">última página &raquo;</a>
+                      </li>
+                        {% endif %}
+                      </ul>
+                      </nav>
+               
+              </div>
                   </div>
                   </div>
                 </div>
