@@ -173,10 +173,6 @@ def comparar_totales(workbook, flota_id, cliente):
     flota = Flota.objects.get(id=flota_id)
     # Obtener todos los movimientos vinculados a esa flota
     movimientos = Movimiento.objects.filter(flota=flota)
-
-    vehiculos = VehiculoFlota.objects.filter(flota=flota).exclude(estado="Baja")
-    
-    num_vehiculos = vehiculos.count()
     
     sheet = workbook.active
     # Obtener todas las hojas en el workbook
@@ -188,11 +184,12 @@ def comparar_totales(workbook, flota_id, cliente):
     if current_index < len(sheets) - 1:
         next_sheet = workbook[sheets[current_index + 2]]
         sheet = next_sheet  # Ahora 'sheet' es la tercer hoja
-        
+
     total_prima_excel = 0
     total_premio_excel = 0
     total_prima_mov = 0
     total_premio_mov = 0
+
     for row_number, (orden, poliza, endoso, motivo_endoso, cliente_excel, aseguradora, riesgo, vig_op_desde_, vig_op_hasta, moneda, prima, premio, saldo, _,_,_,_,_,_,_,_) in enumerate(sheet.iter_rows(min_row=3, values_only=True), start=3):
         row_values = sheet.cell(row=row_number, column=1).value
         if row_values is None:
@@ -200,48 +197,60 @@ def comparar_totales(workbook, flota_id, cliente):
             break
         try:
             # Buscar el movimiento correspondiente
-            movimiento = movimientos.get(numero_orden = orden)
+            movimiento = movimientos.get(numero_orden=orden)
             print(movimiento.motivo_endoso)
-            if motivo_endoso == 'ALTA DE ITEMS' or motivo_endoso == ' AUMENTO DE SUMA ASEGURADA' or motivo_endoso == 'RENOVACIÓN':
+            if motivo_endoso in ['ALTA DE ITEMS', 'AUMENTO DE SUMA ASEGURADA', 'RENOVACIÓN']:
                 prima_diferencia = ((Decimal(prima) - movimiento.prima_tec_total) / Decimal(prima)) * 100 if movimiento.prima_tec_total else 0
                 premio_diferencia = ((Decimal(premio) - movimiento.premio_con_iva_total) / Decimal(premio)) * 100 if movimiento.premio_con_iva_total else 0
+                prima_num_diferencia = (Decimal(prima) - movimiento.prima_tec_total)
+                premio_num_diferencia = (Decimal(premio) - movimiento.premio_con_iva_total)
+            
             elif motivo_endoso == 'BAJA DE ITEMS':
-                prima_diferencia = ((Decimal(prima) + (movimiento.prima_tec_total*-1)) / Decimal(prima)) * 100 if movimiento.prima_tec_total else 0
-                premio_diferencia = ((Decimal(premio) + (movimiento.premio_con_iva_total*-1)) / Decimal(premio)) * 100 if movimiento.premio_con_iva_total else 0
+                prima_diferencia = ((Decimal(prima) + (movimiento.prima_tec_total * -1)) / Decimal(prima)) * 100 if movimiento.prima_tec_total else 0
+                premio_diferencia = ((Decimal(premio) + (movimiento.premio_con_iva_total * -1)) / Decimal(premio)) * 100 if movimiento.premio_con_iva_total else 0
+                prima_num_diferencia = (Decimal(prima) - movimiento.prima_tec_total)
+                premio_num_diferencia = (Decimal(premio) - movimiento.premio_con_iva_total)
+            
             print(prima_diferencia)
             print(premio_diferencia)
+
             movimiento.prima_pza_porcentaje_diferencia = prima_diferencia
             movimiento.premio_con_iva_porcentaje_diferencia = premio_diferencia
+            movimiento.save()
+
             total_prima_mov += movimiento.prima_pza_total
             total_premio_mov += movimiento.premio_con_iva_total
+
+            # Obtener los vehículos afectados por el movimiento
+            vehiculos = VehiculoFlota.history.filter(movimiento=movimiento).exclude(estado="Baja")
+            num_vehiculos = vehiculos.count()
+
+            # Calcular la diferencia porcentual y distribuirla entre los vehículos
+            total_prima_excel += Decimal(prima)
+            total_premio_excel += Decimal(premio)
+            print("Premio diferencia num: ", premio_num_diferencia)
+            if num_vehiculos > 0:
+                prima_diferencia_a_distribuir = prima_num_diferencia / num_vehiculos
+                premio_diferencia_a_distribuir = premio_num_diferencia / num_vehiculos
+                print("Prima diferencia a distrubuir: ", prima_diferencia_a_distribuir)
+                print("Premio diferencia a distrubuir: ", premio_diferencia_a_distribuir)
+                print(num_vehiculos)
+                for vehiculo in vehiculos:
+                    vehiculo.prima_pza += prima_diferencia_a_distribuir
+                    vehiculo.premio_con_iva += premio_diferencia_a_distribuir
+                    vehiculo.save()
+
             # Añadir logs para verificar valores
             print(f"Orden: {orden} - Prima diferencia: {prima_diferencia}, Premio diferencia: {premio_diferencia}")
-            movimiento.save()
+
         except Movimiento.DoesNotExist:
             pass
-        
-    total_prima_excel = Decimal(prima)
-    total_premio_excel = Decimal(premio)
-    total_premio_mov = Decimal(total_premio_mov)
-    
+
     print("Prima total exc (comparar totales): ", total_prima_excel)
     print("Premio total exc (comparar totales): ", total_premio_excel)
-    print("Prima total mov (comparar totales): ", total_prima_excel)
-    print("Premio total mov (comparar totales): ", total_premio_excel)
-    
-    
-    
-    # Calcular la diferencia porcentual entre total_premio_excel y total_premio_mov
-    total_premio_diferencia = ((total_premio_excel - total_premio_mov) / total_premio_excel) * Decimal(100)
-    print("Porcentaje de diferencia total: ", total_premio_diferencia)
-    if -2 <= total_premio_diferencia <= 2:
-        porcentaje_a_sumar = total_premio_diferencia / Decimal(num_vehiculos)
-        for vehiculo in vehiculos:
-            vehiculo.premio_con_iva += (vehiculo.premio_con_iva * porcentaje_a_sumar / Decimal(100))
-            vehiculo.save()
-        
-    
-        
+    print("Prima total mov (comparar totales): ", total_prima_mov)
+    print("Premio total mov (comparar totales): ", total_premio_mov)
+
     
     
 def importar_datos_roemmers_saicf(workbook, flota_id, fuente_datos, cliente):

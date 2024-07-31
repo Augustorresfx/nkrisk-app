@@ -131,11 +131,13 @@ tbody tr:hover {
 }
 
     </style>
+{% load custom_filters %}
+
 </head>
 <body>
     <header>
         <div class="left-info">
-            <p class="categoria">GHZ</p>
+            <p class="categoria">{{asegurado.nombre_asegurado}}</p>
             <p>{{fecha_formateada}}</p>
             <p>Moneda: ARS</p>
         </div>
@@ -156,24 +158,24 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>APROBADO</td>
-                    <td>2</td>
-                    <td>10.600.340</td>
-                    <td>1.500.630</td>
+                    <td>{{datos_solicitudes_cobertura.num_cobertura_aprob}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob|format_number}} ({{datos_solicitudes_cobertura.porcentaje_aprob}}%)</td>
                 </tr>
                 <tr>
                     <td>RECHAZADO</td>
-                    <td>1</td>
-                    <td>1.435.605</td>
-                    <td>-</td>
+                    <td>{{datos_solicitudes_cobertura.num_cobertura_rechaz}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_solicitado_rechaz|format_number}}</td>
+                    <td></td>
                 </tr>
                 <!-- Más filas aquí -->
             </tbody>
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>3</td>
-                  <td>12.035.945</td>
-                  <td>1.500.630</td>
+                  <td>{{datos_solicitudes_cobertura.num_total_cobertura}}</td>
+                  <td>{{datos_solicitudes_cobertura.total_solicitado|format_number}}</td>
+                  <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob}}%)</td> 
                 </tr>
               </tfoot>
         </table>
@@ -193,24 +195,24 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>APROBADO</td>
-                    <td>2</td>
-                    <td>10.600.340</td>
-                    <td>1.500.630</td>
+                    <td>{{datos_clientes_nuevos.num_cobertura_aprob}}</td>
+                    <td>{{datos_clientes_nuevos.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_clientes_nuevos.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.porcentaje_aprob}}%)</td>
                 </tr>
                 <tr>
                     <td>RECHAZADO</td>
-                    <td>1</td>
-                    <td>1.435.605</td>
-                    <td>-</td>
+                    <td>{{datos_clientes_nuevos.num_cobertura_rechaz}}</td>
+                    <td>{{datos_clientes_nuevos.cant_solicitado_rechaz|format_number}}</td>
+                    <td></td>
                 </tr>
                 <!-- Más filas aquí -->
             </tbody>
             <tfoot>
                 <tr>
-                  <td>Total</td>
-                  <td>3</td>
-                  <td>12.035.945</td>
-                  <td>1.500.630</td>
+                    <td>Total</td>
+                    <td>{{datos_clientes_nuevos.num_total_cobertura}}</td>
+                    <td>{{datos_clientes_nuevos.total_solicitado|format_number}}</td>
+                    <td>{{datos_clientes_nuevos.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.porcentaje_total_aprob}}%)</td> 
                 </tr>
             </tfoot>
         </table>
