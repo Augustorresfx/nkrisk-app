@@ -53,7 +53,7 @@ from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
 from .utils import importar_datos_roemmers_saicf, importar_datos_roemmers_alberto_guillermo, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel, comparar_totales
-from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados
+from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados, obtener_datos_solicitudes_cobertura, obtener_datos_clientes_sin_cobertura
 
 # Roles y permisos
 def is_staff_user(user):
@@ -1664,8 +1664,8 @@ class DetalleCreditoView(View):
         # Obtener el asegurado
         asegurado = get_object_or_404(AseguradoCredito, id=asegurado_id)
         
-        nominados = CoberturaNominada.objects.all()
-        innominados = CoberturaInnominada.objects.all()
+        nominados = CoberturaNominada.objects.filter(asegurado=asegurado)
+        innominados = CoberturaInnominada.objects.filter(asegurado=asegurado)
 
         page_number_nominados = request.GET.get("page")
         nominados_paginados = Paginator(nominados, 30)
@@ -1693,23 +1693,27 @@ class DetalleCreditoView(View):
             mes = int(request.POST.get('mes'))
             
             fecha_formateada = f"{mes:02d}/{año}"
-            # Obtener solicitudes necesarias de la base de datos
-            #solicitudes_cobertura = CoberturaNominada.objects.filter(
-            #vigencia_desde__month=mes,
-            #vigencia_desde__year=año,
-            #vigencia_hasta="Indefinida"
-            #)
+            fecha_completa_formateada = f"01/{mes:02d}/{año}"
+            print(fecha_completa_formateada)
+            # Obtener los datos filtrados
+            datos_solicitudes_cobertura = obtener_datos_solicitudes_cobertura(fecha_completa_formateada, asegurado)
+            
+            datos_clientes_nuevos = obtener_datos_clientes_sin_cobertura(fecha_completa_formateada, asegurado)
+            
             
             # Renderizar el template con los datos
             html_string = render_to_string('creditos/reporte_template.html', {
-            #'solicitudes_cobertura': solicitudes_cobertura,
+            'asegurado': asegurado,
             'fecha_formateada': fecha_formateada,
+            'datos_solicitudes_cobertura': datos_solicitudes_cobertura,
+            'datos_clientes_nuevos': datos_clientes_nuevos,
+            
             })
             
             # Generar el PDF
             html = HTML(string=html_string)
             pdf = html.write_pdf()
-            
+
             # Devolver el PDF como respuesta HTTP
             response = HttpResponse(pdf, content_type='application/pdf')
             response['Content-Disposition'] = 'inline; filename="reporte.pdf"'
