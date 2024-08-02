@@ -31,7 +31,7 @@ def cargar_datos_innominados(df, asegurado):
     # Convertir fechas al formato correcto, manejando valores vacíos
     df['Fecha1era Consulta'] = pd.to_datetime(df['Fecha1era Consulta'], format='%d/%m/%Y', errors='coerce')
     df['Fecha Última Consulta'] = pd.to_datetime(df['Fecha Última Consulta'], format='%d/%m/%Y', errors='coerce')
-    df['Fecha Hasta'] = pd.to_datetime(df['Fecha Hasta'], format='%d-%m-%Y', errors='coerce')
+    df['Fecha Hasta'] = pd.to_datetime(df['Fecha Hasta'], format='%d/%m/%Y', errors='coerce')
 
     for index, row in df.iterrows():
         
