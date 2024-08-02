@@ -34,19 +34,19 @@ def cargar_datos_innominados(df, asegurado):
     df['Fecha Hasta'] = pd.to_datetime(df['Fecha Hasta'], format='%d/%m/%Y', errors='coerce')
 
     for index, row in df.iterrows():
-        
         fecha_primera_consulta = row['Fecha1era Consulta'].strftime('%Y-%m-%d') if pd.notnull(row['Fecha1era Consulta']) else None
         fecha_ultima_consulta = row['Fecha Última Consulta'].strftime('%Y-%m-%d') if pd.notnull(row['Fecha Última Consulta']) else None
         fecha_hasta_formateada = row['Fecha Hasta'].strftime('%Y-%m-%d') if pd.notnull(row['Fecha Hasta']) else None
+
         CoberturaInnominada.objects.create(
-            asegurado = asegurado,
+            asegurado=asegurado,
             id_nacional=row['Id. Nacional'],
             nombre_cliente=row['Cliente'],
-            fecha_primer_consulta=row['Fecha1era Consulta'],
-            fecha_ultima_consulta=row['Fecha Última Consulta'],
+            fecha_primer_consulta=fecha_primera_consulta,
+            fecha_ultima_consulta=fecha_ultima_consulta,
             estadoActual=row['EstadoActual'],
             codigoAutorizacion=row['CódigoAutorización'],
-            fecha_hasta=row['Fecha Hasta'],
+            fecha_hasta=fecha_hasta_formateada,
             codigoAsegurado=row['CódigoAsegurado'],
         )
         
