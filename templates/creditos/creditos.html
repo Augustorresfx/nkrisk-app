@@ -204,7 +204,7 @@
 
 
       
-                        <th scope="col">Ver flota</th>
+                        <th scope="col">Ver</th>
                         <th scope="col">Eliminar</th>
                       </tr>
                     </thead>
@@ -215,8 +215,8 @@
                           <td>{{ asegurado.nombre_asegurado }}</td>
                           <td>{{ asegurado.numero_poliza }}</td>
                           <td>{{ asegurado.producto }}</td>
-                          <td>{{ asegurado.fecha_vigencia_desde }}</td>
-                          <td>{{ asegurado.fecha_vigencia_hasta }}</td>
+                          <td>{{ asegurado.fecha_vigencia_desde|date:"d/m/Y" }}</td>
+                          <td>{{ asegurado.fecha_vigencia_hasta|date:"d/m/Y" }}</td>
 
                           <td>
                             <a class="w-10 btn btn-sm btn-primary" href="{% url 'detalle_credito' asegurado.id %}">

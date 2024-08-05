@@ -4,6 +4,7 @@ from .models import CoberturaNominada, CoberturaInnominada
 from django.db.models import Q
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import calendar
 
 def cargar_datos_nominados(df, asegurado):
     
@@ -37,8 +38,6 @@ def cargar_datos_innominados(df, asegurado):
         fecha_primera_consulta = row['Fecha1era Consulta'].strftime('%Y-%m-%d') if pd.notnull(row['Fecha1era Consulta']) else None
         fecha_ultima_consulta = row['Fecha Última Consulta'].strftime('%Y-%m-%d') if pd.notnull(row['Fecha Última Consulta']) else None
         fecha_hasta_formateada = row['Fecha Hasta'].strftime('%Y-%m-%d') if pd.notnull(row['Fecha Hasta']) else None
-
-        print(fecha_hasta_formateada)
 
         CoberturaInnominada.objects.create(
             asegurado=asegurado,
@@ -137,7 +136,6 @@ def obtener_datos_clientes_sin_cobertura(fecha, asegurado):
         asegurado=asegurado,
     ).exclude(id_nacional__in=id_nacional_con_cobertura_anterior).exclude(id_nacional__in=id_nacional_inominados)
 
-    print(clientes_nuevos_aprob)
     num_cobertura_rechaz = clientes_nuevos_rechaz.count()
     num_cobertura_aprob = clientes_nuevos_aprob.count()
     num_total_cobertura = num_cobertura_rechaz + num_cobertura_aprob
@@ -167,4 +165,122 @@ def obtener_datos_clientes_sin_cobertura(fecha, asegurado):
         'cant_aprobado_aprob': cant_aprobado_aprob,
         'porcentaje_aprob': porcentaje_aprob,
         'porcentaje_total_aprob': porcentaje_total_aprob,
+    }
+    
+# TERCER TABLA - Reestudios
+def obtener_datos_reestudios(fecha, asegurado):
+    # Convierte la fecha de entrada a un objeto datetime
+    fecha_dt = datetime.strptime(fecha, "%d/%m/%Y")
+
+    # Obtener el primer día del mes anterior
+    fecha_un_mes_anterior_dt = (fecha_dt - relativedelta(months=1)).replace(day=1)
+    
+    # Formatear la fecha a "DD/MM/YYYY"
+    fecha_un_mes_anterior = fecha_un_mes_anterior_dt.strftime("%d/%m/%Y")
+    
+    # Obtener el último día del mes anterior de manera segura
+    ultimo_dia_un_mes_anterior_dt = fecha_un_mes_anterior_dt.replace(day=calendar.monthrange(fecha_un_mes_anterior_dt.year, fecha_un_mes_anterior_dt.month)[1])
+    # Formatear la fecha a "DD/MM/YYYY"
+    fecha_ultimo_dia_un_mes_anterior = ultimo_dia_un_mes_anterior_dt.strftime("%d/%m/%Y")
+    print(fecha)
+    # Traer los CUITs (id_nacional) de los clientes que tienen coberturas activas (para incluirlos)
+    id_nacional_con_cobertura_anterior = CoberturaNominada.objects.filter(
+        Q(estado='ACTIVA') | Q(estado='EXPIRA'),
+        Q(vigencia_hasta='Indefinida') | Q(vigencia_hasta=fecha_ultimo_dia_un_mes_anterior),
+        vigencia_desde__lt=fecha,
+        asegurado=asegurado
+    ).values_list('id_nacional', flat=True)
+    print(id_nacional_con_cobertura_anterior)
+    # Filtrar las solicitudes de reestudios aprobadas (ACTIVA) y rechazadas (RECHAZ) cuya id_nacional esté en la lista anterior
+    reestudios_aprob = CoberturaNominada.objects.filter(
+        vigencia_desde=fecha,
+        estado='ACTIVA',
+        asegurado=asegurado,
+        id_nacional__in=id_nacional_con_cobertura_anterior
+    )
+
+    reestudios_rechaz = CoberturaNominada.objects.filter(
+        vigencia_desde=fecha,
+        estado='RECHAZ',
+        asegurado=asegurado,
+        id_nacional__in=id_nacional_con_cobertura_anterior
+    )
+
+    # Listas para almacenar las coberturas anteriores aprobadas y rechazadas
+    coberturas_anteriores_aprob = []
+    coberturas_anteriores_rechaz = []
+
+    # Buscar coberturas anteriores para reestudios aprobados
+    for reestudio in reestudios_aprob:
+        coberturas_anteriores_aprob.extend(
+            CoberturaNominada.objects.filter(
+                Q(estado='ACTIVA') | Q(estado='EXPIRA'),
+                Q(vigencia_hasta='Indefinida') | Q(vigencia_hasta=fecha_ultimo_dia_un_mes_anterior),
+                id_nacional=reestudio.id_nacional,
+                asegurado=asegurado,
+                vigencia_desde__lte=fecha_un_mes_anterior
+            )
+        )
+
+    # Buscar coberturas anteriores para reestudios rechazados
+    for reestudio in reestudios_rechaz:
+        coberturas_anteriores_rechaz.extend(
+            CoberturaNominada.objects.filter(
+                Q(estado='ACTIVA') | Q(estado='EXPIRA'),
+                Q(vigencia_hasta='Indefinida') | Q(vigencia_hasta=fecha_ultimo_dia_un_mes_anterior),
+                id_nacional=reestudio.id_nacional,
+                asegurado=asegurado,
+                vigencia_desde__lte=fecha_un_mes_anterior
+            )
+        )
+        
+    for coberturas in coberturas_anteriores_aprob:
+            print(coberturas.monto_aprobado)
+            
+    for coberturas in coberturas_anteriores_rechaz:
+            print(coberturas.monto_aprobado)
+    # Calcular el monto aprobado de las coberturas anteriores
+    monto_aprobado_anteriores_aprob = sum(
+        cobertura.monto_aprobado for cobertura in coberturas_anteriores_aprob
+    )
+
+    monto_aprobado_anteriores_rechaz = sum(
+        cobertura.monto_aprobado for cobertura in coberturas_anteriores_rechaz
+    )
+    monto_aprobado_anteriores_total = monto_aprobado_anteriores_aprob + monto_aprobado_anteriores_rechaz
+    
+    num_reestudios_rechaz = reestudios_rechaz.count()
+    num_reestudios_aprob = reestudios_aprob.count()
+    num_total_reestudios = num_reestudios_rechaz + num_reestudios_aprob
+    cant_solicitado_rechaz = reestudios_rechaz.aggregate(total=Sum('monto_solicitado'))['total'] or 0
+    cant_solicitado_aprob = reestudios_aprob.aggregate(total=Sum('monto_solicitado'))['total'] or 0
+    total_solicitado = cant_solicitado_rechaz + cant_solicitado_aprob
+
+    cant_aprobado_aprob = reestudios_aprob.aggregate(total=Sum('monto_aprobado'))['total'] or 0
+    
+    porcentaje_aprob = 0
+    if cant_solicitado_aprob != 0:
+        porcentaje_aprob = round((cant_aprobado_aprob / cant_solicitado_aprob) * 100)
+
+    porcentaje_total_aprob = 0
+    if total_solicitado != 0:
+        porcentaje_total_aprob = round((cant_aprobado_aprob / total_solicitado) * 100)
+    
+    return {
+        'reestudios_rechaz': reestudios_rechaz,
+        'reestudios_aprob': reestudios_aprob,
+        'num_reestudios_rechaz': num_reestudios_rechaz,
+        'num_reestudios_aprob': num_reestudios_aprob,
+        'num_total_reestudios': num_total_reestudios,
+        'cant_solicitado_rechaz': cant_solicitado_rechaz,
+        'cant_solicitado_aprob': cant_solicitado_aprob,
+        'total_solicitado': total_solicitado,
+        'cant_aprobado_aprob': cant_aprobado_aprob,
+        'porcentaje_aprob': porcentaje_aprob,
+        'porcentaje_total_aprob': porcentaje_total_aprob,
+        'coberturas_anteriores_aprob': coberturas_anteriores_aprob,
+        'coberturas_anteriores_rechaz': coberturas_anteriores_rechaz,
+        'monto_aprobado_anteriores_aprob': monto_aprobado_anteriores_aprob,
+        'monto_aprobado_anteriores_rechaz': monto_aprobado_anteriores_rechaz,
+        'monto_aprobado_anteriores_total': monto_aprobado_anteriores_total
     }

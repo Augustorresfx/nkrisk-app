@@ -225,6 +225,7 @@ tbody tr:hover {
                     <th>Gestión</th>
                     <th>#</th>
                     <th>Solicitado</th>
+                    <th>Anterior</th>
                     <th>Aprobado</th>
 
                 </tr>
@@ -232,24 +233,28 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>APROBADO</td>
-                    <td>2</td>
-                    <td>10.600.340</td>
-                    <td>1.500.630</td>
+                    <td>{{datos_reestudios.num_reestudios_aprob}}</td>
+                    <td>{{datos_reestudios.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.monto_aprobado_anteriores_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_aprob}}%)</td>
+                
                 </tr>
                 <tr>
                     <td>RECHAZADO</td>
-                    <td>1</td>
-                    <td>1.435.605</td>
-                    <td>-</td>
+                    <td>{{datos_reestudios.num_reestudios_rechaz}}</td>
+                    <td>{{datos_reestudios.cant_solicitado_rechaz|format_number}}</td>
+                    <td>{{datos_reestudios.monto_aprobado_anteriores_rechaz|format_number}}</td>
+                    <td></td>
                 </tr>
                 <!-- Más filas aquí -->
             </tbody>
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>3</td>
-                  <td>12.035.945</td>
-                  <td>1.500.630</td>
+                  <td>{{datos_reestudios.num_total_reestudios}}</td>
+                  <td>{{datos_reestudios.total_solicitado|format_number}}</td>
+                  <td>{{datos_reestudios.monto_aprobado_anteriores_total|format_number}}</td>
+                  <td>{{datos_reestudios.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_total_aprob}}%)</td> 
                 </tr>
             </tfoot>
         </table>
@@ -269,14 +274,14 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>REDUCCIÓN</td>
-                    <td>0</td>
+                    <td>-</td>
                     <td>-</td>
                     <td>-</td>
                 </tr>
                 <tr>
                     <td>CANCELADO</td>
-                    <td>1</td>
-                    <td>4.000.000</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>-</td>
                 </tr>
                 <!-- Más filas aquí -->
@@ -284,8 +289,8 @@ tbody tr:hover {
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>1</td>
-                  <td>4.000.000</td>
+                  <td>-</td>
+                  <td>-</td>
                   <td>-</td>
                 </tr>
             </tfoot>
@@ -310,9 +315,9 @@ tbody tr:hover {
             </thead>
             <tbody>
                 <tr>
-                    <td>Cliente 1</td>
-                    <td>Cancelado</td>
-                    <td>4.000.000</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
