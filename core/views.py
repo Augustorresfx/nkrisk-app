@@ -1717,7 +1717,7 @@ class DetalleCreditoView(View):
 
             # Devolver el PDF como respuesta HTTP
             response = HttpResponse(pdf, content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="reporte.pdf"'
+            response['Content-Disposition'] = f'inline; filename="Informe Insur {mes:02d}-{año}.pdf"'
             return response
             
         if "importar_nominados" in request.POST:
