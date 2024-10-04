@@ -1,3 +1,6 @@
+#RANDOM
+script_codigo_actividades.py
+
 ### Django ###
 *.log
 *.pot
