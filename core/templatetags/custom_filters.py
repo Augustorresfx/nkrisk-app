@@ -22,15 +22,16 @@ def get_month_name(value):
     except (ValueError, IndexError):
         return value  # O manejar el error de alguna otra forma
 
+
 @register.filter
 def format_number(value):
-    """Formatea un número para usar punto como separador de miles y coma para decimales."""
-    if value is None:
-        return ''
-    
-    # Formatear el número
-    formatted_value = f'{value:,.2f}'  # Usa 2 decimales para que haya una coma
-    # Cambiar la coma a punto y el punto a coma
-    formatted_value = formatted_value.replace(',', 'X').replace('.', ',').replace('X', '.')
-    
-    return formatted_value
+    print(f"Valor recibido en el filtro: {value} (tipo: {type(value)})")  # Para depurar
+    try:
+        # Si el valor es una cadena, intenta convertirlo a float
+        if isinstance(value, str):
+            value = value.replace(',', '')  # Elimina comas si las hay
+        value = float(value)
+        return f"{value:,.2f}"  # Formatea el número
+    except (ValueError, TypeError) as e:
+        print(f"Error al formatear: {e}")  # Para depurar
+        return value  # Retorna el valor original si hay un error
