@@ -143,6 +143,8 @@ tbody tr:hover {
         </div>
         <h1>Informe de gestión - Seguro de crédito</h1>
     </header>
+    {% if tiene_divisiones %}
+    {% comment %} INICIO ENVASES {% endcomment %}
     <section class="clientes">
         <h2>Solicitudes de cobertura</h2>
         <table>
@@ -158,14 +160,14 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>APROBADO</td>
-                    <td>{{datos_solicitudes_cobertura.num_cobertura_aprob}}</td>
-                    <td>{{datos_solicitudes_cobertura.cant_solicitado_aprob|format_number}}</td>
-                    <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob|format_number}} ({{datos_solicitudes_cobertura.porcentaje_aprob}}%)</td>
+                    <td>{{datos_solicitudes_cobertura.num_cobertura_aprob_envases}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_solicitado_aprob_envases|format_number}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob_envases|format_number}} ({{datos_solicitudes_cobertura.porcentaje_aprob_envases}}%)</td>
                 </tr>
                 <tr>
                     <td>RECHAZADO</td>
-                    <td>{{datos_solicitudes_cobertura.num_cobertura_rechaz}}</td>
-                    <td>{{datos_solicitudes_cobertura.cant_solicitado_rechaz|format_number}}</td>
+                    <td>{{datos_solicitudes_cobertura.num_cobertura_rechaz_envases}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_solicitado_rechaz_envases|format_number}}</td>
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
@@ -173,9 +175,9 @@ tbody tr:hover {
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>{{datos_solicitudes_cobertura.num_total_cobertura}}</td>
-                  <td>{{datos_solicitudes_cobertura.total_solicitado|format_number}}</td>
-                  <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob}}%)</td> 
+                  <td>{{datos_solicitudes_cobertura.num_total_cobertura_envases}}</td>
+                  <td>{{datos_solicitudes_cobertura.total_solicitado_envases|format_number}}</td>
+                  <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob_envases|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob_envases}}%)</td> 
                 </tr>
               </tfoot>
         </table>
@@ -195,14 +197,14 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>APROBADO</td>
-                    <td>{{datos_clientes_nuevos.num_cobertura_aprob}}</td>
-                    <td>{{datos_clientes_nuevos.cant_solicitado_aprob|format_number}}</td>
-                    <td>{{datos_clientes_nuevos.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.porcentaje_aprob}}%)</td>
+                    <td>{{datos_clientes_nuevos.envases.num_cobertura_aprob}}</td>
+                    <td>{{datos_clientes_nuevos.envases.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_clientes_nuevos.envases.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.envases.porcentaje_aprob}}%)</td>
                 </tr>
                 <tr>
                     <td>RECHAZADO</td>
-                    <td>{{datos_clientes_nuevos.num_cobertura_rechaz}}</td>
-                    <td>{{datos_clientes_nuevos.cant_solicitado_rechaz|format_number}}</td>
+                    <td>{{datos_clientes_nuevos.envases.num_cobertura_rechaz}}</td>
+                    <td>{{datos_clientes_nuevos.envases.cant_solicitado_rechaz|format_number}}</td>
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
@@ -210,9 +212,9 @@ tbody tr:hover {
             <tfoot>
                 <tr>
                     <td>Total</td>
-                    <td>{{datos_clientes_nuevos.num_total_cobertura}}</td>
-                    <td>{{datos_clientes_nuevos.total_solicitado|format_number}}</td>
-                    <td>{{datos_clientes_nuevos.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.porcentaje_total_aprob}}%)</td> 
+                    <td>{{datos_clientes_nuevos.envases.num_total_cobertura_envases}}</td>
+                    <td>{{datos_clientes_nuevos.envases.total_solicitado|format_number}}</td>
+                    <td>{{datos_clientes_nuevos.envases.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.envases.porcentaje_total_aprob_envases}}%)</td> 
                 </tr>
             </tfoot>
         </table>
@@ -233,17 +235,17 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>APROBADO</td>
-                    <td>{{datos_reestudios.num_reestudios_aprob}}</td>
-                    <td>{{datos_reestudios.cant_solicitado_aprob|format_number}}</td>
-                    <td>{{datos_reestudios.monto_aprobado_anteriores_aprob|format_number}}</td>
-                    <td>{{datos_reestudios.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_aprob}}%)</td>
+                    <td>{{datos_reestudios.envases.num_reestudios_aprob}}</td>
+                    <td>{{datos_reestudios.envases.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.envases.monto_aprobado_anteriores_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.envases.cant_aprobado_aprob|format_number}} ({{datos_reestudios.envases.porcentaje_aprob}}%)</td>
                 
                 </tr>
                 <tr>
                     <td>RECHAZADO</td>
-                    <td>{{datos_reestudios.num_reestudios_rechaz}}</td>
-                    <td>{{datos_reestudios.cant_solicitado_rechaz|format_number}}</td>
-                    <td>{{datos_reestudios.monto_aprobado_anteriores_rechaz|format_number}}</td>
+                    <td>{{datos_reestudios.envases.num_reestudios_rechaz}}</td>
+                    <td>{{datos_reestudios.envases.cant_solicitado_rechaz|format_number}}</td>
+                    <td>{{datos_reestudios.envases.monto_aprobado_anteriores_rechaz|format_number}}</td>
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
@@ -251,10 +253,10 @@ tbody tr:hover {
             <tfoot>
                 <tr>
                   <td>Total</td>
-                  <td>{{datos_reestudios.num_total_reestudios}}</td>
-                  <td>{{datos_reestudios.total_solicitado|format_number}}</td>
-                  <td>{{datos_reestudios.monto_aprobado_anteriores_total|format_number}}</td>
-                  <td>{{datos_reestudios.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_total_aprob}}%)</td> 
+                  <td>{{datos_reestudios.envases.num_total_reestudios}}</td>
+                  <td>{{datos_reestudios.envases.total_solicitado|format_number}}</td>
+                  <td>{{datos_reestudios.envases.monto_aprobado_anteriores_total|format_number}}</td>
+                  <td>{{datos_reestudios.envases.cant_aprobado_aprob|format_number}} ({{datos_reestudios.envases.porcentaje_total_aprob}}%)</td> 
                 </tr>
             </tfoot>
         </table>
@@ -364,6 +366,458 @@ tbody tr:hover {
 
         </table>
     </section>
+{% comment %} FIN ENVASES {% endcomment %}
+
+{% comment %} INICIO CARTULINAS {% endcomment %}
+<section class="clientes">
+    <h2>Solicitudes de cobertura</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Gestión</th>
+                <th>#</th>
+                <th>Solicitado</th>
+                <th>Aprobado</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>APROBADO</td>
+                <td>{{datos_solicitudes_cobertura.num_cobertura_aprob_cartulinas}}</td>
+                <td>{{datos_solicitudes_cobertura.cant_solicitado_aprob_cartulinas|format_number}}</td>
+                <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob_cartulinas|format_number}} ({{datos_solicitudes_cobertura.porcentaje_aprob_cartulinas}}%)</td>
+            </tr>
+            <tr>
+                <td>RECHAZADO</td>
+                <td>{{datos_solicitudes_cobertura.num_cobertura_rechaz_cartulinas}}</td>
+                <td>{{datos_solicitudes_cobertura.cant_solicitado_rechaz_cartulinas|format_number}}</td>
+                <td></td>
+            </tr>
+            <!-- Más filas aquí -->
+        </tbody>
+        <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>{{datos_solicitudes_cobertura.num_total_cobertura_cartulinas}}</td>
+              <td>{{datos_solicitudes_cobertura.total_solicitado_cartulinas|format_number}}</td>
+              <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob_cartulinas|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob_cartulinas}}%)</td> 
+            </tr>
+          </tfoot>
+    </table>
+</section>
+<section class="clientes">
+    <h2>Clientes nuevos o sin cobertura</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Gestión</th>
+                <th>#</th>
+                <th>Solicitado</th>
+                <th>Aprobado</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>APROBADO</td>
+                <td>{{datos_clientes_nuevos.cartulinas.num_cobertura_aprob}}</td>
+                <td>{{datos_clientes_nuevos.cartulinas.cant_solicitado_aprob|format_number}}</td>
+                <td>{{datos_clientes_nuevos.cartulinas.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.cartulinas.porcentaje_aprob}}%)</td>
+            </tr>
+            <tr>
+                <td>RECHAZADO</td>
+                <td>{{datos_clientes_nuevos.cartulinas.num_cobertura_rechaz}}</td>
+                <td>{{datos_clientes_nuevos.cartulinas.cant_solicitado_rechaz|format_number}}</td>
+                <td></td>
+            </tr>
+            <!-- Más filas aquí -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>Total</td>
+                <td>{{datos_clientes_nuevos.cartulinas.num_total_cobertura_cartulinas}}</td>
+                <td>{{datos_clientes_nuevos.cartulinas.total_solicitado|format_number}}</td>
+                <td>{{datos_clientes_nuevos.cartulinas.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.cartulinas.porcentaje_total_aprob_cartulinas}}%)</td> 
+            </tr>
+        </tfoot>
+    </table>
+</section>
+<section class="clientes">
+    <h2>Re estudios</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Gestión</th>
+                <th>#</th>
+                <th>Solicitado</th>
+                <th>Anterior</th>
+                <th>Aprobado</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>APROBADO</td>
+                <td>{{datos_reestudios.cartulinas.num_reestudios_aprob}}</td>
+                <td>{{datos_reestudios.cartulinas.cant_solicitado_aprob|format_number}}</td>
+                <td>{{datos_reestudios.cartulinas.monto_aprobado_anteriores_aprob|format_number}}</td>
+                <td>{{datos_reestudios.cartulinas.cant_aprobado_aprob|format_number}} ({{datos_reestudios.cartulinas.porcentaje_aprob}}%)</td>
+            
+            </tr>
+            <tr>
+                <td>RECHAZADO</td>
+                <td>{{datos_reestudios.cartulinas.num_reestudios_rechaz}}</td>
+                <td>{{datos_reestudios.cartulinas.cant_solicitado_rechaz|format_number}}</td>
+                <td>{{datos_reestudios.cartulinas.monto_aprobado_anteriores_rechaz|format_number}}</td>
+                <td></td>
+            </tr>
+            <!-- Más filas aquí -->
+        </tbody>
+        <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>{{datos_reestudios.cartulinas.num_total_reestudios}}</td>
+              <td>{{datos_reestudios.cartulinas.total_solicitado|format_number}}</td>
+              <td>{{datos_reestudios.cartulinas.monto_aprobado_anteriores_total|format_number}}</td>
+              <td>{{datos_reestudios.cartulinas.cant_aprobado_aprob|format_number}} ({{datos_reestudios.cartulinas.porcentaje_total_aprob}}%)</td> 
+            </tr>
+        </tfoot>
+    </table>
+</section>
+<section class="clientes">
+    <h2>Reducciones / cancelaciones</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Gestión</th>
+                <th>#</th>
+                <th>Anterior</th>
+                <th>Vigente</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>REDUCCIÓN</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>CANCELADO</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            <!-- Más filas aquí -->
+        </tbody>
+        <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+            </tr>
+        </tfoot>
+    </table>
+</section>
+<section class="clientes">
+    <h2></h2>
+    <div class="table-container">
+    <table class="tabla-reducciones-cancelaciones">
+        <thead>
+            <tr>
+                <th>Razón social</th>
+                <th>Gestión</th>
+                <th>Exposición</th>
+                <th>Cubierto</th>
+                <th>Anterior</th>
+                <th>Actual</th>
+                <th>Estado deuda</th>
+                <th>Comercial</th>
+                <th>División</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+
+            <!-- Más filas aquí -->
+        </tbody>
+    </table>
+</div>
+</section>
+<section class="clientes">
+    <h2>Prorrogas solicitadas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Razón social</th>
+                <th>Monto</th>
+                <th>Cubierto</th>
+                <th>Vencimiento</th>
+                <th>Prorroga</th>
+                <th>Estado</th>
+                <th>Comercial</th>
+                <th>División</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            
+            <!-- Más filas aquí -->
+        </tbody>
+
+    </table>
+</section>
+{% comment %} FIN CARTULINAS {% endcomment %}
+
+
+{% comment %} INICIO SIN DIVISIONES {% endcomment %}
+
+{% else %}
+    <section class="clientes">
+        <h2>Solicitudes de cobertura</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Solicitado</th>
+                    <th>Aprobado</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>APROBADO</td>
+                    <td>{{datos_solicitudes_cobertura.num_cobertura_aprob}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob|format_number}} ({{datos_solicitudes_cobertura.porcentaje_aprob}}%)</td>
+                </tr>
+                <tr>
+                    <td>RECHAZADO</td>
+                    <td>{{datos_solicitudes_cobertura.num_cobertura_rechaz}}</td>
+                    <td>{{datos_solicitudes_cobertura.cant_solicitado_rechaz|format_number}}</td>
+                    <td></td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>{{datos_solicitudes_cobertura.num_total_cobertura}}</td>
+                  <td>{{datos_solicitudes_cobertura.total_solicitado|format_number}}</td>
+                  <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob}}%)</td> 
+                </tr>
+              </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Clientes nuevos o sin cobertura</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Solicitado</th>
+                    <th>Aprobado</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>APROBADO</td>
+                    <td>{{datos_clientes_nuevos.num_cobertura_aprob}}</td>
+                    <td>{{datos_clientes_nuevos.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_clientes_nuevos.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.porcentaje_aprob}}%)</td>
+                </tr>
+                <tr>
+                    <td>RECHAZADO</td>
+                    <td>{{datos_clientes_nuevos.num_cobertura_rechaz}}</td>
+                    <td>{{datos_clientes_nuevos.cant_solicitado_rechaz|format_number}}</td>
+                    <td></td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>Total</td>
+                    <td>{{datos_clientes_nuevos.num_total_cobertura}}</td>
+                    <td>{{datos_clientes_nuevos.total_solicitado|format_number}}</td>
+                    <td>{{datos_clientes_nuevos.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.porcentaje_total_aprob}}%)</td> 
+                </tr>
+            </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Re estudios</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Solicitado</th>
+                    <th>Anterior</th>
+                    <th>Aprobado</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>APROBADO</td>
+                    <td>{{datos_reestudios.sin_separacion.num_reestudios_aprob}}</td>
+                    <td>{{datos_reestudios.sin_separacion.cant_solicitado_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.sin_separacion.monto_aprobado_anteriores_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.sin_separacion.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_aprob}}%)</td>
+                
+                </tr>
+                <tr>
+                    <td>RECHAZADO</td>
+                    <td>{{datos_reestudios.sin_separacion.num_reestudios_rechaz}}</td>
+                    <td>{{datos_reestudios.sin_separacion.cant_solicitado_rechaz|format_number}}</td>
+                    <td>{{datos_reestudios.sin_separacion.monto_aprobado_anteriores_rechaz|format_number}}</td>
+                    <td></td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>{{datos_reestudios.sin_separacion.num_total_reestudios}}</td>
+                  <td>{{datos_reestudios.sin_separacion.total_solicitado|format_number}}</td>
+                  <td>{{datos_reestudios.sin_separacion.monto_aprobado_anteriores_total|format_number}}</td>
+                  <td>{{datos_reestudios.sin_separacion.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_total_aprob}}%)</td> 
+                </tr>
+            </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Reducciones / cancelaciones</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gestión</th>
+                    <th>#</th>
+                    <th>Anterior</th>
+                    <th>Vigente</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>REDUCCIÓN</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>CANCELADO</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+            <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>
+            </tfoot>
+        </table>
+    </section>
+    <section class="clientes">
+        <h2></h2>
+        <div class="table-container">
+        <table class="tabla-reducciones-cancelaciones">
+            <thead>
+                <tr>
+                    <th>Razón social</th>
+                    <th>Gestión</th>
+                    <th>Exposición</th>
+                    <th>Cubierto</th>
+                    <th>Anterior</th>
+                    <th>Actual</th>
+                    <th>Estado deuda</th>
+                    <th>Comercial</th>
+                    <th>División</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+
+                <!-- Más filas aquí -->
+            </tbody>
+        </table>
+    </div>
+    </section>
+    <section class="clientes">
+        <h2>Prorrogas solicitadas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Razón social</th>
+                    <th>Monto</th>
+                    <th>Cubierto</th>
+                    <th>Vencimiento</th>
+                    <th>Prorroga</th>
+                    <th>Estado</th>
+                    <th>Comercial</th>
+                    <th>División</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                
+                <!-- Más filas aquí -->
+            </tbody>
+
+        </table>
+    </section>
+    {% endif %}
 </body>
 
 </html>
