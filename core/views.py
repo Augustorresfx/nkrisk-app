@@ -53,7 +53,8 @@ from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
 from .utils import importar_datos_roemmers_saicf, importar_datos_roemmers_alberto_guillermo, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel, comparar_totales
-from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados, obtener_datos_solicitudes_cobertura, obtener_datos_clientes_sin_cobertura, obtener_datos_reestudios
+from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados, consultar_por_divisiones, obtener_datos_solicitudes_cobertura, obtener_datos_clientes_sin_cobertura, obtener_datos_reestudios
+
 
 # Roles y permisos
 def is_staff_user(user):
@@ -1694,14 +1695,18 @@ class DetalleCreditoView(View):
             
             fecha_formateada = f"{mes:02d}/{año}"
             fecha_completa_formateada = f"01/{mes:02d}/{año}"
-            print(fecha_completa_formateada)
+        
+            tiene_divisiones = consultar_por_divisiones(fecha_completa_formateada, asegurado)
+            
             # Obtener los datos filtrados
             datos_solicitudes_cobertura = obtener_datos_solicitudes_cobertura(fecha_completa_formateada, asegurado)
             
             datos_clientes_nuevos = obtener_datos_clientes_sin_cobertura(fecha_completa_formateada, asegurado)
             
             datos_reestudios = obtener_datos_reestudios(fecha_completa_formateada, asegurado)
-            
+            print("Solicitudes de cobertura: ", datos_solicitudes_cobertura)
+            print("CLientes nuevos: ", datos_clientes_nuevos)
+            print("Reestudios: ", datos_reestudios)
             # Renderizar el template con los datos
             html_string = render_to_string('creditos/reporte_template.html', {
             'asegurado': asegurado,
@@ -1709,6 +1714,7 @@ class DetalleCreditoView(View):
             'datos_solicitudes_cobertura': datos_solicitudes_cobertura,
             'datos_clientes_nuevos': datos_clientes_nuevos,
             'datos_reestudios': datos_reestudios,
+            'tiene_divisiones': tiene_divisiones,
             })
             
             # Generar el PDF
