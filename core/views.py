@@ -53,7 +53,7 @@ from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
 from .utils import importar_datos_roemmers_saicf, importar_datos_roemmers_alberto_guillermo, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel, comparar_totales
-from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados, consultar_por_divisiones, obtener_datos_solicitudes_cobertura, obtener_datos_clientes_sin_cobertura, obtener_datos_reestudios
+from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados, consultar_por_divisiones, obtener_datos_solicitudes_cobertura, obtener_datos_clientes_sin_cobertura, obtener_datos_reestudios, obtener_datos_cancelaciones, obtener_datos_reducciones
 
 
 # Roles y permisos
@@ -1704,9 +1704,18 @@ class DetalleCreditoView(View):
             datos_clientes_nuevos = obtener_datos_clientes_sin_cobertura(fecha_completa_formateada, asegurado)
             
             datos_reestudios = obtener_datos_reestudios(fecha_completa_formateada, asegurado)
+            
+            datos_cancelaciones = obtener_datos_cancelaciones(fecha_completa_formateada, asegurado)
+            
+            datos_reducciones = obtener_datos_reducciones(fecha_completa_formateada, asegurado)
+            
             print("Solicitudes de cobertura: ", datos_solicitudes_cobertura)
             print("CLientes nuevos: ", datos_clientes_nuevos)
             print("Reestudios: ", datos_reestudios)
+            print("Cancelaciones: ", datos_cancelaciones)
+            print("Reducciones: ", datos_reducciones)
+            
+            
             # Renderizar el template con los datos
             html_string = render_to_string('creditos/reporte_template.html', {
             'asegurado': asegurado,
@@ -1768,7 +1777,7 @@ class DetalleCreditoView(View):
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(user_passes_test(lambda user: user.groups.filter(name='PermisoBasico').exists() or user.is_staff), name='dispatch')
-class EliminarAseguradoCreditoView(View):
+class EliminarAseguradoCreditoView(View): 
     def get(self, request, asegurado_id):
         asegurado = get_object_or_404(AseguradoCredito, id=asegurado_id)
 
