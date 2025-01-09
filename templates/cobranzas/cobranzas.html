@@ -1,8 +1,6 @@
 <head>
   <style> body { margin: 0; } </style>
-
   <script src="//unpkg.com/globe.gl"></script>
-  <!--<script src="../../dist/globe.gl.js"></script>-->
 </head>
 
 <body>
@@ -14,31 +12,66 @@
 
     const colorScale = scaleSequentialSqrt(interpolateYlOrRd);
 
-    // GDP per capita (avoiding countries with small pop)
-    const getVal = feat => feat.properties.GDP_MD_EST / Math.max(1e5, feat.properties.POP_EST);
-    const world = new Globe(document.getElementById('globeViz'), {animateIn: false})
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-    fetch('/static/ne_110m_admin_0_countries.geojson').then(res => res.json()).then(countries =>
-    {
-      const maxVal = Math.max(...countries.features.map(getVal));
-      colorScale.domain([0, maxVal]);
+    // Limitar FPS en móviles
+    const isLowPerformance = (() => {
+      // Detectar dispositivos móviles
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      
+      // Verificar el número de núcleos del procesador (menos o igual a 4 se considera bajo)
+      const lowCores = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+      
+      // Retornar verdadero si es móvil y tiene pocos núcleos
+      return isMobile && lowCores;
+    })();
 
-        
-        world.lineHoverPrecision(0)
-        world.polygonsData(countries.features.filter(d => d.properties.ISO_A2 !== 'AQ'))
-        world.polygonAltitude(0.06)
-        world.polygonCapColor(feat => 'rgba(0, 112, 204, 0.3)')
-        world.polygonSideColor(() => 'rgba(0, 48, 100, 0.55)')
-        world.polygonStrokeColor(() => '#00c2cc')
-        world.pointOfView({ altitude: 1.5, lat: 0, lng: 300 })
-        world.polygonsTransitionDuration(300)
-  
-        world.polygonMaterial(feat => new THREE.MeshBasicMaterial({ color: 0x0070cc, wireframe: false }));
-        
-      // Habilitar auto-rotación
-     
-    });
-    world.controls().autoRotate = true;
-    world.controls().autoRotateSpeed = 0.35;
+    if (isLowPerformance) {
+      // Configuración para dispositivos de bajo rendimiento
+      const getVal = feat => feat.properties.GDP_MD_EST / Math.max(1e5, feat.properties.POP_EST);
+      const world = new Globe(document.getElementById('globeViz'), { animateIn: false })
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
+
+      fetch('/static/ne_110m_admin_0_countries_low_end.geojson').then(res => res.json()).then(countries => {
+        const maxVal = Math.max(...countries.features.map(getVal));
+        colorScale.domain([0, maxVal]);
+
+        world
+          .lineHoverPrecision(0)
+          .polygonsData(countries.features.filter(d => d.properties.ISO_A2 !== 'AQ'))
+          .polygonAltitude(0)
+          .polygonCapColor(feat => 'rgba(0, 112, 204, 0.3)')
+          .polygonSideColor(null)
+          .polygonStrokeColor(() => '#00c2cc')
+          .pointOfView({ altitude: 1.5, lat: 0, lng: 300 })
+          .polygonsTransitionDuration(0)
+          .polygonMaterial(feat => new THREE.MeshBasicMaterial({ color: 0x0070cc, wireframe: false }));
+      });
+
+      world.controls().autoRotate = true;
+      world.controls().autoRotateSpeed = 0.2;
+    } else {
+      // Configuración para dispositivos normales
+      const getVal = feat => feat.properties.GDP_MD_EST / Math.max(1e5, feat.properties.POP_EST);
+      const world = new Globe(document.getElementById('globeViz'), { animateIn: false })
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
+
+      fetch('/static/ne_110m_admin_0_countries.geojson').then(res => res.json()).then(countries => {
+        const maxVal = Math.max(...countries.features.map(getVal));
+        colorScale.domain([0, maxVal]);
+
+        world
+          .lineHoverPrecision(0)
+          .polygonsData(countries.features.filter(d => d.properties.ISO_A2 !== 'AQ'))
+          .polygonAltitude(0.06)
+          .polygonCapColor(feat => 'rgba(0, 112, 204, 0.3)')
+          .polygonSideColor(() => 'rgba(0, 48, 100, 0.55)')
+          .polygonStrokeColor(() => '#00c2cc')
+          .pointOfView({ altitude: 1.5, lat: 0, lng: 300 })
+          .polygonsTransitionDuration(300)
+          .polygonMaterial(feat => new THREE.MeshBasicMaterial({ color: 0x0070cc, wireframe: false }));
+      });
+
+      world.controls().autoRotate = true;
+      world.controls().autoRotateSpeed = 0.2;
+    }
   </script>
 </body>
