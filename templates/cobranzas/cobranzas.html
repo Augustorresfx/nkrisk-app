@@ -39,7 +39,7 @@
           .polygonsData(countries.features.filter(d => d.properties.ISO_A2 !== 'AQ'))
           .polygonAltitude(0.02)
           .polygonCapColor(feat => 'rgba(0, 112, 204, 0.3)')
-          .polygonSideColor(null)
+          .polygonSideColor(() => 'rgba(0, 48, 100, 0.55)')
           .polygonStrokeColor(() => '#00c2cc')
           .pointOfView({ altitude: 1.5, lat: 0, lng: 300 })
           .polygonsTransitionDuration(0)
