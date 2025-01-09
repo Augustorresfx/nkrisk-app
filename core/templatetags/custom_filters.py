@@ -35,3 +35,12 @@ def format_number(value):
     except (ValueError, TypeError) as e:
         print(f"Error al formatear: {e}")  # Para depurar
         return value  # Retorna el valor original si hay un error
+
+@register.filter
+def format_date(value):
+    try:
+        value = value.strftime("%d/%m/%Y")
+        return value
+    except (ValueError, TypeError) as e:
+        print("Error al formatear fecha: {e}")
+        return value

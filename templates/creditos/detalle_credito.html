@@ -8,27 +8,6 @@
   <div class="container-fluid h-custom">
       <div class="mt-5 pt-5">
         <h1 class="h2">Póliza: {{asegurado.numero_poliza}}</h1>
-        <form method="POST" class="d-inline" action="">
-          {% csrf_token %}
-          <label for="año">Año:</label>
-          <select class="form-select w-25" name="año" id="año">
-              {% for year in 2020|get_years_to_current %}
-                  <option class= value="{{ year }}">{{ year }}</option>
-              {% endfor %}
-          </select>
-          
-          <label for="mes">Mes:</label>
-          <select class="form-select w-25" name="mes" id="mes">
-              {% for i in 1|get_months %}
-                  <option value="{{ i }}">{{ i|get_month_name }}</option>
-              {% endfor %}
-          </select>
-        <button name="generar_reporte" type="submit" class="btn btn-success  my-3 d-flex align-items-center">
-            <img class="material-icons" src="{% static 'svg/file_download.svg' %}" alt="Descargar archivo">
-            Exportar reporte
-          </button>
-          
-        </form>
         {% if messages %}
 
         {% for message in messages %}
@@ -48,79 +27,74 @@
         {% endfor %}
 
       {% endif %}
-          <!--
-            FORMULARIO IMPORTACION DESDE EXCEL
-          -->
-          <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
-              
+        <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
           <div class="col">
-            
             <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
               <h3 > 
-                Importar listado de nominados
+                Importar listados
               </h3>
               <p>En caso de error, guardar el archivo con formato xlsx (Excel 2007-365)</p>
-              <form class="pt-3" method="post" enctype="multipart/form-data">
+              <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-
-
+    
+    
                 <div class="mb-3">
                   
-                  <label for="formFile" class="form-label">Listado de nominados</label>
+                  <label for="formFile" class="form-label">Tipo: </label>
+                  <select class="form-select mb-3" name="tipo" aria-label="Tipo de archivo">
+                    <option value="nominados">Listado de nominados</option>
+                    <option value="innominados">Listado de innominados</option>
+                    <option value="prorrogas">Historial de prórrogas</option>
+                  </select>
+                  <label for="formFile" class="form-label">Archivo: </label>
                   <input name="file1" class="form-control" type="file" id="formFile">
                 </div>
-                {% comment %} <div class="mb-3">
-                  <label for="fuente_datos" class="form-label">Fuente de datos:</label>
-                  <select name="fuente_datos" class="form-select" aria-label="Default select example">
-                      <option selected>Seleccionar fuente de datos</option>
-                      <option value="excel">Datos del Excel</option>
-                      <option value="info_auto">Datos de Info Auto</option>
-                      <option value="base_datos">Datos de la base de datos propia</option>
-                  </select>
-              </div> {% endcomment %}
-
-              <button name="importar_nominados" class="btn btn-primary mb-2" type="submit">Importar</button>
-
+    
+    
+              <button name="importar_listado" class="btn btn-primary mb-2" type="submit">Importar</button>
+    
                 
             </form>
           </div>
-
-        </div>
-
-
-      <div class="">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
-
-       
-
-      </div>
-        <!-- Form importacion innominados -->
-       
+          </div>
+          <div class="col">
             <div class="card mb-3 p-4 border-0 shadow-sm" style="max-width: 540px;">
-                <h3 > 
-                  Importar listado de innominados
-                </h3>
-                <p>En caso de error, guardar el archivo con formato xlsx (Excel 2007-365)</p>
-                <form class="pt-3" method="post" enctype="multipart/form-data">
-                  {% csrf_token %}
-    
-    
-                  <div class="mb-3">
-                    
-                    <label for="formFile" class="form-label">Listado de innominados</label>
-                    <input name="file1" class="form-control" type="file" id="formFile">
-                  </div>
-    
-    
-                <button name="importar_innominados" class="btn btn-primary mb-2" type="submit">Importar</button>
-    
+              <h3 > 
+                Generar informe
+              </h3>
+              
+              <form method="POST" class="d-inline" action="">
+                {% csrf_token %}
+                <label for="año">Año:</label>
+                <select class="form-select w-25" name="año" id="año">
+                    {% for year in 2020|get_years_to_current %}
+                        <option class= value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+                
+                <label for="mes">Mes:</label>
+                <select class="form-select w-25" name="mes" id="mes">
+                    {% for i in 1|get_months %}
+                        <option value="{{ i }}">{{ i|get_month_name }}</option>
+                    {% endfor %}
+                </select>
+              <button name="generar_reporte" type="submit" class="btn btn-primary my-3 d-flex align-items-center">
                   
+                  Generar
+                </button>
+                
               </form>
-            </div>
-
+      
+          </div>
+        
+      </div>
+      
     </div>
-</div>
- 
+        
+
+
+
+
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2">
         <h2>
@@ -301,7 +275,7 @@
                                   <td>{{ innominado.nombre_cliente }}</td>
                                   <td>{{ innominado.fecha_primer_consulta|date:"d/m/Y"  }}</td>
                                   <td>{{ innominado.fecha_ultima_consulta|date:"d/m/Y"  }}</td>
-                                  <td>{{ innominado.estadoActual }}</td>
+                                  <td>{{ innominado.estado_ctual }}</td>
                                   <td>{{ innominado.fecha_hasta|date:"d/m/Y"  }}</td>
                                   <td>{{ innominado.codigoAsegurado }}</td>
                                 </tr>
