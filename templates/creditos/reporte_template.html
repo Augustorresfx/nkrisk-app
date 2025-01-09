@@ -51,7 +51,7 @@ header p {
 
 section.clientes {
     padding: 10px;
-    margin: 16px 20px;
+    margin: 16px 0px;
     margin-bottom: 0px;
     background: white;
     border-radius: 8px;
@@ -145,6 +145,7 @@ tbody tr:hover {
     </header>
     {% if tiene_divisiones %}
     {% comment %} INICIO ENVASES {% endcomment %}
+<h2>Envases</h2>
     <section class="clientes">
         <h2>Solicitudes de cobertura</h2>
         <table>
@@ -171,15 +172,14 @@ tbody tr:hover {
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+
                 <tr>
                   <td>Total</td>
                   <td>{{datos_solicitudes_cobertura.num_total_cobertura_envases}}</td>
                   <td>{{datos_solicitudes_cobertura.total_solicitado_envases|format_number}}</td>
                   <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob_envases|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob_envases}}%)</td> 
                 </tr>
-              </tfoot>
+            </tbody>
         </table>
     </section>
     <section class="clientes">
@@ -208,15 +208,14 @@ tbody tr:hover {
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+
                 <tr>
                     <td>Total</td>
                     <td>{{datos_clientes_nuevos.envases.num_total_cobertura_envases}}</td>
                     <td>{{datos_clientes_nuevos.envases.total_solicitado|format_number}}</td>
                     <td>{{datos_clientes_nuevos.envases.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.envases.porcentaje_total_aprob_envases}}%)</td> 
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </section>
     <section class="clientes">
@@ -237,7 +236,7 @@ tbody tr:hover {
                     <td>APROBADO</td>
                     <td>{{datos_reestudios.envases.num_reestudios_aprob}}</td>
                     <td>{{datos_reestudios.envases.cant_solicitado_aprob|format_number}}</td>
-                    <td>{{datos_reestudios.envases.monto_aprobado_anteriores_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.envases.cant_anterior_aprob|format_number}}</td>
                     <td>{{datos_reestudios.envases.cant_aprobado_aprob|format_number}} ({{datos_reestudios.envases.porcentaje_aprob}}%)</td>
                 
                 </tr>
@@ -245,20 +244,19 @@ tbody tr:hover {
                     <td>RECHAZADO</td>
                     <td>{{datos_reestudios.envases.num_reestudios_rechaz}}</td>
                     <td>{{datos_reestudios.envases.cant_solicitado_rechaz|format_number}}</td>
-                    <td>{{datos_reestudios.envases.monto_aprobado_anteriores_rechaz|format_number}}</td>
+                    <td>{{datos_reestudios.envases.cant_anterior_rechaz|format_number}}</td>
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+
                 <tr>
                   <td>Total</td>
                   <td>{{datos_reestudios.envases.num_total_reestudios}}</td>
                   <td>{{datos_reestudios.envases.total_solicitado|format_number}}</td>
-                  <td>{{datos_reestudios.envases.monto_aprobado_anteriores_total|format_number}}</td>
+                  <td>{{datos_reestudios.envases.cant_anterior_total|format_number}}</td>
                   <td>{{datos_reestudios.envases.cant_aprobado_aprob|format_number}} ({{datos_reestudios.envases.porcentaje_total_aprob}}%)</td> 
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </section>
     <section class="clientes">
@@ -276,30 +274,30 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>REDUCCIÓN</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <td>{{datos_reducciones.num_reducciones_envases}}</td>
+                    <td>{{datos_reducciones.monto_anterior_reducciones_envases|format_number}}</td>
+                    <td>{{datos_reducciones.monto_aprob_reducciones_envases|format_number}}</td>
                 </tr>
                 <tr>
                     <td>CANCELADO</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <td>{{datos_cancelaciones.cancelaciones_envases.num_cancelaciones}}</td>
+                    <td>{{datos_cancelaciones.cancelaciones_envases.total_monto_aprobado|format_number}}</td>
                     <td>-</td>
                 </tr>
-                <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+              
+        
                 <tr>
                   <td>Total</td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td>-</td>
+                  <td>{{total_cancelaciones_reducciones_envases}}</td>
+                  <td>{{total_monto_anterior_cancelaciones_reducciones_envases|format_number}}</td>
+                  <td>{{total_monto_aprob_cancelaciones_reducciones_envases|format_number}}</td>
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </section>
+
     <section class="clientes">
-        <h2></h2>
+        <h2>Solicitudes</h2>
         <div class="table-container">
         <table class="tabla-reducciones-cancelaciones">
             <thead>
@@ -310,65 +308,128 @@ tbody tr:hover {
                     <th>Cubierto</th>
                     <th>Anterior</th>
                     <th>Actual</th>
-                    <th>Estado deuda</th>
-                    <th>Comercial</th>
-                    <th>División</th>
+                    <th>Monto temporal</th>
                 </tr>
             </thead>
             <tbody>
+
+                {% for solicitudes in datos_solicitudes_cobertura.sol_envases_aprob %}
+
                 <tr>
+                    <td>{{solicitudes.cliente}}</td>
+                    <td>Solicitud de cobertura</td>
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <td>{{solicitudes.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                    
                 </tr>
+                {% endfor %}
+
+                {% for solicitudes in datos_solicitudes_cobertura.sol_envases_rechaz %}
+
+                <tr>
+                    <td>{{solicitudes.cliente}}</td>
+                    <td>Solicitud de cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{solicitudes.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% comment %} {% for nuevos in datos_clientes_nuevos.sol_envases_aprob %}
+
+                <tr>
+                    <td>{{nuevos.cliente}}</td>
+                    <td>Sin cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{nuevos.monto_aprobado|format_number}}</td>
+                    <td>{{nuevos.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for nuevos in datos_clientes_nuevos.sol_envases_rechaz %}
+
+                <tr>
+                    <td>{{nuevos.cliente}}</td>
+                    <td>Sin cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{nuevos.monto_aprobado|format_number}}</td>
+                    <td>{{nuevos.monto_temporal|format_number}}</td>
+                    
+                </tr>
+                {% endfor %} {% endcomment %}
+
+                {% for reestudio in datos_reestudios.envases.reestudios_aprob %}
+
+                <tr>
+                    <td>{{reestudio.cliente}}</td>
+                    <td>Reestudio</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reestudio.monto_anterior|format_number}}</td>
+                    <td>{{reestudio.monto_aprobado|format_number}}</td>
+                    <td>{{reestudio.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for reestudio in datos_reestudios.envases.reestudios_rechaz %}
+
+                <tr>
+                    <td>{{reestudio.cliente}}</td>
+                    <td>Reestudio</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reestudio.monto_anterior|format_number}}</td>
+                    <td>{{reestudio.monto_aprobado|format_number}}</td>
+                    <td>{{reestudio.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+
+                {% for cancelacion in datos_cancelaciones.cancelaciones_envases.datos_cancelaciones %}
+
+                <tr>
+                    <td>{{cancelacion.cliente}}</td>
+                    <td>Cancelado</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{cancelacion.monto_anterior|format_number}}</td>
+                    <td>-</td>
+                    <td>{{cancelacion.monto_temporal|format_number}}</td>
+                    
+                </tr>
+                {% endfor %}
+                {% for reduccion in datos_reducciones.reducciones_envases %}
+
+                <tr>
+                    <td>{{reduccion.cliente}}</td>
+                    <td>Reducción</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reduccion.monto_anterior|format_number}}</td>
+                    <td>{{reduccion.monto_aprobado|format_number}}</td>
+                    <td>{{reduccion.monto_temporal|format_number}}</td>
+        
+                </tr>
+                {% endfor %}
 
                 <!-- Más filas aquí -->
             </tbody>
         </table>
     </div>
     </section>
-    <section class="clientes">
-        <h2>Prorrogas solicitadas</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Razón social</th>
-                    <th>Monto</th>
-                    <th>Cubierto</th>
-                    <th>Vencimiento</th>
-                    <th>Prorroga</th>
-                    <th>Estado</th>
-                    <th>Comercial</th>
-                    <th>División</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                </tr>
-                
-                <!-- Más filas aquí -->
-            </tbody>
-
-        </table>
-    </section>
-{% comment %} FIN ENVASES {% endcomment %}
+    {% comment %} FIN ENVASES {% endcomment %}
 
 {% comment %} INICIO CARTULINAS {% endcomment %}
+<h2>Cartulinas</h2>
 <section class="clientes">
     <h2>Solicitudes de cobertura</h2>
     <table>
@@ -395,15 +456,14 @@ tbody tr:hover {
                 <td></td>
             </tr>
             <!-- Más filas aquí -->
-        </tbody>
-        <tfoot>
+
             <tr>
               <td>Total</td>
               <td>{{datos_solicitudes_cobertura.num_total_cobertura_cartulinas}}</td>
               <td>{{datos_solicitudes_cobertura.total_solicitado_cartulinas|format_number}}</td>
               <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob_cartulinas|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob_cartulinas}}%)</td> 
             </tr>
-          </tfoot>
+        </tbody>
     </table>
 </section>
 <section class="clientes">
@@ -432,15 +492,14 @@ tbody tr:hover {
                 <td></td>
             </tr>
             <!-- Más filas aquí -->
-        </tbody>
-        <tfoot>
+
             <tr>
                 <td>Total</td>
                 <td>{{datos_clientes_nuevos.cartulinas.num_total_cobertura_cartulinas}}</td>
                 <td>{{datos_clientes_nuevos.cartulinas.total_solicitado|format_number}}</td>
                 <td>{{datos_clientes_nuevos.cartulinas.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.cartulinas.porcentaje_total_aprob_cartulinas}}%)</td> 
             </tr>
-        </tfoot>
+        </tbody>
     </table>
 </section>
 <section class="clientes">
@@ -461,7 +520,7 @@ tbody tr:hover {
                 <td>APROBADO</td>
                 <td>{{datos_reestudios.cartulinas.num_reestudios_aprob}}</td>
                 <td>{{datos_reestudios.cartulinas.cant_solicitado_aprob|format_number}}</td>
-                <td>{{datos_reestudios.cartulinas.monto_aprobado_anteriores_aprob|format_number}}</td>
+                <td>{{datos_reestudios.cartulinas.cant_anterior_aprob|format_number}}</td>
                 <td>{{datos_reestudios.cartulinas.cant_aprobado_aprob|format_number}} ({{datos_reestudios.cartulinas.porcentaje_aprob}}%)</td>
             
             </tr>
@@ -469,20 +528,19 @@ tbody tr:hover {
                 <td>RECHAZADO</td>
                 <td>{{datos_reestudios.cartulinas.num_reestudios_rechaz}}</td>
                 <td>{{datos_reestudios.cartulinas.cant_solicitado_rechaz|format_number}}</td>
-                <td>{{datos_reestudios.cartulinas.monto_aprobado_anteriores_rechaz|format_number}}</td>
+                <td>{{datos_reestudios.cartulinas.cant_anterior_rechaz|format_number}}</td>
                 <td></td>
             </tr>
             <!-- Más filas aquí -->
-        </tbody>
-        <tfoot>
+
             <tr>
               <td>Total</td>
               <td>{{datos_reestudios.cartulinas.num_total_reestudios}}</td>
               <td>{{datos_reestudios.cartulinas.total_solicitado|format_number}}</td>
-              <td>{{datos_reestudios.cartulinas.monto_aprobado_anteriores_total|format_number}}</td>
+              <td>{{datos_reestudios.cartulinas.cant_anterior_total|format_number}}</td>
               <td>{{datos_reestudios.cartulinas.cant_aprobado_aprob|format_number}} ({{datos_reestudios.cartulinas.porcentaje_total_aprob}}%)</td> 
             </tr>
-        </tfoot>
+        </tbody>
     </table>
 </section>
 <section class="clientes">
@@ -500,30 +558,30 @@ tbody tr:hover {
         <tbody>
             <tr>
                 <td>REDUCCIÓN</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
+                <td>{{datos_reducciones.num_reducciones_cartulinas}}</td>
+                <td>{{datos_reducciones.monto_anterior_reducciones_cartulinas|format_number}}</td>
+                <td>{{datos_reducciones.monto_aprob_reducciones_cartulinas|format_number}}</td>
             </tr>
             <tr>
                 <td>CANCELADO</td>
-                <td>-</td>
-                <td>-</td>
+                <td>{{datos_cancelaciones.cancelaciones_cartulinas.num_cancelaciones}}</td>
+                <td>{{datos_cancelaciones.cancelaciones_cartulinas.total_monto_aprobado|format_number}}</td>
                 <td>-</td>
             </tr>
             <!-- Más filas aquí -->
-        </tbody>
-        <tfoot>
+      
             <tr>
               <td>Total</td>
-              <td>-</td>
-              <td>-</td>
-              <td>-</td>
+              <td>{{total_cancelaciones_reducciones_cartulinas}}</td>
+              <td>{{total_monto_anterior_cancelaciones_reducciones_cartulinas|format_number}}</td>
+              <td>{{total_monto_aprob_cancelaciones_reducciones_cartulinas|format_number}}</td>
             </tr>
-        </tfoot>
+        </tbody>
     </table>
 </section>
+
 <section class="clientes">
-    <h2></h2>
+    <h2>Solicitudes</h2>
     <div class="table-container">
     <table class="tabla-reducciones-cancelaciones">
         <thead>
@@ -534,31 +592,129 @@ tbody tr:hover {
                 <th>Cubierto</th>
                 <th>Anterior</th>
                 <th>Actual</th>
-                <th>Estado deuda</th>
-                <th>Comercial</th>
-                <th>División</th>
+                <th>Monto temporal</th>
             </tr>
         </thead>
         <tbody>
+
+            {% for solicitudes in datos_solicitudes_cobertura.sol_cartulinas_aprob %}
+
+                <tr>
+                    <td>{{solicitudes.cliente}}</td>
+                    <td>Solicitud de cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{solicitudes.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for solicitudes in datos_solicitudes_cobertura.sol_cartulinas_rechaz %}
+
+                <tr>
+                    <td>{{solicitudes.cliente}}</td>
+                    <td>Solicitud de cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{solicitudes.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% comment %} {% for nuevos in datos_clientes_nuevos.sol_cartulinas_aprob %}
+
+                <tr>
+                    <td>{{nuevos.cliente}}</td>
+                    <td>Sin cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{nuevos.monto_aprobado|format_number}}</td>
+                    <td>{{nuevos.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for nuevos in datos_clientes_nuevos.sol_cartulinas_rechaz %}
+
+                <tr>
+                    <td>{{nuevos.cliente}}</td>
+                    <td>Sin cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{nuevos.monto_aprobado|format_number}}</td>
+                    <td>{{nuevos.monto_temporal|format_number}}</td>
+
+                </tr>
+                {% endfor %}
+ {% endcomment %}
+                {% for reestudio in datos_reestudios.cartulinas.reestudios_aprob %}
+
+                <tr>
+                    <td>{{reestudio.cliente}}</td>
+                    <td>Reestudio</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reestudio.monto_anterior|format_number}}</td>
+                    <td>{{reestudio.monto_aprobado|format_number}}</td>
+                    <td>{{reestudio.monto_temporal|format_number}}</td>
+                    
+                </tr>
+                {% endfor %}
+
+                {% for reestudio in datos_reestudios.cartulinas.reestudios_rechaz %}
+
+                <tr>
+                    <td>{{reestudio.cliente}}</td>
+                    <td>Reestudio</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reestudio.monto_anterior|format_number}}</td>
+                    <td>{{reestudio.monto_aprobado|format_number}}</td>
+                    <td>{{reestudio.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+            {% for cancelacion in datos_cancelaciones.cancelaciones_cartulinas.datos_cancelaciones %}
+
             <tr>
+                <td>{{cancelacion.cliente}}</td>
+                <td>Cancelado</td>
                 <td>-</td>
                 <td>-</td>
+                <td>{{cancelacion.monto_anterior|format_number}}</td>
                 <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
+                <td>{{cancelacion.monto_temporal|format_number}}</td>
+                
             </tr>
+            {% endfor %}
+            {% for reduccion in datos_reducciones.reducciones_cartulinas %}
+
+            <tr>
+                <td>{{reduccion.cliente}}</td>
+                <td>Reducción</td>
+                <td>-</td>
+                <td>-</td>
+                <td>{{reduccion.monto_anterior|format_number}}</td>
+                <td>{{reduccion.monto_aprobado|format_number}}</td>
+                <td>{{reduccion.monto_temporal|format_number}}</td>
+            </tr>
+            {% endfor %}
 
             <!-- Más filas aquí -->
         </tbody>
     </table>
 </div>
 </section>
+
+{% comment %} FIN CARTULINAS {% endcomment %}
+
+{% comment %} PRORROGAS CON DIVISIONES {% endcomment %}
+<h2>Prórrogas</h2>
 <section class="clientes">
-    <h2>Prorrogas solicitadas</h2>
+    <h2>Prórrogas solicitadas</h2>
     <table>
         <thead>
             <tr>
@@ -566,7 +722,7 @@ tbody tr:hover {
                 <th>Monto</th>
                 <th>Cubierto</th>
                 <th>Vencimiento</th>
-                <th>Prorroga</th>
+                <th>Prórroga</th>
                 <th>Estado</th>
                 <th>Comercial</th>
                 <th>División</th>
@@ -574,23 +730,24 @@ tbody tr:hover {
             </tr>
         </thead>
         <tbody>
+            {% for prorroga in datos_prorrogas %}
             <tr>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
+                <td>{{prorroga.cliente}}</td>
+                <td>{{prorroga.monto_factura|format_number}}</td>
+                <td>{{prorroga.saldo_prorroga|format_number}}</td>
+                <td>{{prorroga.fecha_vencimiento_factura|format_date}}</td>
+                <td>{{prorroga.fecha_vencimiento_prorroga|format_date}}</td>
+                <td>{{prorroga.estado}}</td>
                 <td>-</td>
                 <td>-</td>
             </tr>
-            
-            <!-- Más filas aquí -->
+            {% endfor %}
         </tbody>
 
     </table>
 </section>
-{% comment %} FIN CARTULINAS {% endcomment %}
+
+{% comment %} FIN CON DIVISIONES {% endcomment %}
 
 
 {% comment %} INICIO SIN DIVISIONES {% endcomment %}
@@ -622,15 +779,14 @@ tbody tr:hover {
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+
                 <tr>
                   <td>Total</td>
                   <td>{{datos_solicitudes_cobertura.num_total_cobertura}}</td>
                   <td>{{datos_solicitudes_cobertura.total_solicitado|format_number}}</td>
                   <td>{{datos_solicitudes_cobertura.cant_aprobado_aprob|format_number}} ({{datos_solicitudes_cobertura.porcentaje_total_aprob}}%)</td> 
                 </tr>
-              </tfoot>
+            </tbody>
         </table>
     </section>
     <section class="clientes">
@@ -659,15 +815,14 @@ tbody tr:hover {
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+
                 <tr>
                     <td>Total</td>
                     <td>{{datos_clientes_nuevos.num_total_cobertura}}</td>
                     <td>{{datos_clientes_nuevos.total_solicitado|format_number}}</td>
                     <td>{{datos_clientes_nuevos.cant_aprobado_aprob|format_number}} ({{datos_clientes_nuevos.porcentaje_total_aprob}}%)</td> 
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </section>
     <section class="clientes">
@@ -688,28 +843,27 @@ tbody tr:hover {
                     <td>APROBADO</td>
                     <td>{{datos_reestudios.sin_separacion.num_reestudios_aprob}}</td>
                     <td>{{datos_reestudios.sin_separacion.cant_solicitado_aprob|format_number}}</td>
-                    <td>{{datos_reestudios.sin_separacion.monto_aprobado_anteriores_aprob|format_number}}</td>
-                    <td>{{datos_reestudios.sin_separacion.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_aprob}}%)</td>
+                    <td>{{datos_reestudios.sin_separacion.cant_anterior_aprob|format_number}}</td>
+                    <td>{{datos_reestudios.sin_separacion.cant_aprobado_aprob|format_number}} ({{datos_reestudios.sin_separacion.porcentaje_aprob}}%)</td>
                 
                 </tr>
                 <tr>
                     <td>RECHAZADO</td>
                     <td>{{datos_reestudios.sin_separacion.num_reestudios_rechaz}}</td>
                     <td>{{datos_reestudios.sin_separacion.cant_solicitado_rechaz|format_number}}</td>
-                    <td>{{datos_reestudios.sin_separacion.monto_aprobado_anteriores_rechaz|format_number}}</td>
+                    <td>{{datos_reestudios.sin_separacion.cant_anterior_rechaz|format_number}}</td>
                     <td></td>
                 </tr>
                 <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+
                 <tr>
                   <td>Total</td>
                   <td>{{datos_reestudios.sin_separacion.num_total_reestudios}}</td>
                   <td>{{datos_reestudios.sin_separacion.total_solicitado|format_number}}</td>
-                  <td>{{datos_reestudios.sin_separacion.monto_aprobado_anteriores_total|format_number}}</td>
-                  <td>{{datos_reestudios.sin_separacion.cant_aprobado_aprob|format_number}} ({{datos_reestudios.porcentaje_total_aprob}}%)</td> 
+                  <td>{{datos_reestudios.sin_separacion.cant_anterior_total|format_number}}</td>
+                  <td>{{datos_reestudios.sin_separacion.cant_aprobado_aprob|format_number}} ({{datos_reestudios.sin_separacion.porcentaje_total_aprob}}%)</td> 
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </section>
     <section class="clientes">
@@ -727,30 +881,64 @@ tbody tr:hover {
             <tbody>
                 <tr>
                     <td>REDUCCIÓN</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <td>{{datos_reducciones.num_reducciones_sin_separacion}}</td>
+                    <td>{{datos_reducciones.monto_anterior_reducciones_sin_separacion|format_number}}</td>
+                    <td>{{datos_reducciones.monto_aprob_reducciones_sin_separacion|format_number}}</td>
                 </tr>
                 <tr>
                     <td>CANCELADO</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <td>{{datos_cancelaciones.cancelaciones_sin_separacion.num_cancelaciones}}</td>
+                    <td>{{datos_cancelaciones.cancelaciones_sin_separacion.total_monto_aprobado|format_number}}</td>
                     <td>-</td>
                 </tr>
                 <!-- Más filas aquí -->
-            </tbody>
-            <tfoot>
+
                 <tr>
                   <td>Total</td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td>-</td>
+                  <td>{{total_cancelaciones_reducciones_sin_separacion}}</td>
+                  <td>{{total_monto_anterior_cancelaciones_reducciones_sin_separacion|format_number}}</td>
+                  <td>{{total_monto_aprob_cancelaciones_reducciones_sin_separacion|format_number}}</td>
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </section>
     <section class="clientes">
-        <h2></h2>
+        <h2>Prórrogas solicitadas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Razón social</th>
+                    <th>Monto</th>
+                    <th>Cubierto</th>
+                    <th>Vencimiento</th>
+                    <th>Prórroga</th>
+                    <th>Estado</th>
+                    <th>Comercial</th>
+                    <th>División</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for prorroga in datos_prorrogas %}
+                <tr>
+                    <td>{{prorroga.cliente}}</td>
+                    <td>{{prorroga.monto_factura|format_number}}</td>
+                    <td>{{prorroga.saldo_prorroga|format_number}}</td>
+                    <td>{{prorroga.fecha_vencimiento_factura|format_date}}</td>
+                    <td>{{prorroga.fecha_vencimiento_prorroga|format_date}}</td>
+                    <td>{{prorroga.estado}}</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                {% endfor %}
+                
+                <!-- Más filas aquí -->
+            </tbody>
+
+        </table>
+    </section>
+    <section class="clientes">
+        <h2>Solicitudes</h2>
         <div class="table-container">
         <table class="tabla-reducciones-cancelaciones">
             <thead>
@@ -761,62 +949,120 @@ tbody tr:hover {
                     <th>Cubierto</th>
                     <th>Anterior</th>
                     <th>Actual</th>
-                    <th>Estado deuda</th>
-                    <th>Comercial</th>
-                    <th>División</th>
+                    <th>Monto temporal</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                </tr>
 
-                <!-- Más filas aquí -->
+                {% for solicitudes in datos_solicitudes_cobertura.sol_sin_separacion_aprob %}
+
+                <tr>
+                    <td>{{solicitudes.cliente}}</td>
+                    <td>Solicitud de cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{solicitudes.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for solicitudes in datos_solicitudes_cobertura.sol_sin_separacion_rechaz %}
+
+                <tr>
+                    <td>{{solicitudes.cliente}}</td>
+                    <td>Solicitud de cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{solicitudes.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% comment %} {% for nuevos in datos_clientes_nuevos.sol_sin_separacion_aprob %}
+
+                <tr>
+                    <td>{{nuevos.cliente}}</td>
+                    <td>Sin cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{nuevos.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for nuevos in datos_clientes_nuevos.sol_sin_separacion_rechaz %}
+
+                <tr>
+                    <td>{{nuevos.cliente}}</td>
+                    <td>Sin cobertura</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{nuevos.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %} {% endcomment %}
+
+                {% for reestudio in datos_reestudios.sin_separacion.reestudios_aprob %}
+
+                <tr>
+                    <td>{{reestudio.cliente}}</td>
+                    <td>Reestudio</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reestudio.monto_anterior|format_number}}</td>
+                    <td>{{reestudio.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for reestudio in datos_reestudios.sin_separacion.reestudios_rechaz %}
+
+                <tr>
+                    <td>{{reestudio.cliente}}</td>
+                    <td>Reestudio</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reestudio.monto_anterior|format_number}}</td>
+                    <td>{{reestudio.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+
+                {% for cancelacion in datos_cancelaciones.cancelaciones_sin_separacion.datos_cancelaciones %}
+
+                <tr>
+                    <td>{{cancelacion.cliente}}</td>
+                    <td>Cancelado</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{cancelacion.monto_anterior|format_number}}</td>
+                    <td>-</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+                {% for reduccion in datos_reducciones.reducciones_sin_separacion %}
+
+                <tr>
+                    <td>{{reduccion.cliente}}</td>
+                    <td>Reducción</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{reduccion.monto_aprobado|format_number}}</td>
+                    <td>{{solicitudes.monto_temporal|format_number}}</td>
+                </tr>
+                {% endfor %}
+                
+                
             </tbody>
         </table>
     </div>
     </section>
-    <section class="clientes">
-        <h2>Prorrogas solicitadas</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Razón social</th>
-                    <th>Monto</th>
-                    <th>Cubierto</th>
-                    <th>Vencimiento</th>
-                    <th>Prorroga</th>
-                    <th>Estado</th>
-                    <th>Comercial</th>
-                    <th>División</th>
 
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                </tr>
-                
-                <!-- Más filas aquí -->
-            </tbody>
-
-        </table>
-    </section>
     {% endif %}
 </body>
 

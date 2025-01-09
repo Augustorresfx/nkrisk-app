@@ -53,7 +53,7 @@ from .api_auth import ApiAuthentication, AuthenticationError
 from .api_manager import ApiManager
 from .utils import get_tarifas, get_vehicle_type, convert_tipo_cobertura, convert_date, handle_aumento_suma_asegurada, handle_baja_items, handle_cambio_cobertura, handle_modificacion_datos, handle_renovacion_alta_items
 from .utils import importar_datos_roemmers_saicf, importar_datos_roemmers_alberto_guillermo, importar_datos_rofina_saicf, importar_datos_ganadera_santa_isabel, comparar_totales
-from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados, consultar_por_divisiones, obtener_datos_solicitudes_cobertura, obtener_datos_clientes_sin_cobertura, obtener_datos_reestudios, obtener_datos_cancelaciones, obtener_datos_reducciones
+from .utils_creditos import cargar_datos_innominados, cargar_datos_nominados, cargar_datos_prorrogas, consultar_por_divisiones, obtener_datos_solicitudes_cobertura, obtener_datos_clientes_sin_cobertura, obtener_datos_reestudios, obtener_datos_cancelaciones, obtener_datos_reducciones, obtener_datos_prorrogas
 
 
 # Roles y permisos
@@ -70,7 +70,7 @@ staff_required = user_passes_test(is_staff_user, login_url=reverse_lazy('signin'
 
 # 404 page
 def pagina_no_encontrada(request, exception):
-    print("Error 404 ocurrido")
+    
     return HttpResponseNotFound(render(request, '404.html'))
 
 class HomeView(View):
@@ -1688,16 +1688,16 @@ class DetalleCreditoView(View):
     def post(self, request, asegurado_id, *args, **kwargs):
         lista_errores = []
         asegurado = AseguradoCredito.objects.get(id=asegurado_id)
-
+        
         if 'generar_reporte' in request.POST:
             año = int(request.POST.get('año'))
             mes = int(request.POST.get('mes'))
             
             fecha_formateada = f"{mes:02d}/{año}"
             fecha_completa_formateada = f"01/{mes:02d}/{año}"
-        
+
             tiene_divisiones = consultar_por_divisiones(fecha_completa_formateada, asegurado)
-            
+            print("Divisiones: ", tiene_divisiones)
             # Obtener los datos filtrados
             datos_solicitudes_cobertura = obtener_datos_solicitudes_cobertura(fecha_completa_formateada, asegurado)
             
@@ -1708,14 +1708,30 @@ class DetalleCreditoView(View):
             datos_cancelaciones = obtener_datos_cancelaciones(fecha_completa_formateada, asegurado)
             
             datos_reducciones = obtener_datos_reducciones(fecha_completa_formateada, asegurado)
+                        
+            total_cancelaciones_reducciones_envases = datos_cancelaciones['cancelaciones_envases']['num_cancelaciones'] + datos_reducciones['num_reducciones_envases']
+            total_cancelaciones_reducciones_cartulinas = datos_cancelaciones['cancelaciones_cartulinas']['num_cancelaciones'] + datos_reducciones['num_reducciones_cartulinas']
+            total_cancelaciones_reducciones_sin_separacion = datos_cancelaciones['cancelaciones_sin_separacion']['num_cancelaciones'] + datos_reducciones['num_reducciones_sin_separacion']
+
+            total_monto_aprob_cancelaciones_reducciones_envases = datos_reducciones['monto_aprob_reducciones_envases']
+            total_monto_aprob_cancelaciones_reducciones_cartulinas = datos_reducciones['monto_aprob_reducciones_cartulinas']
+            total_monto_aprob_cancelaciones_reducciones_sin_separacion = datos_reducciones['monto_aprob_reducciones_sin_separacion']
+
+            total_monto_anterior_cancelaciones_reducciones_envases = datos_cancelaciones['cancelaciones_envases']['total_monto_aprobado'] + datos_reducciones['monto_anterior_reducciones_envases']
+            total_monto_anterior_cancelaciones_reducciones_cartulinas = datos_cancelaciones['cancelaciones_cartulinas']['total_monto_aprobado'] + datos_reducciones['monto_anterior_reducciones_cartulinas']
+            total_monto_anterior_cancelaciones_reducciones_sin_separacion = datos_cancelaciones['cancelaciones_sin_separacion']['total_monto_aprobado'] + datos_reducciones['monto_anterior_reducciones_sin_separacion']
+
+            # PRÓRROGAS
+            datos_prorrogas = obtener_datos_prorrogas(fecha_completa_formateada, asegurado)
             
             print("Solicitudes de cobertura: ", datos_solicitudes_cobertura)
             print("CLientes nuevos: ", datos_clientes_nuevos)
             print("Reestudios: ", datos_reestudios)
             print("Cancelaciones: ", datos_cancelaciones)
             print("Reducciones: ", datos_reducciones)
+            print("Prorrogas: ", datos_prorrogas)
             
-            
+            print("Datos reestudios:", datos_reestudios)
             # Renderizar el template con los datos
             html_string = render_to_string('creditos/reporte_template.html', {
             'asegurado': asegurado,
@@ -1723,7 +1739,23 @@ class DetalleCreditoView(View):
             'datos_solicitudes_cobertura': datos_solicitudes_cobertura,
             'datos_clientes_nuevos': datos_clientes_nuevos,
             'datos_reestudios': datos_reestudios,
+            'datos_reducciones': datos_reducciones,
+            'datos_cancelaciones': datos_cancelaciones,
+            'datos_prorrogas': datos_prorrogas,
             'tiene_divisiones': tiene_divisiones,
+            
+            'total_cancelaciones_reducciones_envases': total_cancelaciones_reducciones_envases,
+            'total_cancelaciones_reducciones_cartulinas': total_cancelaciones_reducciones_cartulinas,
+            'total_cancelaciones_reducciones_sin_separacion': total_cancelaciones_reducciones_sin_separacion,
+             
+            'total_monto_anterior_cancelaciones_reducciones_envases': total_monto_anterior_cancelaciones_reducciones_envases,
+            'total_monto_anterior_cancelaciones_reducciones_cartulinas': total_monto_anterior_cancelaciones_reducciones_cartulinas,
+            'total_monto_anterior_cancelaciones_reducciones_sin_separacion': total_monto_anterior_cancelaciones_reducciones_sin_separacion,
+            
+            'total_monto_aprob_cancelaciones_reducciones_envases': total_monto_aprob_cancelaciones_reducciones_envases,
+            'total_monto_aprob_cancelaciones_reducciones_cartulinas': total_monto_aprob_cancelaciones_reducciones_cartulinas,
+            'total_monto_aprob_cancelaciones_reducciones_sin_separacion': total_monto_aprob_cancelaciones_reducciones_sin_separacion,
+            
             })
             
             # Generar el PDF
@@ -1735,43 +1767,41 @@ class DetalleCreditoView(View):
             response['Content-Disposition'] = f'inline; filename="Informe Insur {mes:02d}-{año}.pdf"'
             return response
             
-        if "importar_nominados" in request.POST:
-            # Obtener la instancia del asegurado
-            asegurado = AseguradoCredito.objects.get(pk=asegurado_id)
+        if "importar_listado" in request.POST:
+            tipo = request.POST.get('tipo')
 
-            
-            file1 = request.FILES.get('file1')
-            df = pd.read_excel(file1)
-            try:
-                # Intenta importar datos de nominados
-                
-                cargar_datos_nominados(df, asegurado)
-                messages.success(request, 'Se importaron los datos exitosamente.')
-                
-            except Exception as e:
-                
-                messages.error(request, f'Error: No se pudo importar los datos: {str(e)}')
-            return redirect('detalle_credito', asegurado_id=asegurado_id)
+            # Obtener el archivo cargado
+            file = request.FILES.get('file1')
+            df = pd.read_excel(file)
         
-        if "importar_innominados" in request.POST:
-            # Obtener la instancia del asegurado
-            asegurado = AseguradoCredito.objects.get(pk=asegurado_id)
+            if tipo == "nominados":
+                try:
+                    # Cargar datos de nominados
+                    cargar_datos_nominados(df, asegurado)
+                    messages.success(request, 'Se importaron los datos de nominados exitosamente.')
+                except Exception as e:
+                    messages.error(request, f'Error: No se pudo importar los datos: {str(e)}')
+        
+            elif tipo == "innominados":
+                try:
+                    # Cargar datos de innominados
+                    cargar_datos_innominados(df, asegurado)
+                    messages.success(request, 'Se importaron los datos de innominados exitosamente.')
+                except Exception as e:
+                    messages.error(request, f'Error: No se pudo importar los datos: {str(e)}')
 
-            
-            file2 = request.FILES.get('file1')
-            
-            df = pd.read_excel(file2)
-            try:
-                # Intenta importar datos de nominados
-                
-                cargar_datos_innominados(df, asegurado)
-                messages.success(request, 'Se importaron los datos exitosamente.')
-                
-            except Exception as e:
-                
-                messages.error(request, f'Error: No se pudo importar los datos: {str(e)}')
-            return redirect('detalle_credito', asegurado_id=asegurado_id)
-        
+            elif tipo == "prorrogas":
+                try:
+                    # Cargar datos de prorrogas
+                    cargar_datos_prorrogas(df, asegurado)
+                    messages.success(request, 'Se importaron los datos de prórrogas exitosamente.')
+                except Exception as e:
+                    messages.error(request, f'Error: No se pudo importar los datos: {str(e)}')
+
+            else:
+                messages.error(request, 'Error: Selecciona un tipo válido.')
+
+            return redirect('detalle_credito', asegurado_id=asegurado_id)            
         return redirect('detalle_credito', asegurado_id=asegurado_id)
 
 
