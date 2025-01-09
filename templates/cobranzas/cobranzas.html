@@ -37,7 +37,7 @@
         world
           .lineHoverPrecision(0)
           .polygonsData(countries.features.filter(d => d.properties.ISO_A2 !== 'AQ'))
-          .polygonAltitude(0.01)
+          .polygonAltitude(0.02)
           .polygonCapColor(feat => 'rgba(0, 112, 204, 0.3)')
           .polygonSideColor(null)
           .polygonStrokeColor(() => '#00c2cc')
@@ -48,6 +48,8 @@
 
       world.controls().autoRotate = true;
       world.controls().autoRotateSpeed = 0.2;
+      // Desactivar los controles
+      world.controls().enabled = false;
     } else {
       // Configuración para dispositivos normales
       const getVal = feat => feat.properties.GDP_MD_EST / Math.max(1e5, feat.properties.POP_EST);
@@ -72,6 +74,8 @@
 
       world.controls().autoRotate = true;
       world.controls().autoRotateSpeed = 0.2;
+      // Desactivar los controles
+      world.controls().enabled = false;
     }
   </script>
 </body>
